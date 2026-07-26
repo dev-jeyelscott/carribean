@@ -4,14 +4,14 @@
 <head>
     <x-public.seo-meta
         :title="$title ?? null"
-        :description="$description ?? null">
+        :description="$description ?? null" />
 
-        @vite([
-        'resources/css/public.css',
-        'resources/js/app.js',
-        ])
+    @vite([
+    'resources/css/public.css',
+    'resources/js/app.js',
+    ])
 
-        @livewireStyles
+    @livewireStyles
 </head>
 
 <body
