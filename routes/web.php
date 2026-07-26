@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CheckoutSuccessController;
 use App\Http\Controllers\PublicSite\BanquetHallController;
 use App\Http\Controllers\PublicSite\ContactController;
 use App\Http\Controllers\PublicSite\GalleryController;
@@ -17,11 +18,23 @@ Route::get('/', [HomeController::class, 'index'])
 Route::get('/menu', [MenuController::class, 'index'])
     ->name('menu');
 
-Route::get('/menu/{menuItem:slug}', MenuItemController::class)
-    ->name('menu-items.show');
+Route::get(
+    '/menu/{menuItem:slug}',
+    MenuItemController::class,
+)->name('menu-items.show');
 
 Route::view('/cart', 'pages.cart')
     ->name('cart.index');
+
+Route::view('/checkout', 'pages.checkout')
+    ->name('checkout.index');
+
+Route::get(
+    '/checkout/success/{order:public_id}',
+    CheckoutSuccessController::class,
+)
+    ->middleware('signed')
+    ->name('checkout.success');
 
 Route::middleware('auth')
     ->prefix('account')
@@ -37,14 +50,20 @@ Route::middleware('auth')
             ->name('orders.index');
     });
 
-Route::get('/about', [PageController::class, 'about'])
-    ->name('about');
+Route::get(
+    '/about',
+    [PageController::class, 'about'],
+)->name('about');
 
-Route::get('/gallery', [GalleryController::class, 'index'])
-    ->name('gallery');
+Route::get(
+    '/gallery',
+    [GalleryController::class, 'index'],
+)->name('gallery');
 
-Route::get('/banquet-hall', [BanquetHallController::class, 'index'])
-    ->name('banquet-hall');
+Route::get(
+    '/banquet-hall',
+    [BanquetHallController::class, 'index'],
+)->name('banquet-hall');
 
 Route::get(
     '/reservation-request',
@@ -56,8 +75,10 @@ Route::get(
     [OrderInquiryController::class, 'create'],
 )->name('order-inquiry.create');
 
-Route::get('/contact', [ContactController::class, 'create'])
-    ->name('contact.create');
+Route::get(
+    '/contact',
+    [ContactController::class, 'create'],
+)->name('contact.create');
 
 Route::middleware('throttle:public-forms')
     ->group(function (): void {

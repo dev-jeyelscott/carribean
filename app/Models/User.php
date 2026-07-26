@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -32,25 +33,54 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'email', 'phone', 'password'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden([
+    'password',
+    'two_factor_secret',
+    'two_factor_recovery_codes',
+    'remember_token',
+])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory;
+
+    use Notifiable;
+    use PasskeyAuthenticatable;
+    use TwoFactorAuthenticatable;
+
+    /**
+     * Determine whether the user is the configured administrator.
+     */
+    public function isAdministrator(): bool
+    {
+        $adminEmail = config('admin.seed_user.email');
+
+        return is_string($adminEmail)
+            && $adminEmail !== ''
+            && strcasecmp(
+                $this->email,
+                $adminEmail,
+            ) === 0;
+    }
 
     /**
      * Determine whether the user can access the Filament admin panel.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        $adminEmail = config('admin.seed_user.email');
-
-        if (! is_string($adminEmail) || $adminEmail === '') {
-            return false;
-        }
-
         return $panel->getId() === 'admin'
-            && strcasecmp($this->email, $adminEmail) === 0;
+            && $this->isAdministrator();
+    }
+
+    /**
+     * Get orders placed by this registered customer.
+     *
+     * @return HasMany<Order, $this>
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class)
+            ->latest('placed_at');
     }
 
     /**
@@ -67,14 +97,18 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     }
 
     /**
-     * Get the user's initials for account and administration interfaces.
+     * Get the user's initials for account interfaces.
      */
     public function initials(): string
     {
-        $initials = Str::initials($this->name, true);
+        $initials = Str::initials(
+            $this->name,
+            true,
+        );
 
         return Str::length($initials) > 1
-            ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
+            ? Str::substr($initials, 0, 1)
+                .Str::substr($initials, -1)
             : $initials;
     }
 }
