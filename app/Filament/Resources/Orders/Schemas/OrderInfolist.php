@@ -18,8 +18,8 @@ class OrderInfolist
     /**
      * Configure the complete read-only operational order view.
      *
-     * The two independent nested grids allow each desktop column to stack
-     * vertically without inheriting the height of sections in the other column.
+     * Each desktop column uses an independent vertical grid so taller sections
+     * do not create empty spaces underneath sections in the opposite column.
      */
     public static function configure(
         Schema $schema,
@@ -32,6 +32,119 @@ class OrderInfolist
                 ])
                     ->dense()
                     ->schema([
+                        /*
+                         * First column:
+                         * Customer, delivery address, and status history.
+                         */
+                        Grid::make(1)
+                            ->dense()
+                            ->schema([
+                                Section::make('Customer')
+                                    ->columns(3)
+                                    ->schema([
+                                        TextEntry::make('customer_name')
+                                            ->label('Name'),
+
+                                        TextEntry::make('customer_email')
+                                            ->label('Email')
+                                            ->copyable(),
+
+                                        TextEntry::make('customer_phone')
+                                            ->label('Phone')
+                                            ->copyable(),
+
+                                        TextEntry::make('customer_note')
+                                            ->label('Customer note')
+                                            ->placeholder('No customer note')
+                                            ->columnSpanFull(),
+
+                                        TextEntry::make('internal_note')
+                                            ->label('Internal staff notes')
+                                            ->placeholder('No internal notes')
+                                            ->columnSpanFull(),
+                                    ]),
+
+                                Section::make('Delivery address')
+                                    ->schema([
+                                        RepeatableEntry::make('addresses')
+                                            ->hiddenLabel()
+                                            ->columns(3)
+                                            ->schema([
+                                                TextEntry::make('recipient_name')
+                                                    ->label('Recipient'),
+
+                                                TextEntry::make('phone')
+                                                    ->copyable(),
+
+                                                TextEntry::make('postal_code')
+                                                    ->label('ZIP code'),
+
+                                                TextEntry::make('street_address')
+                                                    ->label('Street address'),
+
+                                                TextEntry::make('apartment_or_unit')
+                                                    ->label('Unit')
+                                                    ->placeholder('None'),
+
+                                                TextEntry::make('city'),
+
+                                                TextEntry::make('state'),
+
+                                                TextEntry::make('delivery_instructions')
+                                                    ->label('Delivery instructions')
+                                                    ->placeholder('None')
+                                                    ->columnSpanFull(),
+                                            ]),
+                                    ])
+                                    ->visible(
+                                        fn ($record): bool => $record->fulfillment_method
+                                            === FulfillmentMethod::Delivery,
+                                    ),
+
+                                Section::make('Status history')
+                                    ->schema([
+                                        RepeatableEntry::make('statusHistories')
+                                            ->hiddenLabel()
+                                            ->columns(4)
+                                            ->schema([
+                                                TextEntry::make('previous_status')
+                                                    ->label('From')
+                                                    ->formatStateUsing(
+                                                        fn (?OrderStatus $state): string => $state?->label()
+                                                            ?? 'Order created',
+                                                    ),
+
+                                                TextEntry::make('new_status')
+                                                    ->label('To')
+                                                    ->formatStateUsing(
+                                                        fn (OrderStatus $state): string => $state->label(),
+                                                    ),
+
+                                                TextEntry::make('changedByUser.name')
+                                                    ->label('Changed by')
+                                                    ->placeholder('System'),
+
+                                                TextEntry::make('created_at')
+                                                    ->label('Changed')
+                                                    ->dateTime(),
+
+                                                TextEntry::make('public_note')
+                                                    ->label('Customer-facing note')
+                                                    ->placeholder('None')
+                                                    ->columnSpan(2),
+
+                                                TextEntry::make('internal_note')
+                                                    ->label('Internal note')
+                                                    ->placeholder('None')
+                                                    ->columnSpan(2),
+                                            ]),
+                                    ]),
+                            ]),
+
+                        /*
+                         * Second column:
+                         * Order summary, totals, items, and payments.
+                         */
                         Grid::make(1)
                             ->dense()
                             ->schema([
@@ -125,111 +238,6 @@ class OrderInfolist
                                                     $state,
                                                 ) ?? '$0.00',
                                             ),
-                                    ]),
-
-                                Section::make('Delivery address')
-                                    ->schema([
-                                        RepeatableEntry::make('addresses')
-                                            ->hiddenLabel()
-                                            ->columns(3)
-                                            ->schema([
-                                                TextEntry::make('recipient_name')
-                                                    ->label('Recipient'),
-
-                                                TextEntry::make('phone')
-                                                    ->copyable(),
-
-                                                TextEntry::make('postal_code')
-                                                    ->label('ZIP code'),
-
-                                                TextEntry::make('street_address')
-                                                    ->label('Street address'),
-
-                                                TextEntry::make('apartment_or_unit')
-                                                    ->label('Unit')
-                                                    ->placeholder('None'),
-
-                                                TextEntry::make('city'),
-
-                                                TextEntry::make('state'),
-
-                                                TextEntry::make('delivery_instructions')
-                                                    ->label('Delivery instructions')
-                                                    ->placeholder('None')
-                                                    ->columnSpanFull(),
-                                            ]),
-                                    ])
-                                    ->visible(
-                                        fn ($record): bool => $record->fulfillment_method
-                                            === FulfillmentMethod::Delivery,
-                                    ),
-
-                                Section::make('Status history')
-                                    ->schema([
-                                        RepeatableEntry::make('statusHistories')
-                                            ->hiddenLabel()
-                                            ->columns(4)
-                                            ->schema([
-                                                TextEntry::make('previous_status')
-                                                    ->label('From')
-                                                    ->formatStateUsing(
-                                                        fn (?OrderStatus $state): string => $state?->label()
-                                                            ?? 'Order created',
-                                                    ),
-
-                                                TextEntry::make('new_status')
-                                                    ->label('To')
-                                                    ->formatStateUsing(
-                                                        fn (OrderStatus $state): string => $state->label(),
-                                                    ),
-
-                                                TextEntry::make('changedByUser.name')
-                                                    ->label('Changed by')
-                                                    ->placeholder('System'),
-
-                                                TextEntry::make('created_at')
-                                                    ->label('Changed')
-                                                    ->dateTime(),
-
-                                                TextEntry::make('public_note')
-                                                    ->label('Customer-facing note')
-                                                    ->placeholder('None')
-                                                    ->columnSpan(2),
-
-                                                TextEntry::make('internal_note')
-                                                    ->label('Internal note')
-                                                    ->placeholder('None')
-                                                    ->columnSpan(2),
-                                            ]),
-                                    ]),
-                            ]),
-
-                        Grid::make(1)
-                            ->dense()
-                            ->schema([
-                                Section::make('Customer')
-                                    ->columns(3)
-                                    ->schema([
-                                        TextEntry::make('customer_name')
-                                            ->label('Name'),
-
-                                        TextEntry::make('customer_email')
-                                            ->label('Email')
-                                            ->copyable(),
-
-                                        TextEntry::make('customer_phone')
-                                            ->label('Phone')
-                                            ->copyable(),
-
-                                        TextEntry::make('customer_note')
-                                            ->label('Customer note')
-                                            ->placeholder('No customer note')
-                                            ->columnSpanFull(),
-
-                                        TextEntry::make('internal_note')
-                                            ->label('Internal staff notes')
-                                            ->placeholder('No internal notes')
-                                            ->columnSpanFull(),
                                     ]),
 
                                 Section::make('Items')
