@@ -1,9 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "dev-jeyelscott/fine-dining-restaurant",
+    "name": "dev-jeyelscott/carribean",
     "type": "project",
-    "description": "A Laravel website for a fine-dining restaurant with admin-managed content and customer inquiry workflows.",
-    "keywords": ["laravel", "restaurant", "filament", "fine-dining"],
+    "description": "A Laravel restaurant website with admin-managed content, customer inquiries, and online ordering.",
+    "keywords": [
+        "laravel",
+        "restaurant",
+        "filament",
+        "livewire",
+        "online-ordering"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.4",
@@ -48,7 +54,7 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
-            "npm install",
+            "npm ci",
             "npm run build"
         ],
         "dev": [
@@ -61,10 +67,6 @@
         "lint:check": [
             "pint --parallel --test"
         ],
-        "ci:check": [
-            "Composer\\Config::disableProcessTimeout",
-            "@test"
-        ],
         "types:check": [
             "phpstan analyse"
         ],
@@ -73,6 +75,11 @@
             "@lint:check",
             "@types:check",
             "@php artisan test"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
+            "@test",
+            "npm run build"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
