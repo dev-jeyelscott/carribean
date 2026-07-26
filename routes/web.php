@@ -13,6 +13,9 @@ use App\Http\Controllers\PublicSite\ReservationRequestController;
 use App\Http\Controllers\StripeCheckoutCancelController;
 use App\Http\Controllers\StripeCheckoutController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Livewire\Account\OrderDetail;
+use App\Livewire\Account\OrderList;
+use App\Livewire\Orders\GuestOrderDetail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])
@@ -68,9 +71,23 @@ Route::middleware('auth')
         Route::view('/profile', 'pages.account.profile')
             ->name('profile');
 
-        Route::view('/orders', 'pages.account.orders')
-            ->name('orders.index');
+        Route::livewire(
+            '/orders',
+            OrderList::class,
+        )->name('orders.index');
+
+        Route::livewire(
+            '/orders/{order:public_id}',
+            OrderDetail::class,
+        )->name('orders.show');
     });
+
+Route::livewire(
+    '/orders/{order:public_id}/guest',
+    GuestOrderDetail::class,
+)
+    ->middleware('signed')
+    ->name('guest.orders.show');
 
 Route::get(
     '/about',

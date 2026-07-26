@@ -6,7 +6,9 @@
             <div
                 class="rounded-island border border-brand-palm/10
                     bg-white p-7 shadow-island sm:p-10">
-                <p class="public-eyebrow">Order received</p>
+                <p class="public-eyebrow">
+                    Order received
+                </p>
 
                 <h1
                     class="mt-4 font-display text-5xl
@@ -16,7 +18,8 @@
 
                 <p class="mt-5 max-w-2xl leading-8 text-brand-muted">
                     Your order was received and is waiting for restaurant
-                    confirmation. Keep your order number for reference.
+                    confirmation. Keep your order number and tracking link
+                    for reference.
                 </p>
 
                 <dl
@@ -135,13 +138,11 @@
                 </div>
 
                 <div class="mt-9 flex flex-wrap gap-3">
-                    @auth
-                        <a
-                            href="{{ route('account.orders.index') }}"
-                            class="public-button-primary">
-                            View My Orders
-                        </a>
-                    @endauth
+                    <a
+                        href="{{ $trackingUrl }}"
+                        class="public-button-primary">
+                        Track This Order
+                    </a>
 
                     <a
                         href="{{ route('menu') }}"
@@ -150,6 +151,13 @@
                         Return to Menu
                     </a>
                 </div>
+
+                @guest
+                    <p class="mt-5 text-sm leading-6 text-brand-muted">
+                        Save the tracking link for this guest order. The
+                        secure link expires after 30 days.
+                    </p>
+                @endguest
             </div>
         </div>
     </section>

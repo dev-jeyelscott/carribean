@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
 
@@ -35,7 +36,25 @@ class OrderPolicy
     }
 
     /**
-     * Reserve order updates for the configured administrator.
+     * Allow the owning customer to complete a fulfilled order.
+     */
+    public function confirmReceived(
+        User $user,
+        Order $order,
+    ): bool {
+        return $order->user_id === $user->id
+            && in_array(
+                $order->status,
+                [
+                    OrderStatus::PickedUp,
+                    OrderStatus::Delivered,
+                ],
+                true,
+            );
+    }
+
+    /**
+     * Reserve general order updates for the configured administrator.
      */
     public function update(
         User $user,
