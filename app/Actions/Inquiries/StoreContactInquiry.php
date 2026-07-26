@@ -2,22 +2,46 @@
 
 namespace App\Actions\Inquiries;
 
+use App\Jobs\SendContactInquiryAcknowledgement;
 use App\Jobs\SendContactInquiryNotification;
 use App\Models\ContactInquiry;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class StoreContactInquiry
 {
     /**
-     * Store a contact inquiry and queue the restaurant notification.
+     * Store the inquiry and queue both restaurant and customer messages.
      *
      * @param  array<string, mixed>  $data
      */
     public function handle(array $data): ContactInquiry
     {
-        $contactInquiry = ContactInquiry::create($data);
+        $contactInquiry = ContactInquiry::create(
+            Arr::except(
+                $data,
+                ['website'],
+            ),
+        );
 
+        $this->queueRestaurantNotification(
+            $contactInquiry,
+        );
+
+        $this->queueCustomerAcknowledgement(
+            $contactInquiry,
+        );
+
+        return $contactInquiry;
+    }
+
+    /**
+     * Queue the existing internal restaurant notification.
+     */
+    private function queueRestaurantNotification(
+        ContactInquiry $contactInquiry,
+    ): void {
         $recipient = config('mail.inquiries_to');
 
         if (! is_string($recipient) || blank($recipient)) {
@@ -28,7 +52,7 @@ class StoreContactInquiry
                 ],
             );
 
-            return $contactInquiry;
+            return;
         }
 
         try {
@@ -37,13 +61,36 @@ class StoreContactInquiry
                 recipient: $recipient,
             );
         } catch (Throwable $exception) {
-            Log::error('Contact inquiry notification could not be queued.', [
-                'contact_inquiry_id' => $contactInquiry->id,
-                'exception' => $exception::class,
-                'message' => $exception->getMessage(),
-            ]);
+            Log::error(
+                'Contact inquiry notification could not be queued.',
+                [
+                    'contact_inquiry_id' => $contactInquiry->id,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ],
+            );
         }
+    }
 
-        return $contactInquiry;
+    /**
+     * Queue the customer receipt acknowledgement.
+     */
+    private function queueCustomerAcknowledgement(
+        ContactInquiry $contactInquiry,
+    ): void {
+        try {
+            SendContactInquiryAcknowledgement::dispatch(
+                contactInquiryId: $contactInquiry->id,
+            );
+        } catch (Throwable $exception) {
+            Log::error(
+                'Contact acknowledgement could not be queued.',
+                [
+                    'contact_inquiry_id' => $contactInquiry->id,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ],
+            );
+        }
     }
 }

@@ -50,6 +50,22 @@
         ],
     ];
 
+    if (
+        ($hasPublishedBlogPosts ?? false)
+        && Route::has('blog.index')
+    ) {
+        array_splice(
+            $primaryLinks,
+            4,
+            0,
+            [[
+                'label' => 'Journal',
+                'route' => 'blog.index',
+                'patterns' => ['blog.*'],
+            ]],
+        );
+    }
+
     $orderUrl = Route::has('cart.index')
         ? route('cart.index')
         : route('menu');
@@ -68,8 +84,6 @@
         'TikTok' => $settings['tiktok_url'] ?? null,
     ]);
 @endphp
-
-<header
     x-data="{
         open: false,
         scrolled: window.scrollY > 32,

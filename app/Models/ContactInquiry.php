@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ContactInquiryStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,8 +16,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $phone
  * @property string|null $subject
  * @property string $message
+ * @property ContactInquiryStatus $status
  * @property bool $is_read
  * @property Carbon|null $notification_sent_at
+ * @property Carbon|null $customer_acknowledgement_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -26,23 +29,30 @@ use Illuminate\Support\Carbon;
     'phone',
     'subject',
     'message',
+    'status',
     'is_read',
     'notification_sent_at',
 ])]
 class ContactInquiry extends Model
 {
     /**
+     * Return the model casts.
+     *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
+            'status' => ContactInquiryStatus::class,
             'is_read' => 'boolean',
             'notification_sent_at' => 'datetime',
+            'customer_acknowledgement_sent_at' => 'datetime',
         ];
     }
 
     /**
+     * Limit the query to inquiries staff have not reviewed.
+     *
      * @param  Builder<ContactInquiry>  $query
      */
     #[Scope]
@@ -52,6 +62,8 @@ class ContactInquiry extends Model
     }
 
     /**
+     * Display the newest inquiries first.
+     *
      * @param  Builder<ContactInquiry>  $query
      */
     #[Scope]

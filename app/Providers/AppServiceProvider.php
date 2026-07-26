@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\BlogPost;
+use App\Models\Faq;
 use App\Models\Order;
+use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Observers\OrderObserver;
 use Carbon\CarbonImmutable;
@@ -20,8 +23,10 @@ class AppServiceProvider extends ServiceProvider
 {
     private const PUBLIC_SITE_SETTINGS_ATTRIBUTE = 'public-site.settings';
 
+    private const PUBLIC_CONTENT_VISIBILITY_ATTRIBUTE = 'public-site.content-visibility';
+
     /**
-     * Register any application services.
+     * Register application services.
      */
     public function register(): void
     {
@@ -80,7 +85,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Share cached public restaurant settings with public templates.
+     * Share cached settings and public-content visibility with templates.
      */
     private function configurePublicSiteViews(): void
     {
@@ -104,15 +109,67 @@ class AppServiceProvider extends ServiceProvider
                     );
                 }
 
+                if (
+                    ! $request->attributes->has(
+                        self::PUBLIC_CONTENT_VISIBILITY_ATTRIBUTE,
+                    )
+                ) {
+                    $request->attributes->set(
+                        self::PUBLIC_CONTENT_VISIBILITY_ATTRIBUTE,
+                        [
+                            'hasPublishedBlogPosts' => BlogPost::query()
+                                ->published()
+                                ->exists(),
+
+                            'hasVisibleFaqs' => Faq::query()
+                                ->visible()
+                                ->exists(),
+
+                            'publishedPageSlugs' => Page::query()
+                                ->published()
+                                ->whereIn(
+                                    'slug',
+                                    [
+                                        'privacy-policy',
+                                        'terms-and-conditions',
+                                        'refund-and-cancellation-policy',
+                                        'delivery-and-pickup-policy',
+                                    ],
+                                )
+                                ->pluck('slug')
+                                ->all(),
+                        ],
+                    );
+                }
+
                 /** @var array<string, string|null> $settings */
                 $settings = $request->attributes->get(
                     self::PUBLIC_SITE_SETTINGS_ATTRIBUTE,
                 );
 
-                $view->with(
-                    'settings',
-                    $settings,
+                /**
+                 * @var array{
+                 *     hasPublishedBlogPosts: bool,
+                 *     hasVisibleFaqs: bool,
+                 *     publishedPageSlugs: list<string>
+                 * } $visibility
+                 */
+                $visibility = $request->attributes->get(
+                    self::PUBLIC_CONTENT_VISIBILITY_ATTRIBUTE,
                 );
+
+                $view->with([
+                    'settings' => $settings,
+                    'hasPublishedBlogPosts' => $visibility[
+                        'hasPublishedBlogPosts'
+                    ],
+                    'hasVisibleFaqs' => $visibility[
+                        'hasVisibleFaqs'
+                    ],
+                    'publishedPageSlugs' => $visibility[
+                        'publishedPageSlugs'
+                    ],
+                ]);
             },
         );
     }

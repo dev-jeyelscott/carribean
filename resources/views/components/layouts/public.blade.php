@@ -1,14 +1,38 @@
+@props([
+    'title' => null,
+    'description' => null,
+    'canonical' => null,
+    'image' => null,
+    'type' => 'website',
+    'noindex' => false,
+    'structuredData' => null,
+])
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <x-public.seo-meta
-        :title="$title ?? null"
-        :description="$description ?? null" />
+        :title="$title"
+        :description="$description"
+        :canonical="$canonical"
+        :image="$image"
+        :type="$type"
+        :noindex="$noindex" />
+
+    <x-public.restaurant-structured-data />
+
+    @if (
+        is_array($structuredData)
+        && $structuredData !== []
+    )
+        <x-public.structured-data
+            :data="$structuredData" />
+    @endif
 
     @vite([
-    'resources/css/public.css',
-    'resources/js/app.js',
+        'resources/css/public.css',
+        'resources/js/app.js',
     ])
 
     @livewireStyles
@@ -34,6 +58,10 @@
         <main id="main-content" tabindex="-1">
             {{ $slot }}
         </main>
+
+        @if (request()->routeIs('home'))
+            <x-public.blog-preview />
+        @endif
 
         <x-public.footer />
     </div>

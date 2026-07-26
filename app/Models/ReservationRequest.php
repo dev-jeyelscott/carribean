@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationRequestStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,9 +18,11 @@ use Illuminate\Support\Carbon;
  * @property string $preferred_time
  * @property int $guest_count
  * @property string|null $special_requests
+ * @property ReservationRequestStatus $status
  * @property bool $is_banquet_or_event
  * @property bool $is_read
  * @property Carbon|null $notification_sent_at
+ * @property Carbon|null $customer_acknowledgement_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -31,6 +34,7 @@ use Illuminate\Support\Carbon;
     'preferred_time',
     'guest_count',
     'special_requests',
+    'status',
     'is_banquet_or_event',
     'is_read',
     'notification_sent_at',
@@ -38,6 +42,8 @@ use Illuminate\Support\Carbon;
 class ReservationRequest extends Model
 {
     /**
+     * Return the model casts.
+     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -45,13 +51,17 @@ class ReservationRequest extends Model
         return [
             'preferred_date' => 'date',
             'guest_count' => 'integer',
+            'status' => ReservationRequestStatus::class,
             'is_banquet_or_event' => 'boolean',
             'is_read' => 'boolean',
             'notification_sent_at' => 'datetime',
+            'customer_acknowledgement_sent_at' => 'datetime',
         ];
     }
 
     /**
+     * Limit the query to requests staff have not reviewed.
+     *
      * @param  Builder<ReservationRequest>  $query
      */
     #[Scope]
@@ -61,6 +71,8 @@ class ReservationRequest extends Model
     }
 
     /**
+     * Display the newest reservation requests first.
+     *
      * @param  Builder<ReservationRequest>  $query
      */
     #[Scope]

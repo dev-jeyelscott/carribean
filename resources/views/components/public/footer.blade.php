@@ -44,38 +44,56 @@
         'Contact' => route('contact.create'),
     ];
 
-    if (Route::has('blog.index')) {
+    if (
+        ($hasPublishedBlogPosts ?? false)
+        && Route::has('blog.index')
+    ) {
         $exploreLinks['Journal'] = route('blog.index');
     }
 
-    if (Route::has('faq')) {
+    if (
+        ($hasVisibleFaqs ?? false)
+        && Route::has('faq')
+    ) {
         $exploreLinks['FAQ'] = route('faq');
     }
 
+    $publishedPageSlugs = $publishedPageSlugs ?? [];
+
     $legalLinks = array_filter([
-        'Privacy Policy' => Route::has('privacy-policy')
+        'Privacy Policy' => in_array(
+            'privacy-policy',
+            $publishedPageSlugs,
+            true,
+        ) && Route::has('privacy-policy')
             ? route('privacy-policy')
             : null,
 
-        'Terms and Conditions' => Route::has('terms-and-conditions')
+        'Terms and Conditions' => in_array(
+            'terms-and-conditions',
+            $publishedPageSlugs,
+            true,
+        ) && Route::has('terms-and-conditions')
             ? route('terms-and-conditions')
             : null,
 
-        'Refund and Cancellation' => Route::has(
+        'Refund and Cancellation' => in_array(
             'refund-and-cancellation-policy',
-        )
+            $publishedPageSlugs,
+            true,
+        ) && Route::has('refund-and-cancellation-policy')
             ? route('refund-and-cancellation-policy')
             : null,
 
-        'Delivery and Pickup' => Route::has(
+        'Delivery and Pickup' => in_array(
             'delivery-and-pickup-policy',
-        )
+            $publishedPageSlugs,
+            true,
+        ) && Route::has('delivery-and-pickup-policy')
             ? route('delivery-and-pickup-policy')
             : null,
     ]);
 @endphp
-
-<footer
     class="relative isolate overflow-hidden bg-brand-palm-dark
         text-brand-cream">
     {{-- Decorative brand-token accents. --}}
