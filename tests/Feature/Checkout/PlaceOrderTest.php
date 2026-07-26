@@ -394,3 +394,58 @@ test(
         )->toBe(1);
     },
 );
+
+test(
+    'stripe checkout creates a pending stripe payment when configured',
+    function (): void {
+        config([
+            'services.stripe.secret' => 'sk_test_example',
+        ]);
+
+        $menuItem =
+            createCheckoutItem();
+
+        app(SessionCart::class)->add(
+            $menuItem->id,
+            [],
+            1,
+        );
+
+        $order = app(
+            PlaceOrder::class,
+        )->execute(
+            app(SessionCart::class),
+            null,
+            checkoutCustomer(),
+            FulfillmentMethod::Pickup,
+            PaymentMethod::Stripe,
+            null,
+            null,
+            (string) Str::uuid(),
+        );
+
+        $payment =
+            $order->payments()
+                ->firstOrFail();
+
+        expect($order)
+            ->payment_method->toBe(
+                PaymentMethod::Stripe,
+            )
+            ->payment_status->toBe(
+                PaymentStatus::Pending,
+            );
+
+        expect($payment)
+            ->provider->toBe('stripe')
+            ->payment_method->toBe(
+                PaymentMethod::Stripe,
+            )
+            ->status->toBe(
+                PaymentStatus::Pending,
+            )
+            ->amount_cents->toBe(
+                $order->grand_total_cents,
+            );
+    },
+);

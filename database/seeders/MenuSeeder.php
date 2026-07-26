@@ -502,14 +502,14 @@ class MenuSeeder extends Seeder
         $itemSlug = Str::slug($itemData['name']);
         $imagePath = $this->storeSeedImageIfAvailable(
             disk: $disk,
-            sourceFilename: $itemSlug . '.webp',
+            sourceFilename: $itemSlug.'.webp',
         );
 
         $attributes = [
             ...$itemData,
             'menu_category_id' => $category->id,
             'slug' => $itemSlug,
-            'image_alt_text' => $itemData['name'] . ' plated at Coast & Cay.',
+            'image_alt_text' => $itemData['name'].' plated at Coast & Cay.',
             'is_visible' => true,
             'is_available' => true,
             'is_purchasable' => true,
@@ -579,7 +579,7 @@ class MenuSeeder extends Seeder
         string $sourceFilename,
     ): ?string {
         $sourcePath = database_path(
-            self::IMAGE_SOURCE_DIRECTORY . '/' . $sourceFilename,
+            self::IMAGE_SOURCE_DIRECTORY.'/'.$sourceFilename,
         );
 
         if (! File::isFile($sourcePath)) {
@@ -630,8 +630,8 @@ class MenuSeeder extends Seeder
             );
         }
 
-        $destinationFilename = $contentHash . '.' . self::IMAGE_EXTENSIONS_BY_MIME_TYPE[$mimeType];
-        $destinationPath = self::IMAGE_STORAGE_DIRECTORY . '/' . $destinationFilename;
+        $destinationFilename = $contentHash.'.'.self::IMAGE_EXTENSIONS_BY_MIME_TYPE[$mimeType];
+        $destinationPath = self::IMAGE_STORAGE_DIRECTORY.'/'.$destinationFilename;
 
         if ($disk->exists($destinationPath)) {
             return $destinationPath;

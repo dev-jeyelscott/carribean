@@ -12,6 +12,7 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\StripeCheckoutService;
 use App\Support\Cart\SessionCart;
 use App\Support\Orders\OrderTotalsCalculator;
 use Illuminate\Support\Facades\DB;
@@ -423,16 +424,22 @@ final readonly class PlaceOrder
     }
 
     /**
-     * Enforce cash-payment settings for the selected fulfillment method.
+     * Enforce configured payment methods for the selected fulfillment method.
      */
     private function assertPaymentMethodAvailable(
         FulfillmentMethod $fulfillmentMethod,
         PaymentMethod $paymentMethod,
     ): void {
         if ($paymentMethod === PaymentMethod::Stripe) {
-            throw ValidationException::withMessages([
-                'paymentMethod' => 'Online card payment will be enabled during the Stripe integration phase.',
-            ]);
+            if (
+                ! StripeCheckoutService::isConfigured()
+            ) {
+                throw ValidationException::withMessages([
+                    'paymentMethod' => 'Online card payment is not currently available.',
+                ]);
+            }
+
+            return;
         }
 
         if (

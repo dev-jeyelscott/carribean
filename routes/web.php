@@ -10,6 +10,9 @@ use App\Http\Controllers\PublicSite\MenuItemController;
 use App\Http\Controllers\PublicSite\OrderInquiryController;
 use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\PublicSite\ReservationRequestController;
+use App\Http\Controllers\StripeCheckoutCancelController;
+use App\Http\Controllers\StripeCheckoutController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])
@@ -35,6 +38,25 @@ Route::get(
 )
     ->middleware('signed')
     ->name('checkout.success');
+
+Route::post(
+    '/checkout/stripe/{order:public_id}',
+    StripeCheckoutController::class,
+)
+    ->middleware('signed')
+    ->name('checkout.stripe.create');
+
+Route::get(
+    '/checkout/stripe/cancel/{order:public_id}',
+    StripeCheckoutCancelController::class,
+)
+    ->middleware('signed')
+    ->name('checkout.stripe.cancel');
+
+Route::post(
+    '/webhooks/stripe',
+    StripeWebhookController::class,
+)->name('webhooks.stripe');
 
 Route::middleware('auth')
     ->prefix('account')

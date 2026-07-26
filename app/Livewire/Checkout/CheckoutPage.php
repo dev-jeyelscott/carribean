@@ -7,6 +7,7 @@ use App\Enums\FulfillmentMethod;
 use App\Enums\PaymentMethod;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\StripeCheckoutService;
 use App\Support\Cart\SessionCart;
 use App\Support\Orders\OrderTotalsCalculator;
 use Illuminate\Contracts\View\View;
@@ -16,6 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Stripe\Exception\ApiErrorException;
 
 final class CheckoutPage extends Component
 {
@@ -98,15 +100,19 @@ final class CheckoutPage extends Component
     }
 
     /**
-     * Validate checkout input and place the order.
+     * Validate checkout input, create the order, and start payment.
      */
     public function placeOrder(
         PlaceOrder $placeOrder,
+        StripeCheckoutService $stripeCheckout,
     ): void {
-        $sessionCart = app(SessionCart::class);
+        $sessionCart = app(
+            SessionCart::class,
+        );
 
         $fulfillmentMethod =
-            $sessionCart->fulfillmentMethod();
+            $sessionCart
+                ->fulfillmentMethod();
 
         $validated = $this->validate(
             $this->rulesFor(
@@ -116,7 +122,9 @@ final class CheckoutPage extends Component
 
         $paymentMethod =
             PaymentMethod::from(
-                $validated['paymentMethod'],
+                $validated[
+                    'paymentMethod'
+                ],
             );
 
         $paymentOptions =
@@ -167,19 +175,27 @@ final class CheckoutPage extends Component
 
         $order = $placeOrder->execute(
             $sessionCart,
+
             $user instanceof User
                 ? $user
                 : null,
+
             [
                 'name' => $validated['name'],
+
                 'email' => $validated['email'],
+
                 'phone' => $validated['phone'],
             ],
+
             $fulfillmentMethod,
             $paymentMethod,
             $deliveryAddress,
-            $validated['customerNote']
-                ?? null,
+
+            $validated[
+                'customerNote'
+            ] ?? null,
+
             $this->checkoutToken,
         );
 
@@ -196,7 +212,73 @@ final class CheckoutPage extends Component
                 ],
             );
 
-        $this->redirect($successUrl);
+        if (
+            $paymentMethod
+                !== PaymentMethod::Stripe
+        ) {
+            $this->redirect(
+                $successUrl,
+            );
+
+            return;
+        }
+
+        try {
+            $checkoutSession =
+                $stripeCheckout
+                    ->createCheckoutSession(
+                        $order,
+                    );
+
+            if (
+                $checkoutSession->status
+                    === 'complete'
+            ) {
+                $this->redirect(
+                    $successUrl,
+                );
+
+                return;
+            }
+
+            $checkoutUrl =
+                $checkoutSession->url;
+
+            if (
+                ! is_string($checkoutUrl)
+                || $checkoutUrl === ''
+            ) {
+                throw new \RuntimeException(
+                    'Stripe did not return a Checkout URL.',
+                );
+            }
+
+            $this->redirect(
+                $checkoutUrl,
+            );
+        } catch (
+            ApiErrorException
+            |\LogicException
+            |\RuntimeException
+                $exception
+        ) {
+            report($exception);
+
+            session()->flash(
+                'stripe_error',
+                'Online payment is temporarily unavailable. Please retry.',
+            );
+
+            $this->redirect(
+                URL::temporarySignedRoute(
+                    'checkout.stripe.cancel',
+                    now()->addDay(),
+                    [
+                        'order' => $order,
+                    ],
+                ),
+            );
+        }
     }
 
     /**
@@ -341,23 +423,31 @@ final class CheckoutPage extends Component
     }
 
     /**
-     * Return currently enabled cash methods for the fulfillment type.
-     *
-     * Stripe is intentionally added in Phase 7.
+     * Return currently enabled payment methods for the fulfillment type.
      *
      * @return array<string, string>
      */
     private function availablePaymentOptions(
         FulfillmentMethod $fulfillmentMethod,
     ): array {
+        $options = [];
+
+        if (
+            StripeCheckoutService::isConfigured()
+        ) {
+            $options[
+                PaymentMethod::Stripe->value
+            ] = PaymentMethod::Stripe->label();
+        }
+
         if (
             $fulfillmentMethod
                 === FulfillmentMethod::Pickup
             && SiteSetting::cashAtPickupEnabled()
         ) {
-            return [
-                PaymentMethod::CashAtPickup->value => PaymentMethod::CashAtPickup->label(),
-            ];
+            $options[
+                PaymentMethod::CashAtPickup->value
+            ] = PaymentMethod::CashAtPickup->label();
         }
 
         if (
@@ -365,12 +455,12 @@ final class CheckoutPage extends Component
                 === FulfillmentMethod::Delivery
             && SiteSetting::cashOnDeliveryEnabled()
         ) {
-            return [
-                PaymentMethod::CashOnDelivery->value => PaymentMethod::CashOnDelivery->label(),
-            ];
+            $options[
+                PaymentMethod::CashOnDelivery->value
+            ] = PaymentMethod::CashOnDelivery->label();
         }
 
-        return [];
+        return $options;
     }
 
     /**

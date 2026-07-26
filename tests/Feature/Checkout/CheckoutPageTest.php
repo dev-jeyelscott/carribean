@@ -7,10 +7,12 @@ use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\SiteSetting;
+use App\Services\StripeCheckoutService;
 use App\Support\Cart\SessionCart;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
+use Stripe\Checkout\Session;
 
 uses(RefreshDatabase::class);
 
@@ -141,5 +143,81 @@ test(
                 $order,
             ),
         )->assertForbidden();
+    },
+);
+
+test(
+    'guest can start stripe hosted checkout',
+    function (): void {
+        config([
+            'services.stripe.secret' => 'sk_test_example',
+        ]);
+
+        $checkoutUrl =
+            'https://checkout.stripe.com/c/pay/cs_test_phase_seven';
+
+        $checkoutSession =
+            Session::constructFrom([
+                'id' => 'cs_test_phase_seven',
+                'status' => 'open',
+                'url' => $checkoutUrl,
+            ]);
+
+        $stripeCheckout =
+            Mockery::mock(
+                StripeCheckoutService::class,
+            );
+
+        $stripeCheckout
+            ->shouldReceive(
+                'createCheckoutSession',
+            )
+            ->once()
+            ->andReturn(
+                $checkoutSession,
+            );
+
+        app()->instance(
+            StripeCheckoutService::class,
+            $stripeCheckout,
+        );
+
+        Livewire::test(CheckoutPage::class)
+            ->set(
+                'paymentMethod',
+                PaymentMethod::Stripe->value,
+            )
+            ->set(
+                'name',
+                'Stripe Customer',
+            )
+            ->set(
+                'email',
+                'stripe@example.com',
+            )
+            ->set(
+                'phone',
+                '555-0110',
+            )
+            ->call('placeOrder')
+            ->assertHasNoErrors()
+            ->assertRedirect(
+                $checkoutUrl,
+            );
+
+        $order =
+            Order::query()
+                ->firstOrFail();
+
+        expect($order->payment_method)
+            ->toBe(
+                PaymentMethod::Stripe,
+            );
+
+        expect(
+            $order->payments()
+                ->firstOrFail()
+                ->provider,
+        )->toBe('stripe');
     },
 );
