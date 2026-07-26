@@ -22,16 +22,24 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
-    public function panel(Panel $panel): Panel
-    {
+    /**
+     * Configure the restaurant's single Filament administration panel.
+     */
+    public function panel(
+        Panel $panel,
+    ): Panel {
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName((string) config('app.name'))
+            ->brandName(
+                (string) config('app.name'),
+            )
             ->brandLogo(
-                fn (): View => view('filament.admin.brand-logo'),
+                fn (): View => view(
+                    'filament.admin.brand-logo',
+                ),
             )
             ->brandLogoHeight('3rem')
             ->font('Instrument Sans')
@@ -39,12 +47,20 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#c9a45d',
                 'gray' => Color::Stone,
             ])
-            ->viteTheme('resources/css/filament/admin/app.css')
-            ->simplePageMaxContentWidth(Width::Small)
+            ->viteTheme(
+                'resources/css/filament/admin/app.css',
+            )
+            ->simplePageMaxContentWidth(
+                Width::Small,
+            )
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('18rem')
             ->collapsedSidebarWidth('5rem')
             ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('Order Management')
+                    ->collapsible(false),
+
                 NavigationGroup::make()
                     ->label('Website Content')
                     ->collapsible(false),
@@ -63,11 +79,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn (): View => view('filament.admin.auth.login-intro'),
+                fn (): View => view(
+                    'filament.admin.auth.login-intro',
+                ),
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): View => view('filament.admin.auth.login-footer'),
+                fn (): View => view(
+                    'filament.admin.auth.login-footer',
+                ),
             )
             ->discoverResources(
                 in: app_path('Filament/Resources'),

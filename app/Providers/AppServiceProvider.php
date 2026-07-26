@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
 use App\Models\SiteSetting;
+use App\Observers\OrderObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\View\View;
@@ -27,20 +29,25 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap any application services.
+     * Bootstrap application services, observers, limits, and shared views.
      */
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureObservers();
         $this->configurePublicSiteViews();
 
-        RateLimiter::for('public-forms', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
-        });
+        RateLimiter::for(
+            'public-forms',
+            function (Request $request): Limit {
+                return Limit::perMinute(5)
+                    ->by($request->ip());
+            },
+        );
     }
 
     /**
-     * Configure default behaviors for production-ready applications.
+     * Configure secure default application behaviors.
      */
     protected function configureDefaults(): void
     {
@@ -50,17 +57,31 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
+        Password::defaults(
+            fn (): ?Password => app()->isProduction()
+                ? Password::min(12)
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+                : null,
         );
     }
 
+    /**
+     * Register domain observers in one discoverable location.
+     */
+    private function configureObservers(): void
+    {
+        Order::observe(
+            OrderObserver::class,
+        );
+    }
+
+    /**
+     * Share cached public restaurant settings with public templates.
+     */
     private function configurePublicSiteViews(): void
     {
         ViewFacade::composer(
@@ -72,7 +93,11 @@ class AppServiceProvider extends ServiceProvider
             function (View $view): void {
                 $request = request();
 
-                if (! $request->attributes->has(self::PUBLIC_SITE_SETTINGS_ATTRIBUTE)) {
+                if (
+                    ! $request->attributes->has(
+                        self::PUBLIC_SITE_SETTINGS_ATTRIBUTE,
+                    )
+                ) {
                     $request->attributes->set(
                         self::PUBLIC_SITE_SETTINGS_ATTRIBUTE,
                         SiteSetting::publicContactMap(),
@@ -80,9 +105,14 @@ class AppServiceProvider extends ServiceProvider
                 }
 
                 /** @var array<string, string|null> $settings */
-                $settings = $request->attributes->get(self::PUBLIC_SITE_SETTINGS_ATTRIBUTE);
+                $settings = $request->attributes->get(
+                    self::PUBLIC_SITE_SETTINGS_ATTRIBUTE,
+                );
 
-                $view->with('settings', $settings);
+                $view->with(
+                    'settings',
+                    $settings,
+                );
             },
         );
     }
