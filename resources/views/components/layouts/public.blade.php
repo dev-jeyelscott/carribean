@@ -4,17 +4,25 @@
 <head>
     <x-public.seo-meta
         :title="$title ?? null"
-        :description="$description ?? null" />
+        :description="$description ?? null">
 
-    @vite(['resources/css/public.css', 'resources/js/app.js'])
+        @vite([
+        'resources/css/public.css',
+        'resources/js/app.js',
+        ])
+
+        @livewireStyles
 </head>
 
-<body class="min-h-screen overflow-x-hidden bg-brand-cream font-sans text-brand-forest antialiased">
+<body
+    class="min-h-screen overflow-x-hidden bg-brand-cream
+        font-sans text-brand-forest antialiased">
     <a
         href="#main-content"
-        class="fixed left-4 top-4 z-[100] -translate-y-24 rounded-full
-            bg-brand-palm px-5 py-3 text-sm font-semibold text-brand-cream
-            transition focus:translate-y-0">
+        class="fixed left-4 top-4 z-[100] -translate-y-24
+            rounded-full bg-brand-palm px-5 py-3 text-sm
+            font-semibold text-brand-cream transition
+            focus:translate-y-0">
         Skip to content
     </a>
 
@@ -29,6 +37,8 @@
 
         <x-public.footer />
     </div>
+
+    @livewireScriptConfig
 </body>
 
 </html>

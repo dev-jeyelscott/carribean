@@ -82,10 +82,14 @@ $accountUrl = Route::has('account.index')
             @if ($cartUrl)
             <a
                 href="{{ $cartUrl }}"
-                class="px-2 py-3 text-[0.68rem] font-semibold uppercase
-                        tracking-[0.16em] text-current opacity-80 transition
-                        hover:text-brand-coral hover:opacity-100">
+                class="inline-flex items-center gap-2 px-2 py-3
+            text-[0.68rem] font-semibold uppercase
+            tracking-[0.16em] text-current opacity-80
+            transition hover:text-brand-coral hover:opacity-100"
+                aria-label="View shopping cart">
                 Cart
+
+                <livewire:cart.cart-count />
             </a>
             @endif
 
@@ -202,8 +206,13 @@ $accountUrl = Route::has('account.index')
                 @endif
 
                 @if ($cartUrl)
-                <a href="{{ $cartUrl }}" @click="open = false">
+                <a
+                    href="{{ $cartUrl }}"
+                    @click="open = false"
+                    class="inline-flex items-center gap-2">
                     Cart
+
+                    <livewire:cart.cart-count />
                 </a>
                 @endif
             </div>

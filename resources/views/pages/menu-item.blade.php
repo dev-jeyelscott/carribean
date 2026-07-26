@@ -106,6 +106,17 @@
                     </div>
                     @endif
 
+                    @if ($menuItem->is_available && $menuItem->is_purchasable)
+                    <div class="mt-10">
+                        <livewire:cart.add-to-cart :menu-item="$menuItem" />
+                    </div>
+                    @elseif ($menuItem->is_available)
+                    <x-public.alert type="warning" class="mt-10">
+                        This item is displayed on the restaurant menu but is not
+                        available for online ordering.
+                    </x-public.alert>
+                    @endif
+
                     @unless ($menuItem->is_available)
                     <x-public.alert type="warning" class="mt-8">
                         This item is currently unavailable.
