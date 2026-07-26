@@ -8,8 +8,13 @@ use App\Models\MenuItem;
 use App\Models\Page;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-type SitemapUrl array{
+ *     loc: string,
+ *     lastmod: string|null
+ * }
+ */
 final class SitemapController extends Controller
 {
     /**
@@ -17,13 +22,14 @@ final class SitemapController extends Controller
      */
     public function __invoke(): Response
     {
-        /** @var Collection<int, array{loc: string, lastmod: string|null}> $urls */
-        $urls = collect();
+        /** @var list<SitemapUrl> $urls */
+        $urls = [];
 
         $this->addUrl($urls, route('home'));
         $this->addUrl($urls, route('menu'));
         $this->addUrl($urls, route('gallery'));
         $this->addUrl($urls, route('contact.create'));
+
         $this->addUrl(
             $urls,
             route('reservation-request.create'),
@@ -37,7 +43,7 @@ final class SitemapController extends Controller
         return response()->view(
             'seo.sitemap',
             [
-                'urls' => $urls
+                'urls' => collect($urls)
                     ->unique('loc')
                     ->values(),
             ],
@@ -51,9 +57,9 @@ final class SitemapController extends Controller
     /**
      * Add controlled CMS pages that are currently published.
      *
-     * @param  Collection<int, array{loc: string, lastmod: string|null}>  $urls
+     * @param  list<SitemapUrl>  $urls
      */
-    private function addPublishedPages(Collection $urls): void
+    private function addPublishedPages(array &$urls): void
     {
         $routeMap = [
             'about' => 'about',
@@ -90,14 +96,14 @@ final class SitemapController extends Controller
     /**
      * Add all visible public menu-item detail pages.
      *
-     * @param  Collection<int, array{loc: string, lastmod: string|null}>  $urls
+     * @param  list<SitemapUrl>  $urls
      */
-    private function addVisibleMenuItems(Collection $urls): void
+    private function addVisibleMenuItems(array &$urls): void
     {
         MenuItem::query()
             ->visible()
             ->get()
-            ->each(function (MenuItem $menuItem) use ($urls): void {
+            ->each(function (MenuItem $menuItem) use (&$urls): void {
                 $this->addUrl(
                     $urls,
                     route(
@@ -110,11 +116,11 @@ final class SitemapController extends Controller
     }
 
     /**
-     * Add the journal index and every published Blog post.
+     * Add the journal index and every published blog post.
      *
-     * @param  Collection<int, array{loc: string, lastmod: string|null}>  $urls
+     * @param  list<SitemapUrl>  $urls
      */
-    private function addBlogPosts(Collection $urls): void
+    private function addBlogPosts(array &$urls): void
     {
         $posts = BlogPost::query()
             ->published()
@@ -131,7 +137,7 @@ final class SitemapController extends Controller
             $posts->max('updated_at'),
         );
 
-        $posts->each(function (BlogPost $blogPost) use ($urls): void {
+        $posts->each(function (BlogPost $blogPost) use (&$urls): void {
             $this->addUrl(
                 $urls,
                 route(
@@ -146,9 +152,9 @@ final class SitemapController extends Controller
     /**
      * Add the FAQ page only when at least one question is visible.
      *
-     * @param  Collection<int, array{loc: string, lastmod: string|null}>  $urls
+     * @param  list<SitemapUrl>  $urls
      */
-    private function addFaqPage(Collection $urls): void
+    private function addFaqPage(array &$urls): void
     {
         $faq = Faq::query()
             ->visible()
@@ -167,18 +173,18 @@ final class SitemapController extends Controller
     }
 
     /**
-     * Add one canonical sitemap entry.
+     * Add one canonical sitemap entry to the sitemap URL list.
      *
-     * @param  Collection<int, array{loc: string, lastmod: string|null}>  $urls
+     * @param  list<SitemapUrl>  $urls
      */
     private function addUrl(
-        Collection $urls,
+        array &$urls,
         string $location,
         ?CarbonInterface $lastModified = null,
     ): void {
-        $urls->push([
+        $urls[] = [
             'loc' => $location,
             'lastmod' => $lastModified?->toAtomString(),
-        ]);
+        ];
     }
 }

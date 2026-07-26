@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasResponsiveImages;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,11 +18,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $image_path
  * @property string|null $image_alt_text
  * @property bool $is_published
- * @property Carbon|null $published_at
+ * @property CarbonImmutable|null $published_at
  * @property string|null $meta_title
  * @property string|null $meta_description
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property-read string|null $image_url
  */
 #[Fillable([
@@ -57,7 +57,10 @@ class BlogPost extends Model
     }
 
     /**
-     * Return the model casts.
+     * Return the model attribute casts.
+     *
+     * The application's global date factory converts datetime values into
+     * CarbonImmutable instances.
      *
      * @return array<string, string>
      */
@@ -70,7 +73,7 @@ class BlogPost extends Model
     }
 
     /**
-     * Resolve public Blog routes through their readable slug.
+     * Resolve public blog routes through their readable slug.
      */
     public function getRouteKeyName(): string
     {
@@ -78,7 +81,7 @@ class BlogPost extends Model
     }
 
     /**
-     * Limit a query to Blog posts currently visible to guests.
+     * Limit a query to blog posts currently visible to guests.
      *
      * @param  Builder<BlogPost>  $query
      */
@@ -99,7 +102,7 @@ class BlogPost extends Model
     }
 
     /**
-     * Order Blog posts by their public publication timestamp.
+     * Order blog posts by their public publication timestamp.
      *
      * @param  Builder<BlogPost>  $query
      */
@@ -112,7 +115,7 @@ class BlogPost extends Model
     }
 
     /**
-     * Determine whether this Blog post is publicly available.
+     * Determine whether this blog post is publicly available.
      */
     public function isPubliclyVisible(): bool
     {
