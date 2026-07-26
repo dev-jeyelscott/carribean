@@ -7,70 +7,90 @@ use Illuminate\Database\Seeder;
 
 class PageSeeder extends Seeder
 {
+    /**
+     * Seed development placeholder content for public CMS pages.
+     */
     public function run(): void
     {
         $pages = [
             [
                 'slug' => 'home',
-                'title' => 'A Dining Experience, Beautifully Composed',
-                'excerpt' => 'Season-led cuisine, gracious hospitality, and an intimate setting for dinners, celebrations, and private occasions.',
-                'content' => 'At Le Jardin, precise technique and generous hospitality come together in a dining experience that feels polished, personal, and warmly familiar.',
-                'meta_title' => 'Le Jardin Fine Dining | Seasonal Cuisine & Private Occasions',
-                'meta_description' => 'Discover seasonal cuisine, gracious hospitality, private dining, and beautifully considered occasions at Le Jardin Fine Dining.',
+                'title' => 'Island Hospitality, Made for the California Coast',
+                'excerpt' => 'A warm gathering place for vibrant Caribbean dishes, thoughtful drinks, and relaxed hospitality.',
+                'content' => 'Coast & Cay brings Caribbean warmth to California through generous food, relaxed hospitality, and a dining room made for gathering.',
+                'meta_title' => 'Coast & Cay | Caribbean Restaurant in California',
+                'meta_description' => 'Discover Caribbean food, warm hospitality, reservations, and relaxed California dining at Coast & Cay.',
+                'is_published' => true,
+            ],
+            [
+                'slug' => 'about',
+                'title' => 'Caribbean Roots, California Rhythm',
+                'excerpt' => 'Coast & Cay is being created as a warm neighborhood restaurant where Caribbean flavors and easy California hospitality meet.',
+                'content' => <<<'HTML'
+<p>Coast & Cay began with a simple idea: create a restaurant where the food feels vibrant, the welcome feels genuine, and guests always have a reason to stay a little longer.</p>
+
+<p>Our development identity draws inspiration from the warmth, generosity, and bold flavors associated with Caribbean hospitality, paired with the relaxed pace of the California coast.</p>
+
+<h2>A restaurant made for gathering</h2>
+
+<p>The final restaurant story, heritage, menu, and photography will be supplied by the client and their consultant. Until then, Coast & Cay remains an editable development identity designed to be replaced without changing the website architecture.</p>
+HTML,
+                'meta_title' => 'About Coast & Cay',
+                'meta_description' => 'Learn about the Coast & Cay restaurant concept, Caribbean inspiration, and relaxed California hospitality.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'menu',
-                'title' => 'A Menu Guided by Season and Craft',
-                'excerpt' => 'From delicate first courses to expressive mains and elegant finales, every plate is composed with balance, precision, and character.',
-                'content' => 'Explore a considered progression of dishes prepared with premium ingredients, precise technique, and a respect for flavour.',
-                'meta_title' => 'Seasonal Menu | Le Jardin Fine Dining',
-                'meta_description' => 'Explore Le Jardin’s considered menu of delicate starters, signature mains, elegant desserts, and composed beverages.',
+                'title' => 'Island Favorites, Made to Gather Around',
+                'excerpt' => 'Explore colorful starters, generous mains, sweet finishes, and drinks made for slow afternoons and lively evenings.',
+                'content' => 'Food made with warmth, color, and a generous sense of hospitality.',
+                'meta_title' => 'Menu | Coast & Cay',
+                'meta_description' => 'Explore the current Coast & Cay menu of starters, mains, desserts, and drinks.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'reservation-request',
-                'title' => 'Plan Your Evening at Le Jardin',
-                'excerpt' => 'Share your preferred date, time, and party size, and our team will personally confirm availability with you.',
-                'content' => 'Tell us when you would like to join us and who will be dining. Every request is reviewed personally so the details of your visit can be handled with care.',
-                'meta_title' => 'Reservation Request | Le Jardin Fine Dining',
-                'meta_description' => 'Request a table at Le Jardin. Our team personally reviews each preferred date, time, and party size before confirming availability.',
+                'title' => 'Save a Place at the Table',
+                'excerpt' => 'Share your preferred date, time, and party size, and our team will personally confirm availability.',
+                'content' => 'Every reservation remains a request until the restaurant team reviews and confirms it directly with you.',
+                'meta_title' => 'Reservation Request | Coast & Cay',
+                'meta_description' => 'Request a table at Coast & Cay and receive confirmation from the restaurant team.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'order-inquiry',
-                'title' => 'Bring Le Jardin to Your Table',
-                'excerpt' => 'Share your preferred dishes and pickup or delivery details, and our team will personally review availability and pricing with you.',
-                'content' => 'Share the dishes you are considering, your preferred timing, and any special notes. Our team will then confirm availability, pricing, and fulfillment arrangements with you.',
-                'meta_title' => 'Order Inquiry | Le Jardin Fine Dining',
-                'meta_description' => 'Submit an Order Inquiry for pickup or delivery. Our team will confirm availability, final pricing, and arrangements directly with you.',
+                'title' => 'Online Ordering Is Coming Soon',
+                'excerpt' => 'The current inquiry form remains available during development while transactional ordering is being built.',
+                'content' => 'Browse the menu today. Shopping cart, checkout, pickup, delivery, and payment functionality will be introduced in the upcoming commerce phases.',
+                'meta_title' => 'Order Inquiry | Coast & Cay',
+                'meta_description' => 'Contact Coast & Cay regarding current pickup or delivery availability.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'gallery',
-                'title' => 'A Portrait of Le Jardin',
-                'excerpt' => 'Discover the atmosphere, culinary craft, and celebrations that define Le Jardin.',
-                'content' => 'From softly lit dining rooms to carefully finished plates and beautifully prepared celebrations, every image reflects our warmth, refinement, and attention to detail.',
-                'meta_title' => 'Gallery | Le Jardin Fine Dining',
-                'meta_description' => 'Explore Le Jardin’s dining rooms, signature dishes, private celebrations, and beautifully considered details.',
+                'title' => 'Food, Color, and Easy Evenings',
+                'excerpt' => 'A look at the dishes, rooms, and warm details shaping the Coast & Cay experience.',
+                'content' => 'Final restaurant photography will replace the current development imagery once approved assets are supplied.',
+                'meta_title' => 'Gallery | Coast & Cay',
+                'meta_description' => 'Explore the food, hospitality, and restaurant atmosphere of Coast & Cay.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'banquet-hall',
-                'title' => 'A Setting for Meaningful Occasions',
-                'excerpt' => 'Gather for private dinners, family milestones, celebrations, and corporate occasions in a setting shaped around attentive hospitality.',
-                'content' => 'Our banquet hall offers a refined setting for family celebrations, private dining, corporate meals, and life’s most meaningful gatherings. Contact our team to discuss availability and event details.',
-                'meta_title' => 'Banquet Hall & Private Dining | Le Jardin Fine Dining',
-                'meta_description' => 'Discover Le Jardin’s banquet hall and private-dining setting for family milestones, celebrations, and corporate occasions.',
+                'title' => 'Private Occasion Information',
+                'excerpt' => 'The existing banquet page is retained but hidden while the client confirms whether this service belongs in the final restaurant scope.',
+                'content' => 'Banquet and catering workflows are not included in the locked Option A scope unless separately confirmed by the client.',
+                'meta_title' => 'Private Occasions | Coast & Cay',
+                'meta_description' => 'Contact Coast & Cay about potential private-occasion availability.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'contact',
-                'title' => 'Begin a Conversation with Le Jardin',
-                'excerpt' => 'Whether you are planning a visit, a private occasion, or have a dining question, our team will be pleased to assist.',
-                'content' => 'Reach our team by phone, email, location map, or inquiry form. Every message is personally reviewed and answered as soon as practical.',
-                'meta_title' => 'Contact Le Jardin Fine Dining',
-                'meta_description' => 'Contact Le Jardin for dining questions, directions, Reservation Requests, Order Inquiries, and private occasions.',
+                'title' => 'Come Say Hello',
+                'excerpt' => 'Questions about the menu, a future visit, or the restaurant? Our team will be pleased to help.',
+                'content' => 'Reach the restaurant by phone, email, location map, or the contact form.',
+                'meta_title' => 'Contact Coast & Cay',
+                'meta_description' => 'Contact Coast & Cay for menu questions, directions, reservations, and restaurant information.',
                 'is_published' => true,
             ],
         ];

@@ -6,16 +6,24 @@ use App\Http\Controllers\PublicSite\GalleryController;
 use App\Http\Controllers\PublicSite\HomeController;
 use App\Http\Controllers\PublicSite\MenuController;
 use App\Http\Controllers\PublicSite\OrderInquiryController;
+use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\PublicSite\ReservationRequestController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
 
-Route::get('/menu', [MenuController::class, 'index'])->name('menu');
+Route::get('/menu', [MenuController::class, 'index'])
+    ->name('menu');
 
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+Route::get('/about', [PageController::class, 'about'])
+    ->name('about');
 
-Route::get('/banquet-hall', [BanquetHallController::class, 'index'])->name('banquet-hall');
+Route::get('/gallery', [GalleryController::class, 'index'])
+    ->name('gallery');
+
+Route::get('/banquet-hall', [BanquetHallController::class, 'index'])
+    ->name('banquet-hall');
 
 Route::get('/reservation-request', [ReservationRequestController::class, 'create'])
     ->name('reservation-request.create');

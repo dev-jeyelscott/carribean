@@ -4,9 +4,9 @@
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-brand-cream);
+        --color-accent-content: var(--color-brand-cream);
+        --color-accent-foreground: var(--color-brand-palm-dark);
     }
 }
 
@@ -21,24 +21,25 @@
 
     html {
         scroll-behavior: smooth;
+        scroll-padding-top: 6rem;
     }
 
     body {
-        background: var(--color-brand-ink);
-        color: var(--color-brand-ivory);
+        background: var(--color-brand-cream);
+        color: var(--color-brand-forest);
     }
 
     ::selection {
         background: color-mix(
             in srgb,
-            var(--color-brand-gold) 38%,
+            var(--color-brand-coral) 35%,
             transparent
         );
-        color: var(--color-brand-ivory);
+        color: var(--color-brand-palm-dark);
     }
 
     :where(a, button, input, select, textarea):focus-visible {
-        outline: 2px solid var(--color-brand-gold);
+        outline: 3px solid var(--color-brand-ocean);
         outline-offset: 3px;
     }
 }

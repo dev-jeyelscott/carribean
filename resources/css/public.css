@@ -1,13 +1,64 @@
 @import "tailwindcss" source(none);
 @import "./theme.css";
 
-@source '../views/pages/**/*.blade.php';
-@source '../views/components/public/**/*.blade.php';
-@source '../views/components/layouts/public.blade.php';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source "../views/pages/**/*.blade.php";
+@source "../views/components/public/**/*.blade.php";
+@source "../views/components/layouts/public.blade.php";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
 
 [x-cloak] {
     display: none !important;
+}
+
+@layer components {
+    .public-container {
+        @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-10;
+    }
+
+    .public-button-primary {
+        @apply inline-flex min-h-12 items-center justify-center rounded-full
+            bg-brand-coral px-7 py-3 text-center text-xs font-semibold
+            uppercase tracking-[0.18em] text-white transition duration-300
+            hover:-translate-y-0.5 hover:bg-brand-coral-dark
+            hover:shadow-island;
+    }
+
+    .public-button-secondary {
+        @apply inline-flex min-h-12 items-center justify-center rounded-full
+            border border-current/40 px-7 py-3 text-center text-xs font-semibold
+            uppercase tracking-[0.18em] transition duration-300
+            hover:-translate-y-0.5 hover:border-brand-coral
+            hover:bg-brand-coral hover:text-white;
+    }
+
+    .public-eyebrow {
+        @apply text-xs font-semibold uppercase tracking-[0.3em]
+            text-brand-coral-dark;
+    }
+
+    .public-hero-viewport {
+        min-height: 100vh;
+        min-height: 100svh;
+    }
+
+    .public-island-pattern {
+        background-image:
+            radial-gradient(
+                circle at 12% 18%,
+                rgb(242 199 107 / 18%),
+                transparent 26%
+            ),
+            radial-gradient(
+                circle at 88% 22%,
+                rgb(32 111 124 / 16%),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 72% 88%,
+                rgb(230 110 80 / 14%),
+                transparent 30%
+            );
+    }
 }
 
 [data-home-gallery-enhanced] [data-home-gallery-viewport] {
@@ -48,11 +99,11 @@
     max-width: 67.5rem;
     margin: 1.5rem auto 0;
     padding-top: 1.25rem;
-    border-top: 1px solid rgb(201 164 93 / 25%);
+    border-top: 1px solid rgb(22 83 68 / 20%);
 }
 
 .home-gallery-counter {
-    color: #c9a45d;
+    color: var(--color-brand-coral-dark);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.22em;
@@ -60,7 +111,7 @@
 }
 
 .home-gallery-counter-total {
-    color: rgb(255 255 255 / 35%);
+    color: rgb(18 54 46 / 45%);
 }
 
 .home-gallery-actions {
@@ -74,19 +125,25 @@
     height: 3rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgb(201 164 93 / 50%);
-    color: #c9a45d;
-    transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease;
+    border: 1px solid rgb(22 83 68 / 35%);
+    border-radius: 9999px;
+    color: var(--color-brand-palm);
+    transition:
+        color 200ms ease,
+        background-color 200ms ease,
+        border-color 200ms ease,
+        transform 200ms ease;
 }
 
 .home-gallery-button:hover {
-    border-color: #c9a45d;
-    background: #c9a45d;
-    color: #171916;
+    border-color: var(--color-brand-palm);
+    background: var(--color-brand-palm);
+    color: var(--color-brand-cream);
+    transform: translateY(-2px);
 }
 
 .home-gallery-button:focus-visible {
-    outline: 2px solid #c9a45d;
+    outline: 3px solid var(--color-brand-ocean);
     outline-offset: 4px;
 }
 
@@ -108,12 +165,5 @@
     [data-home-gallery-enhanced] [data-home-gallery-slide] {
         width: 78%;
         max-width: 67.5rem;
-    }
-}
-
-@layer components {
-    .public-hero-viewport {
-        min-height: 100vh;
-        min-height: 100svh;
     }
 }

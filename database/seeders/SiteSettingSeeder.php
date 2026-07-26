@@ -7,23 +7,75 @@ use Illuminate\Database\Seeder;
 
 class SiteSettingSeeder extends Seeder
 {
+    /**
+     * Seed editable development placeholders for the public restaurant site.
+     */
     public function run(): void
     {
         $settings = [
-            ['key' => 'restaurant_name', 'value' => 'Le Jardin Fine Dining', 'group' => 'general'],
-            ['key' => 'tagline', 'value' => 'Elegant dining for families, guests, and special occasions.', 'group' => 'general'],
+            [
+                'key' => 'restaurant_name',
+                'value' => 'Coast & Cay',
+                'group' => 'general',
+            ],
+            [
+                'key' => 'tagline',
+                'value' => 'Caribbean warmth, California ease.',
+                'group' => 'general',
+            ],
+            [
+                'key' => 'opening_hours',
+                'value' => 'Opening hours coming soon.',
+                'group' => 'general',
+            ],
 
-            ['key' => 'phone', 'value' => '+1 (555) 123-4567', 'group' => 'contact'],
-            ['key' => 'email', 'value' => 'hello@example.com', 'group' => 'contact'],
-            ['key' => 'address', 'value' => '123 Grand Avenue, New York, NY 10001', 'group' => 'contact'],
-            ['key' => 'map_url', 'value' => 'https://maps.google.com', 'group' => 'contact'],
+            [
+                'key' => 'phone',
+                'value' => '+1 (555) 555-0142',
+                'group' => 'contact',
+            ],
+            [
+                'key' => 'email',
+                'value' => 'hello@coastandcay.test',
+                'group' => 'contact',
+            ],
+            [
+                'key' => 'address',
+                'value' => 'California location details coming soon.',
+                'group' => 'contact',
+            ],
+            [
+                'key' => 'map_link',
+                'value' => 'https://maps.google.com',
+                'group' => 'contact',
+            ],
 
-            ['key' => 'facebook_url', 'value' => 'https://facebook.com', 'group' => 'social'],
-            ['key' => 'instagram_url', 'value' => 'https://instagram.com', 'group' => 'social'],
+            [
+                'key' => 'facebook_url',
+                'value' => 'https://facebook.com',
+                'group' => 'social',
+            ],
+            [
+                'key' => 'instagram_url',
+                'value' => 'https://instagram.com',
+                'group' => 'social',
+            ],
 
-            ['key' => 'meta_title', 'value' => 'Le Jardin Fine Dining', 'group' => 'seo'],
-            ['key' => 'meta_description', 'value' => 'A fine-dining restaurant experience with curated menus, elegant ambiance, banquet hall options, and request-based reservations.', 'group' => 'seo'],
-            ['key' => 'notification_recipient_email', 'value' => 'restaurant@example.com', 'group' => 'mail'],
+            [
+                'key' => 'meta_title',
+                'value' => 'Coast & Cay',
+                'group' => 'seo',
+            ],
+            [
+                'key' => 'meta_description',
+                'value' => 'Caribbean food, warm hospitality, and California ease at Coast & Cay.',
+                'group' => 'seo',
+            ],
+            [
+                'key' => 'notification_recipient_email',
+                'value' => 'restaurant@coastandcay.test',
+                'group' => 'mail',
+            ],
         ];
 
         foreach ($settings as $setting) {
