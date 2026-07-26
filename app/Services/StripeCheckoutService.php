@@ -150,7 +150,7 @@ class StripeCheckoutService
 
                         'expires_at' => now()
                             ->addMinutes(30)
-                            ->timestamp,
+                            ->getTimestamp(),
 
                         'submit_type' => 'pay',
                     ],

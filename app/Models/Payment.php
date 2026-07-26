@@ -7,7 +7,27 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * Represent one payment attempt associated with an order.
+ *
+ * @property int $id
+ * @property int $order_id
+ * @property string $provider
+ * @property string|null $provider_payment_id
+ * @property string|null $provider_checkout_session_id
+ * @property PaymentMethod $payment_method
+ * @property PaymentStatus $status
+ * @property int $amount_cents
+ * @property string $currency
+ * @property Carbon|null $paid_at
+ * @property Carbon|null $failed_at
+ * @property Carbon|null $refunded_at
+ * @property string|null $failure_message
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 #[Fillable([
     'order_id',
     'provider',

@@ -86,7 +86,7 @@ class SiteSetting extends Model
      */
     public static function acceptingOnlineOrders(): bool
     {
-        return static::booleanValue(
+        return self::booleanValue(
             'accepting_online_orders',
             false,
         );
@@ -179,7 +179,7 @@ class SiteSetting extends Model
      */
     public static function deliveryFeeCents(): int
     {
-        return static::nonNegativeIntegerValue(
+        return self::nonNegativeIntegerValue(
             'delivery_fee_cents',
         );
     }
@@ -189,7 +189,7 @@ class SiteSetting extends Model
      */
     public static function deliveryMinimumCents(): int
     {
-        return static::nonNegativeIntegerValue(
+        return self::nonNegativeIntegerValue(
             'delivery_minimum_cents',
         );
     }
@@ -201,7 +201,7 @@ class SiteSetting extends Model
     {
         return min(
             10_000,
-            static::nonNegativeIntegerValue(
+            self::nonNegativeIntegerValue(
                 'tax_rate_basis_points',
             ),
         );
@@ -212,7 +212,7 @@ class SiteSetting extends Model
      */
     public static function cashAtPickupEnabled(): bool
     {
-        return static::booleanValue(
+        return self::booleanValue(
             'cash_at_pickup_enabled',
             true,
         );
@@ -223,7 +223,7 @@ class SiteSetting extends Model
      */
     public static function cashOnDeliveryEnabled(): bool
     {
-        return static::booleanValue(
+        return self::booleanValue(
             'cash_on_delivery_enabled',
             false,
         );
