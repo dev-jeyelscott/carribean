@@ -5,8 +5,12 @@
 @source "../views/components/public/**/*.blade.php";
 @source "../views/components/layouts/public.blade.php";
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../views/livewire/account/**/*.blade.php";
+@source "../views/components/account/**/*.blade.php";
 
 [x-cloak] {
+    @source "../views/livewire/account/**/*.blade.php";
+    @source "../views/components/account/**/*.blade.php";
     display: none !important;
 }
 

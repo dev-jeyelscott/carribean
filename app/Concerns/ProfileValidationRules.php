@@ -9,43 +9,69 @@ use Illuminate\Validation\Rule;
 trait ProfileValidationRules
 {
     /**
-     * Get the validation rules used to validate user profiles.
+     * Get the shared validation rules for registration and profile updates.
      *
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
-    protected function profileRules(?int $userId = null): array
+    protected function profileRules(?User $user = null): array
     {
         return [
             'name' => $this->nameRules(),
-            'email' => $this->emailRules($userId),
+            'email' => $this->emailRules($user),
+            'phone' => $this->phoneRules(),
         ];
     }
 
     /**
-     * Get the validation rules used to validate user names.
+     * Get the validation rules used to validate customer names.
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
     protected function nameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return [
+            'required',
+            'string',
+            'max:255',
+        ];
     }
 
     /**
-     * Get the validation rules used to validate user emails.
+     * Get the validation rules used to validate customer email addresses.
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
-    protected function emailRules(?int $userId = null): array
+    protected function emailRules(?User $user = null): array
     {
+        $uniqueEmail = Rule::unique(User::class);
+
+        if ($user instanceof User) {
+            $uniqueEmail->ignore($user);
+        }
+
         return [
             'required',
             'string',
             'email',
             'max:255',
-            $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
+            $uniqueEmail,
+        ];
+    }
+
+    /**
+     * Get the validation rules used to validate customer phone numbers.
+     *
+     * The application accepts flexible international formatting and stores the
+     * number exactly as entered after trimming surrounding whitespace.
+     *
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function phoneRules(): array
+    {
+        return [
+            'required',
+            'string',
+            'max:30',
         ];
     }
 }

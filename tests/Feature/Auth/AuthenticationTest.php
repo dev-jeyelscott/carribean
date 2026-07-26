@@ -3,16 +3,15 @@
 use App\Models\User;
 use Laravel\Fortify\Features;
 
-test('login screen can be rendered', function () {
-    $response = $this->get(route('login'));
-
-    $response->assertOk();
+test('login screen can be rendered', function (): void {
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertSee('Welcome back')
+        ->assertSee('Create an account');
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create([
-        'email' => config('admin.seed_user.email'),
-    ]);
+test('customers can authenticate and are redirected to their account', function (): void {
+    $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -21,51 +20,92 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('filament.admin.pages.dashboard', absolute: false));
+        ->assertRedirect(route('account.index', absolute: false));
 
-    $this->assertAuthenticated();
+    $this->assertAuthenticatedAs($user);
 });
 
-test('users can not authenticate with invalid password', function () {
+test('customer authentication preserves the session shopping cart', function (): void {
     $user = User::factory()->create();
 
-    $response = $this->post(route('login.store'), [
+    $response = $this
+        ->withSession([
+            'shopping_cart.items' => [
+                'existing-line' => [
+                    'menu_item_id' => 10,
+                    'option_ids' => [],
+                    'quantity' => 2,
+                ],
+            ],
+        ])
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+    $response
+        ->assertRedirect(route('account.index', absolute: false))
+        ->assertSessionHas(
+            'shopping_cart.items.existing-line.quantity',
+            2,
+        );
+});
+
+test('users can not authenticate with an invalid password', function (): void {
+    $user = User::factory()->create();
+
+    $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'wrong-password',
-    ]);
-
-    $response->assertSessionHasErrorsIn('email');
+    ])->assertSessionHasErrorsIn('email');
 
     $this->assertGuest();
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+test('users with two factor enabled are redirected to the challenge', function (): void {
+    $this->skipUnlessFortifyHas(
+        Features::twoFactorAuthentication(),
+    );
 
     Features::twoFactorAuthentication([
         'confirm' => true,
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->withTwoFactor()->create([
-        'email' => config('admin.seed_user.email'),
-    ]);
+    $user = User::factory()->withTwoFactor()->create();
 
-    $response = $this->post(route('login.store'), [
+    $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
-    ]);
+    ])->assertRedirect(route('two-factor.login'));
 
-    $response->assertRedirect(route('two-factor.login'));
     $this->assertGuest();
 });
 
-test('users can logout', function () {
+test('customers can not access the filament admin panel', function (): void {
+    $customer = User::factory()->create();
+
+    $this->actingAs($customer)
+        ->get(route('filament.admin.pages.dashboard'))
+        ->assertForbidden();
+});
+
+test('the configured administrator can access the filament panel', function (): void {
+    $administrator = User::factory()->create([
+        'email' => config('admin.seed_user.email'),
+    ]);
+
+    $this->actingAs($administrator)
+        ->get(route('filament.admin.pages.dashboard'))
+        ->assertOk();
+});
+
+test('users can logout', function (): void {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('logout'));
-
-    $response->assertRedirect(route('home'));
+    $this->actingAs($user)
+        ->post(route('logout'))
+        ->assertRedirect(route('home'));
 
     $this->assertGuest();
 });

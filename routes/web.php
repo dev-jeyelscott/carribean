@@ -23,6 +23,20 @@ Route::get('/menu/{menuItem:slug}', MenuItemController::class)
 Route::view('/cart', 'pages.cart')
     ->name('cart.index');
 
+Route::middleware('auth')
+    ->prefix('account')
+    ->name('account.')
+    ->group(function (): void {
+        Route::view('/', 'pages.account.index')
+            ->name('index');
+
+        Route::view('/profile', 'pages.account.profile')
+            ->name('profile');
+
+        Route::view('/orders', 'pages.account.orders')
+            ->name('orders.index');
+    });
+
 Route::get('/about', [PageController::class, 'about'])
     ->name('about');
 
