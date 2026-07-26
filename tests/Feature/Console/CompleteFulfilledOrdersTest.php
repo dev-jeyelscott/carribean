@@ -15,10 +15,11 @@ uses(RefreshDatabase::class);
  */
 function createFulfilledOrder(
     OrderStatus $status,
+    string $orderNumber,
 ): Order {
     return Order::query()->create([
         'public_id' => (string) Str::ulid(),
-        'order_number' => 'CC-AUTO-000001',
+        'order_number' => $orderNumber,
         'customer_name' => 'Jamie Lee',
         'customer_email' => 'jamie@example.com',
         'customer_phone' => '555-0100',
@@ -28,7 +29,10 @@ function createFulfilledOrder(
             === OrderStatus::PickedUp
             ? FulfillmentMethod::Pickup
             : FulfillmentMethod::Delivery,
-        'payment_method' => PaymentMethod::CashAtPickup,
+        'payment_method' => $status
+            === OrderStatus::PickedUp
+            ? PaymentMethod::CashAtPickup
+            : PaymentMethod::CashOnDelivery,
         'currency' => 'USD',
         'subtotal_cents' => 2_000,
         'discount_cents' => 0,
@@ -55,10 +59,12 @@ test(
     function (): void {
         $pickupOrder = createFulfilledOrder(
             OrderStatus::PickedUp,
+            'CC-AUTO-000001',
         );
 
         $deliveryOrder = createFulfilledOrder(
             OrderStatus::Delivered,
+            'CC-AUTO-000002',
         );
 
         $this->artisan(
@@ -84,6 +90,7 @@ test(
     function (): void {
         $order = createFulfilledOrder(
             OrderStatus::PickedUp,
+            'CC-AUTO-000003',
         );
 
         $order->forceFill([
