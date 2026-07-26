@@ -1,4 +1,10 @@
 @theme {
+    /*
+     * Typography
+     *
+     * Display typography provides the editorial, fine-dining personality.
+     * Sans typography keeps navigation, forms, prices, and body copy clear.
+     */
     --font-sans:
         "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
@@ -9,45 +15,103 @@
         "Times New Roman", serif;
 
     /*
-     * Coast & Cay public palette.
+     * Semantic public-site colors
      *
-     * The colors are intentionally warm and restrained. They provide an
-     * island-resort feeling without relying on loud tropical patterns.
+     * Use these tokens for all new public pages. They describe the purpose
+     * of the color instead of tying components to one specific page.
      */
-    --color-brand-cream: #fff8ed;
-    --color-brand-sand: #ead6b8;
-    --color-brand-sand-soft: #f7ead7;
-    --color-brand-palm: #165344;
-    --color-brand-palm-dark: #0c342b;
-    --color-brand-ocean: #206f7c;
-    --color-brand-coral: #e66e50;
-    --color-brand-coral-dark: #c6533b;
-    --color-brand-sun: #f2c76b;
-    --color-brand-forest: #12362e;
-    --color-brand-muted: #63736c;
+    --color-canvas: #fff9f0;
+    --color-surface: #fffdf9;
+    --color-surface-soft: #f8eee1;
+    --color-surface-warm: #efddc3;
+
+    --color-primary: #165344;
+    --color-primary-deep: #0c342b;
+    --color-primary-soft: #2a6a5b;
+
+    --color-ocean: #206f7c;
+
+    --color-coral: #e66e50;
+    --color-coral-deep: #c6533b;
+
+    --color-sun: #f2c76b;
+
+    --color-ink: #12362e;
+    --color-muted: #63736c;
+    --color-line: #eadfce;
 
     /*
-     * Compatibility aliases for existing public components that still use
-     * the original token names. These can be retired gradually rather than
-     * forcing unrelated public pages to be rewritten in this phase.
+     * Backward-compatible brand aliases
+     *
+     * Existing public pages already use these classes. Keeping aliases lets
+     * the homepage evolve without forcing unrelated pages to be rewritten.
      */
-    --color-brand-ink: var(--color-brand-palm-dark);
-    --color-brand-ink-soft: var(--color-brand-palm);
-    --color-brand-gold: var(--color-brand-coral);
-    --color-brand-gold-dark: var(--color-brand-coral-dark);
+    --color-brand-cream: var(--color-canvas);
+    --color-brand-sand: var(--color-surface-warm);
+    --color-brand-sand-soft: var(--color-surface-soft);
+    --color-brand-palm: var(--color-primary);
+    --color-brand-palm-dark: var(--color-primary-deep);
+    --color-brand-ocean: var(--color-ocean);
+    --color-brand-coral: var(--color-coral);
+    --color-brand-coral-dark: var(--color-coral-deep);
+    --color-brand-sun: var(--color-sun);
+    --color-brand-forest: var(--color-ink);
+    --color-brand-muted: var(--color-muted);
+
+    /*
+     * Legacy public aliases
+     *
+     * These aliases support older public components while we gradually move
+     * every page toward the semantic token names above.
+     */
+    --color-brand-ink: var(--color-ink);
+    --color-brand-ink-soft: var(--color-primary);
+    --color-brand-gold: var(--color-coral);
+    --color-brand-gold-dark: var(--color-coral-deep);
     --color-brand-gold-text: #973d2c;
-    --color-brand-ivory: var(--color-brand-cream);
-    --color-brand-paper: var(--color-brand-sand-soft);
-    --color-brand-burgundy: var(--color-brand-coral-dark);
+    --color-brand-ivory: var(--color-canvas);
+    --color-brand-paper: var(--color-surface-soft);
+    --color-brand-burgundy: var(--color-coral-deep);
 
-    --shadow-island: 0 24px 70px rgb(12 52 43 / 14%);
-    --shadow-island-dark: 0 30px 80px rgb(5 29 24 / 28%);
+    /*
+     * Elevation
+     */
+    --shadow-card:
+        0 10px 30px rgb(12 52 43 / 8%),
+        0 2px 8px rgb(12 52 43 / 5%);
 
-    --radius-island: 1.5rem;
+    --shadow-panel:
+        0 24px 70px rgb(12 52 43 / 14%);
 
+    --shadow-elevated:
+        0 30px 80px rgb(5 29 24 / 28%);
+
+    --shadow-nav:
+        0 14px 45px rgb(5 29 24 / 12%);
+
+    /*
+     * Shape
+     */
+    --radius-card: 1.25rem;
+    --radius-panel: 1.75rem;
+    --radius-pill: 9999px;
+
+    /*
+     * Existing public utility aliases
+     */
+    --shadow-island: var(--shadow-panel);
+    --shadow-island-dark: var(--shadow-elevated);
+    --radius-island: var(--radius-panel);
+
+    /*
+     * Motion
+     */
     --ease-island: cubic-bezier(0.22, 1, 0.36, 1);
 
-    --color-accent: var(--color-brand-palm);
-    --color-accent-content: var(--color-brand-palm);
-    --color-accent-foreground: var(--color-brand-cream);
+    /*
+     * Flux UI accent integration
+     */
+    --color-accent: var(--color-primary);
+    --color-accent-content: var(--color-primary);
+    --color-accent-foreground: var(--color-canvas);
 }
