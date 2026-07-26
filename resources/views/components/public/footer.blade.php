@@ -94,6 +94,7 @@
             : null,
     ]);
 @endphp
+<footer
     class="relative isolate overflow-hidden bg-brand-palm-dark
         text-brand-cream">
     {{-- Decorative brand-token accents. --}}
