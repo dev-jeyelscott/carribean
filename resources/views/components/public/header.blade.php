@@ -84,6 +84,7 @@
         'TikTok' => $settings['tiktok_url'] ?? null,
     ]);
 @endphp
+<header
     x-data="{
         open: false,
         scrolled: window.scrollY > 32,
