@@ -208,8 +208,8 @@
 
         <aside
             class="h-fit rounded-island border
-                    border-brand-palm/10 bg-brand-sand-soft p-7
-                    shadow-island lg:sticky lg:top-28"
+        border-brand-palm/10 bg-brand-sand-soft p-7
+        shadow-island lg:sticky lg:top-28"
             aria-labelledby="cart-summary-title">
             <h2
                 id="cart-summary-title"
@@ -217,43 +217,226 @@
                 Order Summary
             </h2>
 
-            <div
-                class="mt-7 flex items-center justify-between
-                        border-b border-brand-palm/10 pb-5">
-                <span class="text-brand-muted">
-                    Items
-                </span>
+            @unless ($cart['accepting_online_orders'])
+            <x-public.alert type="warning" class="mt-6">
+                {{ $cart['online_orders_closed_message'] }}
+            </x-public.alert>
+            @endunless
 
-                <span class="font-semibold text-brand-forest">
-                    {{ $cart['item_count'] }}
-                </span>
+            <form
+                wire:submit="applyCoupon"
+                class="mt-7 border-b border-brand-palm/10 pb-6">
+                <label
+                    for="coupon-code"
+                    class="text-sm font-semibold text-brand-forest">
+                    Coupon code
+                </label>
+
+                @if ($cart['coupon'])
+                <div
+                    class="mt-3 flex items-center justify-between
+                    rounded-island bg-white px-4 py-3">
+                    <div>
+                        <p class="font-semibold text-brand-forest">
+                            {{ $cart['coupon']['code'] }}
+                        </p>
+
+                        <p class="text-xs text-brand-muted">
+                            {{ $cart['coupon']['formatted_value'] }}
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        wire:click="removeCoupon"
+                        class="text-sm font-semibold
+                        text-brand-coral-dark underline
+                        underline-offset-4">
+                        Remove
+                    </button>
+                </div>
+                @else
+                <div class="mt-2 flex gap-2">
+                    <input
+                        id="coupon-code"
+                        type="text"
+                        wire:model="couponCode"
+                        maxlength="64"
+                        autocomplete="off"
+                        class="min-h-11 min-w-0 flex-1
+                        rounded-full border
+                        border-brand-palm/20 bg-white px-4
+                        uppercase"
+                        placeholder="ISLAND10">
+
+                    <button
+                        type="submit"
+                        wire:loading.attr="disabled"
+                        class="rounded-full border
+                        border-brand-palm/20 px-4
+                        text-sm font-semibold text-brand-palm
+                        transition hover:border-brand-palm
+                        disabled:opacity-60">
+                        Apply
+                    </button>
+                </div>
+
+                @error('couponCode')
+                <p
+                    class="mt-2 text-sm font-medium
+                        text-brand-coral-dark"
+                    role="alert">
+                    {{ $message }}
+                </p>
+                @enderror
+                @endif
+            </form>
+
+            <div
+                class="border-b border-brand-palm/10 py-6">
+                <label
+                    for="fulfillment-method"
+                    class="text-sm font-semibold text-brand-forest">
+                    Fulfillment
+                </label>
+
+                <select
+                    id="fulfillment-method"
+                    wire:model.live="fulfillmentMethod"
+                    class="mt-2 min-h-11 w-full rounded-full
+                border border-brand-palm/20 bg-white px-4">
+                    @foreach ($fulfillmentOptions as $value => $label)
+                    <option value="{{ $value }}">
+                        {{ $label }}
+                    </option>
+                    @endforeach
+                </select>
+
+                @if (
+                $fulfillmentMethod
+                === \App\Enums\FulfillmentMethod::Delivery->value
+                )
+                <label
+                    for="delivery-zip"
+                    class="mt-4 block text-sm font-semibold
+                    text-brand-forest">
+                    Delivery ZIP code
+                </label>
+
+                <input
+                    id="delivery-zip"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="5"
+                    wire:model="deliveryZip"
+                    class="mt-2 min-h-11 w-full rounded-full
+                    border border-brand-palm/20 bg-white px-4"
+                    placeholder="90001">
+
+                @error('deliveryZip')
+                <p
+                    class="mt-2 text-sm font-medium
+                        text-brand-coral-dark"
+                    role="alert">
+                    {{ $message }}
+                </p>
+                @enderror
+                @endif
+
+                <button
+                    type="button"
+                    wire:click="saveFulfillment"
+                    wire:loading.attr="disabled"
+                    class="public-button-secondary mt-4 w-full
+                text-brand-palm disabled:opacity-60">
+                    Update Fulfillment
+                </button>
             </div>
 
-            <div
-                class="flex items-center justify-between
-                        border-b border-brand-palm/10 py-5">
-                <span class="font-semibold text-brand-forest">
-                    Subtotal
-                </span>
+            @if ($cart['fulfillment_error'])
+            <x-public.alert type="warning" class="mt-5">
+                {{ $cart['fulfillment_error'] }}
+            </x-public.alert>
+            @endif
 
-                <span
-                    class="text-xl font-semibold
-                            text-brand-forest">
-                    {{ $cart['formatted_subtotal'] }}
-                </span>
-            </div>
+            <dl class="mt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <dt class="text-brand-muted">
+                        Items
+                    </dt>
 
-            <p
-                class="mt-5 text-sm leading-6
-                        text-brand-muted">
-                Coupons, tax, pickup, and delivery totals will be
-                calculated during checkout.
-            </p>
+                    <dd class="font-semibold text-brand-forest">
+                        {{ $cart['item_count'] }}
+                    </dd>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <dt class="text-brand-muted">
+                        Subtotal
+                    </dt>
+
+                    <dd class="font-semibold text-brand-forest">
+                        {{ $cart['formatted_subtotal'] }}
+                    </dd>
+                </div>
+
+                @if ($cart['discount_cents'] > 0)
+                <div class="flex items-center justify-between">
+                    <dt class="text-brand-muted">
+                        Discount
+                    </dt>
+
+                    <dd class="font-semibold text-emerald-700">
+                        -{{ $cart['formatted_discount'] }}
+                    </dd>
+                </div>
+                @endif
+
+                <div class="flex items-center justify-between">
+                    <dt class="text-brand-muted">
+                        Tax
+                        <span class="text-xs">
+                            ({{ $cart['formatted_tax_rate'] }})
+                        </span>
+                    </dt>
+
+                    <dd class="font-semibold text-brand-forest">
+                        {{ $cart['formatted_tax'] }}
+                    </dd>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <dt class="text-brand-muted">
+                        Delivery
+                    </dt>
+
+                    <dd class="font-semibold text-brand-forest">
+                        {{ $cart['formatted_delivery_fee'] }}
+                    </dd>
+                </div>
+
+                <div
+                    class="flex items-center justify-between
+                border-t border-brand-palm/10 pt-5">
+                    <dt
+                        class="font-display text-2xl
+                    text-brand-forest">
+                        Total
+                    </dt>
+
+                    <dd
+                        class="text-2xl font-semibold
+                    text-brand-forest">
+                        {{ $cart['formatted_grand_total'] }}
+                    </dd>
+                </div>
+            </dl>
 
             @if (
             \Illuminate\Support\Facades\Route::has(
             'checkout.index',
             )
+            && $cart['is_checkout_ready']
             )
             <a
                 href="{{ route('checkout.index') }}"
@@ -265,7 +448,7 @@
                 type="button"
                 disabled
                 class="public-button-primary mt-7 w-full
-                            cursor-not-allowed opacity-60">
+                cursor-not-allowed opacity-60">
                 Checkout Unavailable
             </button>
             @endif
@@ -273,7 +456,7 @@
             <a
                 href="{{ route('menu') }}"
                 class="public-button-secondary mt-3 w-full
-                        text-brand-palm">
+            text-brand-palm">
                 Continue Browsing
             </a>
         </aside>
