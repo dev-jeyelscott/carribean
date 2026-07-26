@@ -9,6 +9,7 @@ use App\Models\MenuItem;
 use App\Models\Page;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 
 class HomeController extends Controller
@@ -28,23 +29,18 @@ class HomeController extends Controller
             ?? $allGalleryImages->first();
 
         $storyImage = $allGalleryImages->firstWhere('category', 'interior')
-            ?? $allGalleryImages
-                ->first(
-                    fn (GalleryImage $image): bool => $image->isNot($heroImage),
-                )
+            ?? $allGalleryImages->first(
+                fn (GalleryImage $image): bool => $image->isNot($heroImage),
+            )
             ?? $heroImage;
 
         $featuredCategories = MenuCategory::query()
             ->visible()
-            ->whereHas(
+            ->withWhereHas(
                 'visibleMenuItems',
-                fn (Builder $query): Builder => $query
+                fn (Builder|Relation $query) => $query
                     ->whereNotNull('image_path'),
             )
-            ->with([
-                'visibleMenuItems' => fn (Builder $query): Builder => $query
-                    ->whereNotNull('image_path'),
-            ])
             ->ordered()
             ->limit(4)
             ->get();
@@ -85,8 +81,8 @@ class HomeController extends Controller
     }
 
     /**
-     * Return gallery images that do not repeat the primary hero and story
-     * photographs whenever enough alternative images are available.
+     * Return gallery images without repeating the hero and story images when
+     * enough alternative public images are available.
      *
      * @param  Collection<int, GalleryImage>  $images
      * @return Collection<int, GalleryImage>
