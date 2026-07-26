@@ -5,6 +5,7 @@ use App\Http\Controllers\PublicSite\ContactController;
 use App\Http\Controllers\PublicSite\GalleryController;
 use App\Http\Controllers\PublicSite\HomeController;
 use App\Http\Controllers\PublicSite\MenuController;
+use App\Http\Controllers\PublicSite\MenuItemController;
 use App\Http\Controllers\PublicSite\OrderInquiryController;
 use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\PublicSite\ReservationRequestController;
@@ -15,6 +16,9 @@ Route::get('/', [HomeController::class, 'index'])
 
 Route::get('/menu', [MenuController::class, 'index'])
     ->name('menu');
+
+Route::get('/menu/{menuItem:slug}', MenuItemController::class)
+    ->name('menu-items.show');
 
 Route::get('/about', [PageController::class, 'about'])
     ->name('about');

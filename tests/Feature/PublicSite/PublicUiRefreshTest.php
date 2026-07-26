@@ -74,7 +74,7 @@ test('the published about page renders through the public cms shell', function (
         ->assertSee('A restaurant made for gathering.');
 });
 
-test('the menu displays prices in us dollars', function (): void {
+test('the menu displays authoritative cent prices in us dollars', function (): void {
     $category = MenuCategory::query()->create([
         'name' => 'Main Courses',
         'slug' => 'main-courses',
@@ -88,9 +88,11 @@ test('the menu displays prices in us dollars', function (): void {
         'name' => 'Jerk Chicken',
         'slug' => 'jerk-chicken',
         'description' => 'Jerk-spiced chicken.',
-        'price' => '18.50',
+        'price_cents' => 1850,
         'sort_order' => 1,
         'is_visible' => true,
+        'is_available' => true,
+        'is_purchasable' => true,
     ]);
 
     $response = $this->get(route('menu'));

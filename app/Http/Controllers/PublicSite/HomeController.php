@@ -34,12 +34,29 @@ class HomeController extends Controller
             ->visible()
             ->whereHas(
                 'menuItems',
-                fn(Builder $query): Builder => $query
+                fn (Builder $query): Builder => $query
                     ->where('is_visible', true),
             )
             ->ordered()
             ->limit(3)
             ->get();
+
+        $featuredMenuItems = MenuItem::query()
+            ->with('menuCategory')
+            ->visible()
+            ->featured()
+            ->ordered()
+            ->limit(3)
+            ->get();
+
+        if ($featuredMenuItems->isEmpty()) {
+            $featuredMenuItems = MenuItem::query()
+                ->with('menuCategory')
+                ->visible()
+                ->ordered()
+                ->limit(3)
+                ->get();
+        }
 
         return view('pages.home', [
             'page' => Page::query()
@@ -48,14 +65,7 @@ class HomeController extends Controller
                 ->first(),
 
             'featuredCategories' => $featuredCategories,
-
-            'featuredMenuItems' => MenuItem::query()
-                ->with('menuCategory')
-                ->visible()
-                ->ordered()
-                ->limit(3)
-                ->get(),
-
+            'featuredMenuItems' => $featuredMenuItems,
             'galleryImages' => $galleryImages,
             'heroImage' => $heroImage,
             'storyImage' => $storyImage,
