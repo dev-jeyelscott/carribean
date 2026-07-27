@@ -1,6 +1,7 @@
 @props([
     'eyebrow' => null,
     'title',
+    'accentTitle' => null,
     'description' => null,
     'image' => null,
     'imageUrl' => null,
@@ -9,197 +10,142 @@
     'primaryUrl' => null,
     'secondaryLabel' => null,
     'secondaryUrl' => null,
-    'address' => null,
-    'openingHours' => null,
-    'fulfillmentLabel' => 'Pickup and local delivery available',
-    'mapUrl' => null,
 ])
 
 <section
     data-public-hero
-    class="public-hero-viewport relative bg-primary-deep text-white">
+    class="public-paper-texture relative isolate overflow-hidden bg-canvas">
     <div
-        class="relative isolate flex min-h-[42rem] items-center
-            overflow-hidden sm:min-h-[45rem] lg:min-h-[47rem]">
-        <div data-gsap="hero-image" class="absolute inset-0 -z-30">
-            <x-public.responsive-image
-                :image="$image"
-                :fallback-url="$imageUrl"
-                :alt="$imageAlt"
-                variant="hero"
-                sizes="100vw"
-                width="1920"
-                height="1280"
-                loading="eager"
-                fetchpriority="high"
-                img-class="h-full w-full object-cover object-center" />
-        </div>
+        class="pointer-events-none absolute -left-28 top-20 -z-10
+            size-72 rounded-full border border-primary/10"
+        aria-hidden="true"></div>
 
-        <div
-            class="absolute inset-0 -z-20
-                bg-[linear-gradient(90deg,rgba(7,45,37,0.96)_0%,rgba(7,45,37,0.87)_32%,rgba(7,45,37,0.46)_64%,rgba(7,45,37,0.18)_100%)]">
-        </div>
+    <div
+        class="pointer-events-none absolute right-[42%] top-20 -z-10
+            size-48 rounded-full bg-sun/10 blur-3xl"
+        aria-hidden="true"></div>
 
-        <div
-            class="absolute inset-0 -z-10
-                bg-[linear-gradient(180deg,rgba(4,28,23,0.42)_0%,transparent_35%,rgba(4,28,23,0.48)_100%)]">
-        </div>
-
-        <div class="public-container pb-20 pt-32 sm:pt-36 lg:pt-40">
-            <div data-gsap="hero-content" class="max-w-[43rem]">
-                @if ($eyebrow)
-                    <p
-                        data-gsap-reveal
-                        class="text-[0.68rem] font-semibold uppercase
-                            tracking-[0.28em] text-white/80 sm:text-xs">
-                        {{ $eyebrow }}
-                    </p>
-                @endif
-
-                <h1
+    <div
+        class="public-container grid min-h-[43rem] items-center gap-12
+            pb-20 pt-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-8 lg:py-20">
+        <div data-gsap="hero-content" class="relative z-10 max-w-xl">
+            @if ($eyebrow)
+                <p
                     data-gsap-reveal
-                    class="mt-6 font-display text-5xl leading-[1.02]
-                        text-white sm:text-6xl lg:text-7xl">
-                    {{ $title }}
-                </h1>
+                    class="public-eyebrow">
+                    {{ $eyebrow }}
+                </p>
+            @endif
 
-                @if ($description)
-                    <p
-                        data-gsap-reveal
-                        class="mt-7 max-w-xl text-base leading-8
-                            text-white/78">
-                        {{ $description }}
-                    </p>
+            <h1
+                data-gsap-reveal
+                class="mt-5 font-display text-5xl font-semibold
+                    leading-[0.98] text-ink sm:text-6xl lg:text-7xl">
+                {{ $title }}
+
+                @if ($accentTitle)
+                    <span
+                        class="relative mt-3 block font-normal italic
+                            text-coral">
+                        {{ $accentTitle }}
+
+                        <span
+                            class="absolute -bottom-3 left-1 h-1 w-52
+                                -rotate-2 rounded-full bg-ocean sm:w-64"
+                            aria-hidden="true"></span>
+                    </span>
+                @endif
+            </h1>
+
+            @if ($description)
+                <p
+                    data-gsap-reveal
+                    class="mt-9 max-w-lg text-base leading-8 text-muted">
+                    {{ $description }}
+                </p>
+            @endif
+
+            <div
+                data-gsap-reveal
+                class="mt-8 flex flex-col gap-3 sm:flex-row">
+                @if ($primaryLabel && $primaryUrl)
+                    <a
+                        href="{{ $primaryUrl }}"
+                        class="public-button-primary">
+                        {{ $primaryLabel }}
+
+                        <span class="ml-2" aria-hidden="true">
+                            &rarr;
+                        </span>
+                    </a>
                 @endif
 
-                @if ($primaryLabel || $secondaryLabel)
+                @if ($secondaryLabel && $secondaryUrl)
+                    <a
+                        href="{{ $secondaryUrl }}"
+                        class="public-button-secondary text-primary">
+                        {{ $secondaryLabel }}
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <div
+            data-gsap="hero-image"
+            class="relative mx-auto w-full max-w-[49rem] lg:ml-auto">
+            <div
+                class="absolute -right-8 -top-4 size-28 rounded-full
+                    border border-coral/15"
+                aria-hidden="true"></div>
+
+            <div
+                class="absolute -bottom-4 left-0 size-20 rounded-full
+                    bg-primary/8"
+                aria-hidden="true"></div>
+
+            <div
+                class="relative aspect-[1.14/1] overflow-hidden
+                    rounded-[48%_52%_46%_54%/48%_44%_56%_52%]
+                    border-[0.65rem] border-surface bg-surface-soft
+                    shadow-elevated">
+                @if ($image?->image_url || $imageUrl)
+                    <x-public.responsive-image
+                        :image="$image"
+                        :fallback-url="$imageUrl"
+                        :alt="$imageAlt"
+                        variant="hero"
+                        sizes="(min-width: 1024px) 58vw, 100vw"
+                        width="1400"
+                        height="1100"
+                        loading="eager"
+                        fetchpriority="high"
+                        img-class="h-full w-full object-cover object-center" />
+                @else
                     <div
-                        data-gsap-reveal
-                        class="mt-9 flex flex-col gap-3 sm:flex-row">
-                        @if ($primaryLabel && $primaryUrl)
-                            <a
-                                href="{{ $primaryUrl }}"
-                                class="public-button-primary">
-                                {{ $primaryLabel }}
-
-                                <span class="ml-2" aria-hidden="true">
-                                    &rarr;
-                                </span>
-                            </a>
-                        @endif
-
-                        @if ($secondaryLabel && $secondaryUrl)
-                            <a
-                                href="{{ $secondaryUrl }}"
-                                class="public-button-secondary text-white">
-                                {{ $secondaryLabel }}
-
-                                <span class="ml-2" aria-hidden="true">
-                                    &rarr;
-                                </span>
-                            </a>
-                        @endif
+                        class="absolute inset-0
+                            bg-[radial-gradient(circle_at_35%_24%,rgba(242,199,107,0.40),transparent_28%),linear-gradient(145deg,#206f7c,#0c342b)]">
                     </div>
                 @endif
             </div>
+
+            <div
+                class="absolute -left-3 top-[22%] flex size-12
+                    items-center justify-center rounded-full bg-coral
+                    text-white shadow-card"
+                aria-hidden="true">
+                <svg
+                    class="size-6"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7">
+                    <path
+                        stroke-linecap="round"
+                        d="M12 20c4-3 6-7 6-11-4 0-8 2-10 6-1 2 0 4 4 5Zm0 0c-1-5 0-9 4-13" />
+                </svg>
+            </div>
         </div>
     </div>
 
-    <div
-        class="border-t border-white/10 bg-primary-deep/95
-            backdrop-blur">
-        <dl
-            class="public-container grid divide-y divide-white/10
-                sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            <div class="flex min-h-20 items-center gap-4 py-5 sm:px-5 first:pl-0">
-                <svg
-                    class="size-5 shrink-0 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    aria-hidden="true">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 21s7-5.25 7-12a7 7 0 1 0-14 0c0 6.75 7 12 7 12Z" />
-
-                    <circle cx="12" cy="9" r="2.25" />
-                </svg>
-
-                <div class="min-w-0">
-                    <dt class="sr-only">Location</dt>
-
-                    <dd class="text-xs font-medium leading-5 text-white/82">
-                        @if ($mapUrl)
-                            <a
-                                href="{{ $mapUrl }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="transition hover:text-sun">
-                                {{ $address ?: 'California location coming soon' }}
-                            </a>
-                        @else
-                            {{ $address ?: 'California location coming soon' }}
-                        @endif
-                    </dd>
-                </div>
-            </div>
-
-            <div class="flex min-h-20 items-center gap-4 py-5 sm:px-5">
-                <svg
-                    class="size-5 shrink-0 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    aria-hidden="true">
-                    <circle cx="12" cy="12" r="8.25" />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 7.5V12l3 1.75" />
-                </svg>
-
-                <div class="min-w-0">
-                    <dt class="sr-only">Opening hours</dt>
-
-                    <dd class="text-xs font-medium leading-5 text-white/82">
-                        {{ $openingHours
-                            ? str($openingHours)->squish()
-                            : 'Opening hours coming soon' }}
-                    </dd>
-                </div>
-            </div>
-
-            <div class="flex min-h-20 items-center gap-4 py-5 sm:px-5">
-                <svg
-                    class="size-5 shrink-0 text-white"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    aria-hidden="true">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M5 8.5h14l-1 12H6l-1-12Z" />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M8.5 9V6.75a3.5 3.5 0 0 1 7 0V9" />
-                </svg>
-
-                <div class="min-w-0">
-                    <dt class="sr-only">Fulfillment</dt>
-
-                    <dd class="text-xs font-medium leading-5 text-white/82">
-                        {{ $fulfillmentLabel }}
-                    </dd>
-                </div>
-            </div>
-        </dl>
-    </div>
+    <div class="public-torn-edge" aria-hidden="true"></div>
 </section>

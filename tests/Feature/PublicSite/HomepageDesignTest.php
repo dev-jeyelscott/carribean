@@ -1,19 +1,32 @@
 <?php
 
-it('renders the refreshed restaurant homepage sections', function (): void {
+it('renders the island restaurant mockup sections', function (): void {
     $response = $this->get(route('home'));
 
     $response
         ->assertOk()
-        ->assertSeeText('Explore Our Menu')
-        ->assertSeeText('Flavors worth sharing')
-        ->assertSeeText('Caribbean warmth. California ease.')
-        ->assertSeeText("Chef's Picks")
-        ->assertSeeText('Island favorites')
-        ->assertSeeText('Dine your way')
-        ->assertSeeText('A taste of the island')
-        ->assertSeeText('We can’t wait to welcome you')
+        ->assertSeeText('Bold flavors. Warm hospitality.')
+        ->assertSeeText('Freshly Prepared')
+        ->assertSeeText('Caribbean Inspired')
+        ->assertSeeText('Pickup & Delivery')
+        ->assertSeeText('Easy Online Ordering')
+        ->assertSeeText("Chef's Favorites")
+        ->assertSeeText('Featured Dishes')
+        ->assertSeeText('Rooted in Tradition.')
+        ->assertSeeText('Made for Today.')
+        ->assertSeeText('Explore by Category')
+        ->assertSeeText('Made for Good Company')
         ->assertSeeText(
-            'Good food. Good people. Good vibes. That is island life.',
+            'Ready for Good Food and Island Vibes?',
         );
+});
+
+it('does not publish unsupported restaurant claims', function (): void {
+    $response = $this->get(route('home'));
+
+    $response
+        ->assertOk()
+        ->assertDontSeeText('4.9')
+        ->assertDontSeeText('Top Rated')
+        ->assertDontSeeText('Loved by thousands');
 });

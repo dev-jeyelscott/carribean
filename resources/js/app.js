@@ -7,6 +7,16 @@ Alpine.data("contactForm", contactForm);
 
 Alpine.start();
 
+if (document.querySelector("[data-reveal]")) {
+    import("./public-reveals")
+        .then(({ initPublicReveals }) => {
+            initPublicReveals();
+        })
+        .catch((error) => {
+            console.error("Unable to initialize public reveals.", error);
+        });
+}
+
 if (document.querySelector("[data-home-motion]")) {
     import("./public-animations")
         .then(({ initPublicAnimations }) => {

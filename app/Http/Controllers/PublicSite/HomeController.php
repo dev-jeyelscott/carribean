@@ -8,8 +8,6 @@ use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Page;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 
 class HomeController extends Controller
@@ -36,13 +34,9 @@ class HomeController extends Controller
 
         $featuredCategories = MenuCategory::query()
             ->visible()
-            ->withWhereHas(
-                'visibleMenuItems',
-                fn (Builder|Relation $query) => $query
-                    ->whereNotNull('image_path'),
-            )
+            ->whereHas('visibleMenuItems')
             ->ordered()
-            ->limit(4)
+            ->limit(6)
             ->get();
 
         $featuredMenuItems = MenuItem::query()
@@ -81,8 +75,8 @@ class HomeController extends Controller
     }
 
     /**
-     * Return gallery images without repeating the hero and story images when
-     * enough alternative public images are available.
+     * Return gallery images without repeating hero and story imagery when
+     * sufficient alternative public images are available.
      *
      * @param  Collection<int, GalleryImage>  $images
      * @return Collection<int, GalleryImage>

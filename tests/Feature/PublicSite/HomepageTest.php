@@ -6,7 +6,9 @@ it('renders the complete public homepage layout', function (): void {
     $response
         ->assertOk()
         ->assertSee('id="main-content"', escape: false)
-        ->assertSeeText(
-            'Island hospitality, made for the California coast.',
-        );
+        ->assertSeeText('Taste the Caribbean.')
+        ->assertSeeText('Feel the Islands.')
+        ->assertSeeText('Order Online')
+        ->assertDontSeeText('Book a Table')
+        ->assertDontSeeText('Catering');
 });

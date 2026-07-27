@@ -59,10 +59,6 @@
             {{ $slot }}
         </main>
 
-        @if (request()->routeIs('home'))
-            <x-public.blog-preview />
-        @endif
-
         <x-public.footer />
     </div>
 
