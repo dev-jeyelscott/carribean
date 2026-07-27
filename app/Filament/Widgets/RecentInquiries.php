@@ -3,11 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
-use App\Filament\Resources\OrderInquiries\OrderInquiryResource;
-use App\Filament\Resources\ReservationRequests\ReservationRequestResource;
 use App\Models\ContactInquiry;
-use App\Models\OrderInquiry;
-use App\Models\ReservationRequest;
 use Carbon\CarbonInterface;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -18,7 +14,7 @@ use Illuminate\Support\Str;
 
 /**
  * @phpstan-type RecentInquiry array{
- *     type: 'Reservation Request'|'Order Inquiry'|'Contact Inquiry',
+ *     type: 'Contact Inquiry',
  *     customer_name: string,
  *     summary: string,
  *     is_read: bool,
@@ -45,9 +41,7 @@ class RecentInquiries extends Widget
             return false;
         }
 
-        return ReservationRequestResource::canViewAny()
-            || OrderInquiryResource::canViewAny()
-            || ContactInquiryResource::canViewAny();
+        return ContactInquiryResource::canViewAny();
     }
 
     /**
@@ -60,11 +54,9 @@ class RecentInquiries extends Widget
     {
         try {
             $inquiries = collect()
-                ->concat($this->reservationRequests())
-                ->concat($this->orderInquiries())
                 ->concat($this->contactInquiries())
                 ->sortByDesc(
-                    fn (array $inquiry): int => $inquiry['created_at']->getTimestamp(),
+                    fn(array $inquiry): int => $inquiry['created_at']->getTimestamp(),
                 )
                 ->take(self::DISPLAY_LIMIT)
                 ->values();
@@ -81,83 +73,6 @@ class RecentInquiries extends Widget
                 'loadError' => true,
             ];
         }
-    }
-
-    /**
-     * @return Collection<int, RecentInquiry>
-     */
-    private function reservationRequests(): Collection
-    {
-        if (! ReservationRequestResource::canViewAny()) {
-            return collect();
-        }
-
-        return ReservationRequest::query()
-            ->select([
-                'id',
-                'customer_name',
-                'preferred_date',
-                'preferred_time',
-                'guest_count',
-                'is_read',
-                'created_at',
-            ])
-            ->latestFirst()
-            ->limit(self::DISPLAY_LIMIT)
-            ->get()
-            ->map(fn (ReservationRequest $request): array => $this->makeRecentInquiry(
-                type: 'Reservation Request',
-                customerName: $request->customer_name,
-                summary: sprintf(
-                    '%d %s · %s at %s',
-                    $request->guest_count,
-                    Str::plural('guest', $request->guest_count),
-                    $request->preferred_date->format('M j'),
-                    $request->preferred_time,
-                ),
-                isRead: $request->is_read,
-                createdAt: $request->created_at ?? now(),
-                url: ReservationRequestResource::getUrl('view', [
-                    'record' => $request,
-                ]),
-            ));
-    }
-
-    /**
-     * @return Collection<int, RecentInquiry>
-     */
-    private function orderInquiries(): Collection
-    {
-        if (! OrderInquiryResource::canViewAny()) {
-            return collect();
-        }
-
-        return OrderInquiry::query()
-            ->select([
-                'id',
-                'customer_name',
-                'fulfillment_type',
-                'preferred_time',
-                'is_read',
-                'created_at',
-            ])
-            ->latestFirst()
-            ->limit(self::DISPLAY_LIMIT)
-            ->get()
-            ->map(fn (OrderInquiry $inquiry): array => $this->makeRecentInquiry(
-                type: 'Order Inquiry',
-                customerName: $inquiry->customer_name,
-                summary: sprintf(
-                    '%s · %s',
-                    Str::headline($inquiry->fulfillment_type),
-                    $inquiry->preferred_time,
-                ),
-                isRead: $inquiry->is_read,
-                createdAt: $inquiry->created_at ?? now(),
-                url: OrderInquiryResource::getUrl('view', [
-                    'record' => $inquiry,
-                ]),
-            ));
     }
 
     /**
@@ -180,7 +95,7 @@ class RecentInquiries extends Widget
             ->latestFirst()
             ->limit(self::DISPLAY_LIMIT)
             ->get()
-            ->map(fn (ContactInquiry $inquiry): array => $this->makeRecentInquiry(
+            ->map(fn(ContactInquiry $inquiry): array => $this->makeRecentInquiry(
                 type: 'Contact Inquiry',
                 customerName: $inquiry->customer_name,
                 summary: filled($inquiry->subject)
@@ -195,7 +110,7 @@ class RecentInquiries extends Widget
     }
 
     /**
-     * @param  'Reservation Request'|'Order Inquiry'|'Contact Inquiry'  $type
+     * @param  'Contact Inquiry'  $type
      * @return RecentInquiry
      */
     private function makeRecentInquiry(

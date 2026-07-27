@@ -5,9 +5,7 @@ use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
 use App\Filament\Resources\GalleryImages\GalleryImageResource;
 use App\Filament\Resources\MenuCategories\MenuCategoryResource;
 use App\Filament\Resources\MenuItems\MenuItemResource;
-use App\Filament\Resources\OrderInquiries\OrderInquiryResource;
 use App\Filament\Resources\Pages\PageResource;
-use App\Filament\Resources\ReservationRequests\ReservationRequestResource;
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
 use App\Models\User;
 
@@ -51,18 +49,6 @@ dataset('filament navigation hierarchy', [
         'Gallery Images',
         10,
     ],
-    'reservation requests' => [
-        ReservationRequestResource::class,
-        'Customer Inquiries',
-        'Reservation Requests',
-        10,
-    ],
-    'order inquiries' => [
-        OrderInquiryResource::class,
-        'Customer Inquiries',
-        'Order Inquiries',
-        20,
-    ],
     'contact inquiries' => [
         ContactInquiryResource::class,
         'Customer Inquiries',
@@ -100,17 +86,17 @@ test('dashboard is presented as overview', function () {
 test('authorized admin can reach every navigation destination', function () {
     $this->actingAs(filamentNavigationAdminUser());
 
-    foreach ([
-        Dashboard::getUrl(),
-        PageResource::getUrl('index'),
-        SiteSettingResource::getUrl('index'),
-        MenuCategoryResource::getUrl('index'),
-        MenuItemResource::getUrl('index'),
-        GalleryImageResource::getUrl('index'),
-        ReservationRequestResource::getUrl('index'),
-        OrderInquiryResource::getUrl('index'),
-        ContactInquiryResource::getUrl('index'),
-    ] as $url) {
+    foreach (
+        [
+            Dashboard::getUrl(),
+            PageResource::getUrl('index'),
+            SiteSettingResource::getUrl('index'),
+            MenuCategoryResource::getUrl('index'),
+            MenuItemResource::getUrl('index'),
+            GalleryImageResource::getUrl('index'),
+            ContactInquiryResource::getUrl('index'),
+        ] as $url
+    ) {
         $this->get($url)->assertOk();
     }
 });
@@ -124,17 +110,17 @@ test('unauthorized users remain blocked from navigation destinations', function 
 
     $this->actingAs($staffUser);
 
-    foreach ([
-        Dashboard::getUrl(),
-        PageResource::getUrl('index'),
-        SiteSettingResource::getUrl('index'),
-        MenuCategoryResource::getUrl('index'),
-        MenuItemResource::getUrl('index'),
-        GalleryImageResource::getUrl('index'),
-        ReservationRequestResource::getUrl('index'),
-        OrderInquiryResource::getUrl('index'),
-        ContactInquiryResource::getUrl('index'),
-    ] as $url) {
+    foreach (
+        [
+            Dashboard::getUrl(),
+            PageResource::getUrl('index'),
+            SiteSettingResource::getUrl('index'),
+            MenuCategoryResource::getUrl('index'),
+            MenuItemResource::getUrl('index'),
+            GalleryImageResource::getUrl('index'),
+            ContactInquiryResource::getUrl('index'),
+        ] as $url
+    ) {
         $this->get($url)->assertForbidden();
     }
 });

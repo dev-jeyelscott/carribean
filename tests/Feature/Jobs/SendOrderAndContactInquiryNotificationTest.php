@@ -11,20 +11,6 @@ use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
-function createOrderInquiryForNotificationJob(array $overrides = []): OrderInquiry
-{
-    return OrderInquiry::query()->create(array_merge([
-        'customer_name' => 'Maria Santos',
-        'phone' => '09171234567',
-        'email' => 'maria@example.test',
-        'fulfillment_type' => 'pickup',
-        'preferred_time' => '6:30 PM',
-        'order_details' => 'Two servings of grilled salmon.',
-        'quantity' => 2,
-        'special_instructions' => null,
-        'delivery_address' => null,
-    ], $overrides));
-}
 
 function createContactInquiryForNotificationJob(array $overrides = []): ContactInquiry
 {
@@ -37,49 +23,18 @@ function createContactInquiryForNotificationJob(array $overrides = []): ContactI
     ], $overrides));
 }
 
-test('order inquiry notification job sends email and records delivery time', function (): void {
-    Mail::fake();
-    $orderInquiry = createOrderInquiryForNotificationJob();
-
-    (new SendOrderInquiryNotification($orderInquiry->id, 'restaurant@example.test'))->handle();
-
-    Mail::assertSent(OrderInquirySubmitted::class, fn (OrderInquirySubmitted $mail): bool => (
-        $mail->orderInquiry->is($orderInquiry)
-        && $mail->hasTo('restaurant@example.test')
-    ));
-
-    expect($orderInquiry->refresh()->notification_sent_at)->not->toBeNull();
-});
-
-test('order inquiry notification includes quantity', function (): void {
-    $orderInquiry = createOrderInquiryForNotificationJob(['quantity' => 2]);
-
-    expect((new OrderInquirySubmitted($orderInquiry))->render())
-        ->toContain('Quantity:')
-        ->toContain('2');
-});
-
 test('contact inquiry notification job sends email and records delivery time', function (): void {
     Mail::fake();
     $contactInquiry = createContactInquiryForNotificationJob();
 
     (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle();
 
-    Mail::assertSent(ContactInquirySubmitted::class, fn (ContactInquirySubmitted $mail): bool => (
+    Mail::assertSent(ContactInquirySubmitted::class, fn(ContactInquirySubmitted $mail): bool => (
         $mail->contactInquiry->is($contactInquiry)
         && $mail->hasTo('restaurant@example.test')
     ));
 
     expect($contactInquiry->refresh()->notification_sent_at)->not->toBeNull();
-});
-
-test('order inquiry notification job skips an already notified inquiry', function (): void {
-    Mail::fake();
-    $orderInquiry = createOrderInquiryForNotificationJob(['notification_sent_at' => now()]);
-
-    (new SendOrderInquiryNotification($orderInquiry->id, 'restaurant@example.test'))->handle();
-
-    Mail::assertNothingSent();
 });
 
 test('contact inquiry notification job skips an already notified inquiry', function (): void {
@@ -91,21 +46,6 @@ test('contact inquiry notification job skips an already notified inquiry', funct
     Mail::assertNothingSent();
 });
 
-test('order inquiry notification failure leaves the inquiry stored', function (): void {
-    $orderInquiry = createOrderInquiryForNotificationJob();
-
-    Mail::shouldReceive('to')
-        ->once()
-        ->with('restaurant@example.test')
-        ->andThrow(new RuntimeException('SMTP unavailable.'));
-
-    expect(fn () => (new SendOrderInquiryNotification($orderInquiry->id, 'restaurant@example.test'))->handle())
-        ->toThrow(RuntimeException::class, 'SMTP unavailable.');
-
-    $this->assertModelExists($orderInquiry);
-    expect($orderInquiry->refresh()->notification_sent_at)->toBeNull();
-});
-
 test('contact inquiry notification failure leaves the inquiry stored', function (): void {
     $contactInquiry = createContactInquiryForNotificationJob();
 
@@ -114,7 +54,7 @@ test('contact inquiry notification failure leaves the inquiry stored', function 
         ->with('restaurant@example.test')
         ->andThrow(new RuntimeException('SMTP unavailable.'));
 
-    expect(fn () => (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle())
+    expect(fn() => (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle())
         ->toThrow(RuntimeException::class, 'SMTP unavailable.');
 
     $this->assertModelExists($contactInquiry);

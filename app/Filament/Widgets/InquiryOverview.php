@@ -3,11 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
-use App\Filament\Resources\OrderInquiries\OrderInquiryResource;
-use App\Filament\Resources\ReservationRequests\ReservationRequestResource;
 use App\Models\ContactInquiry;
-use App\Models\OrderInquiry;
-use App\Models\ReservationRequest;
 use Closure;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -45,9 +41,7 @@ class InquiryOverview extends StatsOverviewWidget
             return false;
         }
 
-        return ReservationRequestResource::canViewAny()
-            || OrderInquiryResource::canViewAny()
-            || ContactInquiryResource::canViewAny();
+        return ContactInquiryResource::canViewAny();
     }
 
     /**
@@ -57,35 +51,11 @@ class InquiryOverview extends StatsOverviewWidget
     {
         $stats = [];
 
-        if (ReservationRequestResource::canViewAny()) {
-            $stats[] = $this->makeInquiryStat(
-                label: 'Unread Reservation Requests',
-                count: $this->runCountQuery(
-                    fn (): int => ReservationRequest::query()
-                        ->unread()
-                        ->count('*'),
-                ),
-                icon: 'heroicon-m-calendar-days',
-            );
-        }
-
-        if (OrderInquiryResource::canViewAny()) {
-            $stats[] = $this->makeInquiryStat(
-                label: 'Unread Order Inquiries',
-                count: $this->runCountQuery(
-                    fn (): int => OrderInquiry::query()
-                        ->unread()
-                        ->count('*'),
-                ),
-                icon: 'heroicon-m-shopping-bag',
-            );
-        }
-
         if (ContactInquiryResource::canViewAny()) {
             $stats[] = $this->makeInquiryStat(
                 label: 'Unread Contact Inquiries',
                 count: $this->runCountQuery(
-                    fn (): int => ContactInquiry::query()
+                    fn(): int => ContactInquiry::query()
                         ->unread()
                         ->count('*'),
                 ),

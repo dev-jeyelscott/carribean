@@ -6,7 +6,6 @@ use App\Filament\Resources\MenuCategories\Pages\CreateMenuCategory;
 use App\Filament\Resources\MenuItems\Pages\CreateMenuItem;
 use App\Filament\Resources\OrderInquiries\Pages\ListOrderInquiries;
 use App\Filament\Resources\Pages\PageResource as FilamentPageResource;
-use App\Filament\Resources\ReservationRequests\Pages\ListReservationRequests;
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
 use App\Models\ContactInquiry;
 use App\Models\GalleryImage;
@@ -166,20 +165,6 @@ test('admin can view and mark inquiry records as reviewed without editing custom
         'is_read' => false,
     ]);
 
-    Livewire::test(ListReservationRequests::class)
-        ->assertCanSeeTableRecords([$reservationRequest])
-        ->assertTableActionExists('view')
-        ->assertTableActionExists('markAsReviewed')
-        ->assertTableActionDoesNotExist('edit')
-        ->callTableAction('markAsReviewed', $reservationRequest);
-
-    Livewire::test(ListOrderInquiries::class)
-        ->assertCanSeeTableRecords([$orderInquiry])
-        ->assertTableActionExists('view')
-        ->assertTableActionExists('markAsReviewed')
-        ->assertTableActionDoesNotExist('edit')
-        ->callTableAction('markAsReviewed', $orderInquiry);
-
     Livewire::test(ListContactInquiries::class)
         ->assertCanSeeTableRecords([$contactInquiry])
         ->assertTableActionExists('view')
@@ -187,15 +172,11 @@ test('admin can view and mark inquiry records as reviewed without editing custom
         ->assertTableActionDoesNotExist('edit')
         ->callTableAction('markAsReviewed', $contactInquiry);
 
-    expect($reservationRequest->refresh()->is_read)->toBeTrue();
-    expect($orderInquiry->refresh()->is_read)->toBeTrue();
     expect($contactInquiry->refresh()->is_read)->toBeTrue();
 });
 
 test('inquiry admin tables do not expose destructive bulk actions', function () {
     $tableFiles = [
-        app_path('Filament/Resources/ReservationRequests/Tables/ReservationRequestsTable.php'),
-        app_path('Filament/Resources/OrderInquiries/Tables/OrderInquiriesTable.php'),
         app_path('Filament/Resources/ContactInquiries/Tables/ContactInquiriesTable.php'),
     ];
 
@@ -209,21 +190,23 @@ test('inquiry admin tables do not expose destructive bulk actions', function () 
 
 test('admin routes remain within approved website cms and inquiry scope', function () {
     $routes = collect(Route::getRoutes())
-        ->map(fn ($route): string => trim($route->uri().' '.$route->getName()))
+        ->map(fn($route): string => trim($route->uri() . ' ' . $route->getName()))
         ->implode("\n");
 
     $normalizedRoutes = Str::lower($routes);
 
-    foreach ([
-        'cart',
-        'checkout',
-        'payment',
-        'inventory',
-        'kitchen',
-        'order-status',
-        'customer-account',
-        'customer-login',
-    ] as $unsupportedFeature) {
+    foreach (
+        [
+            'cart',
+            'checkout',
+            'payment',
+            'inventory',
+            'kitchen',
+            'order-status',
+            'customer-account',
+            'customer-login',
+        ] as $unsupportedFeature
+    ) {
         expect($normalizedRoutes)->not->toContain($unsupportedFeature);
     }
 });

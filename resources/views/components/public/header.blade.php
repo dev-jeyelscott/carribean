@@ -1,88 +1,88 @@
 @php
-    use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route;
 
-    $restaurantName = $settings['restaurant_name']
-        ?? config('app.name');
+$restaurantName = $settings['restaurant_name']
+?? config('app.name');
 
-    $tagline = $settings['tagline']
-        ?? 'Caribbean warmth, California ease.';
+$tagline = $settings['tagline']
+?? 'Caribbean warmth, California ease.';
 
-    $phone = $settings['phone'] ?? null;
-    $address = $settings['address'] ?? null;
-    $openingHours = $settings['opening_hours'] ?? null;
-    $mapLink = $settings['map_link'] ?? null;
+$phone = $settings['phone'] ?? null;
+$address = $settings['address'] ?? null;
+$openingHours = $settings['opening_hours'] ?? null;
+$mapLink = $settings['map_link'] ?? null;
 
-    $phoneDigits = is_string($phone)
-        ? preg_replace('/\D+/', '', $phone)
-        : null;
+$phoneDigits = is_string($phone)
+? preg_replace('/\D+/', '', $phone)
+: null;
 
-    $phoneTarget = is_string($phone)
-        && is_string($phoneDigits)
-        && $phoneDigits !== ''
-            ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
-            : null;
+$phoneTarget = is_string($phone)
+&& is_string($phoneDigits)
+&& $phoneDigits !== ''
+? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
+: null;
 
-    $primaryLinks = [
-        [
-            'label' => 'Home',
-            'route' => 'home',
-            'patterns' => ['home'],
-        ],
-        [
-            'label' => 'Menu',
-            'route' => 'menu',
-            'patterns' => ['menu', 'menu-items.*'],
-        ],
-        [
-            'label' => 'About',
-            'route' => 'about',
-            'patterns' => ['about'],
-        ],
-        [
-            'label' => 'Gallery',
-            'route' => 'gallery',
-            'patterns' => ['gallery'],
-        ],
-        [
-            'label' => 'Contact',
-            'route' => 'contact.create',
-            'patterns' => ['contact.*'],
-        ],
-    ];
+$primaryLinks = [
+[
+'label' => 'Home',
+'route' => 'home',
+'patterns' => ['home'],
+],
+[
+'label' => 'Menu',
+'route' => 'menu',
+'patterns' => ['menu', 'menu-items.*'],
+],
+[
+'label' => 'About',
+'route' => 'about',
+'patterns' => ['about'],
+],
+[
+'label' => 'Gallery',
+'route' => 'gallery',
+'patterns' => ['gallery'],
+],
+[
+'label' => 'Contact',
+'route' => 'contact.create',
+'patterns' => ['contact.*'],
+],
+];
 
-    if (
-        ($hasPublishedBlogPosts ?? false)
-        && Route::has('blog.index')
-    ) {
-        array_splice(
-            $primaryLinks,
-            4,
-            0,
-            [[
-                'label' => 'Journal',
-                'route' => 'blog.index',
-                'patterns' => ['blog.*'],
-            ]],
-        );
-    }
+if (
+($hasPublishedBlogPosts ?? false)
+&& Route::has('blog.index')
+) {
+array_splice(
+$primaryLinks,
+4,
+0,
+[[
+'label' => 'Journal',
+'route' => 'blog.index',
+'patterns' => ['blog.*'],
+]],
+);
+}
 
-    $orderUrl = Route::has('cart.index')
-        ? route('cart.index')
-        : route('menu');
+$orderUrl = Route::has('cart.index')
+? route('cart.index')
+: route('menu');
 
-    $cartUrl = Route::has('cart.index')
-        ? route('cart.index')
-        : null;
+$cartUrl = Route::has('cart.index')
+? route('cart.index')
+: null;
 
-    $accountUrl = auth()->check() && Route::has('account.index')
-        ? route('account.index')
-        : (Route::has('login') ? route('login') : null);
+$accountUrl = auth()->check() && Route::has('account.index')
+? route('account.index')
+: (Route::has('login') ? route('login') : null);
 
-    $socialLinks = array_filter([
-        'Instagram' => $settings['instagram_url'] ?? null,
-        'Facebook' => $settings['facebook_url'] ?? null,
-        'TikTok' => $settings['tiktok_url'] ?? null,
-    ]);
+$socialLinks = array_filter([
+'Instagram' => $settings['instagram_url'] ?? null,
+'Facebook' => $settings['facebook_url'] ?? null,
+'TikTok' => $settings['tiktok_url'] ?? null,
+]);
 @endphp
 <header
     x-data="{
@@ -111,83 +111,83 @@
                 class="flex min-w-0 items-center gap-6 text-[0.65rem]
                     font-semibold uppercase tracking-[0.16em]">
                 @if ($phoneTarget)
-                    <a
-                        href="tel:{{ $phoneTarget }}"
-                        class="inline-flex items-center gap-2 transition
+                <a
+                    href="tel:{{ $phoneTarget }}"
+                    class="inline-flex items-center gap-2 transition
                             hover:text-brand-sun">
-                        <svg
-                            class="size-4 shrink-0 text-brand-coral"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.75"
-                            aria-hidden="true">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M8.25 4.5 6.75 3H4.5A1.5 1.5 0 0 0 3 4.5C3 13.613 10.387 21 19.5 21a1.5 1.5 0 0 0 1.5-1.5v-2.25l-1.5-1.5-3.75 1.5a13.56 13.56 0 0 1-9-9l1.5-3.75Z" />
-                        </svg>
+                    <svg
+                        class="size-4 shrink-0 text-brand-coral"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8.25 4.5 6.75 3H4.5A1.5 1.5 0 0 0 3 4.5C3 13.613 10.387 21 19.5 21a1.5 1.5 0 0 0 1.5-1.5v-2.25l-1.5-1.5-3.75 1.5a13.56 13.56 0 0 1-9-9l1.5-3.75Z" />
+                    </svg>
 
-                        <span class="text-brand-sun">Call &amp; order</span>
+                    <span class="text-brand-sun">Call &amp; order</span>
 
-                        <span class="text-brand-cream/75">
-                            {{ $phone }}
-                        </span>
-                    </a>
+                    <span class="text-brand-cream/75">
+                        {{ $phone }}
+                    </span>
+                </a>
                 @endif
 
                 @if ($address)
-                    @if ($mapLink)
-                        <a
-                            href="{{ $mapLink }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex min-w-0 items-center gap-2
+                @if ($mapLink)
+                <a
+                    href="{{ $mapLink }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex min-w-0 items-center gap-2
                                 text-brand-cream/70 transition
                                 hover:text-brand-sun">
-                            <svg
-                                class="size-4 shrink-0 text-brand-coral"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.75"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 21s7-5.25 7-12a7 7 0 1 0-14 0c0 6.75 7 12 7 12Z" />
+                    <svg
+                        class="size-4 shrink-0 text-brand-coral"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 21s7-5.25 7-12a7 7 0 1 0-14 0c0 6.75 7 12 7 12Z" />
 
-                                <circle cx="12" cy="9" r="2.25" />
-                            </svg>
+                        <circle cx="12" cy="9" r="2.25" />
+                    </svg>
 
-                            <span class="max-w-72 truncate">
-                                {{ $address }}
-                            </span>
-                        </a>
-                    @else
-                        <span
-                            class="inline-flex min-w-0 items-center gap-2
+                    <span class="max-w-72 truncate">
+                        {{ $address }}
+                    </span>
+                </a>
+                @else
+                <span
+                    class="inline-flex min-w-0 items-center gap-2
                                 text-brand-cream/70">
-                            <svg
-                                class="size-4 shrink-0 text-brand-coral"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.75"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 21s7-5.25 7-12a7 7 0 1 0-14 0c0 6.75 7 12 7 12Z" />
+                    <svg
+                        class="size-4 shrink-0 text-brand-coral"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 21s7-5.25 7-12a7 7 0 1 0-14 0c0 6.75 7 12 7 12Z" />
 
-                                <circle cx="12" cy="9" r="2.25" />
-                            </svg>
+                        <circle cx="12" cy="9" r="2.25" />
+                    </svg>
 
-                            <span class="max-w-72 truncate">
-                                {{ $address }}
-                            </span>
-                        </span>
-                    @endif
+                    <span class="max-w-72 truncate">
+                        {{ $address }}
+                    </span>
+                </span>
+                @endif
                 @endif
             </div>
 
@@ -195,41 +195,41 @@
                 class="flex shrink-0 items-center gap-6 text-[0.65rem]
                     font-semibold uppercase tracking-[0.16em]">
                 @if ($openingHours)
-                    <span
-                        class="inline-flex items-center gap-2
+                <span
+                    class="inline-flex items-center gap-2
                             text-brand-cream/70">
-                        <svg
-                            class="size-4 text-brand-coral"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.75"
-                            aria-hidden="true">
-                            <circle cx="12" cy="12" r="8.25" />
+                    <svg
+                        class="size-4 text-brand-coral"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <circle cx="12" cy="12" r="8.25" />
 
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 7.5V12l3 1.75" />
-                        </svg>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 7.5V12l3 1.75" />
+                    </svg>
 
-                        {{ str($openingHours)->squish() }}
-                    </span>
+                    {{ str($openingHours)->squish() }}
+                </span>
                 @endif
 
                 @if ($socialLinks !== [])
-                    <div class="flex items-center gap-4">
-                        @foreach ($socialLinks as $label => $url)
-                            <a
-                                href="{{ $url }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-brand-cream/65 transition
+                <div class="flex items-center gap-4">
+                    @foreach ($socialLinks as $label => $url)
+                    <a
+                        href="{{ $url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-brand-cream/65 transition
                                     hover:text-brand-sun">
-                                {{ $label }}
-                            </a>
-                        @endforeach
-                    </div>
+                        {{ $label }}
+                    </a>
+                    @endforeach
+                </div>
                 @endif
             </div>
         </div>
@@ -279,72 +279,104 @@
                 class="hidden items-center gap-6 xl:flex"
                 aria-label="Primary navigation">
                 @foreach ($primaryLinks as $link)
-                    @php
-                        $isActive = request()->routeIs(
-                            ...$link['patterns'],
-                        );
-                    @endphp
+                @php
+                $isActive = request()->routeIs(
+                ...$link['patterns'],
+                );
+                @endphp
 
-                    <a
-                        href="{{ route($link['route']) }}"
-                        @class([
-                            'relative whitespace-nowrap py-3 text-[0.68rem]
+                <a
+                    href="{{ route($link['route']) }}"
+                    @class([ 'relative whitespace-nowrap py-3 text-[0.68rem]
                                 font-semibold uppercase tracking-[0.16em]
                                 transition duration-300 ease-island
                                 after:absolute after:inset-x-0 after:-bottom-0.5
                                 after:h-px after:origin-left
                                 after:bg-brand-coral after:transition-transform
-                                after:duration-300 motion-reduce:transition-none',
-                            'text-brand-coral after:scale-x-100' => $isActive,
-                            'text-current opacity-80 after:scale-x-0
-                                hover:text-brand-coral hover:opacity-100
-                                hover:after:scale-x-100' => ! $isActive,
-                        ])
-                        @if ($isActive) aria-current="page" @endif>
-                        {{ $link['label'] }}
-                    </a>
+                                after:duration-300 motion-reduce:transition-none' , 'text-brand-coral after:scale-x-100'=> $isActive,
+                    'text-current opacity-80 after:scale-x-0
+                    hover:text-brand-coral hover:opacity-100
+                    hover:after:scale-x-100' => ! $isActive,
+                    ])
+                    @if ($isActive) aria-current="page" @endif>
+                    {{ $link['label'] }}
+                </a>
                 @endforeach
             </nav>
 
             <div class="hidden items-center gap-2 xl:flex">
                 @if ($accountUrl)
-                    <a
-                        href="{{ $accountUrl }}"
-                        class="inline-flex min-h-11 items-center gap-2
+                <a
+                    href="{{ $accountUrl }}"
+                    class="inline-flex min-h-11 items-center gap-2
                             rounded-full px-3 text-[0.66rem] font-semibold
                             uppercase tracking-[0.15em] text-current
                             opacity-80 transition duration-300 ease-island
                             hover:text-brand-coral hover:opacity-100">
-                        <svg
-                            class="size-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.75"
-                            aria-hidden="true">
-                            <circle cx="12" cy="8" r="3.25" />
+                    <svg
+                        class="size-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <circle cx="12" cy="8" r="3.25" />
 
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-                        </svg>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                    </svg>
 
-                        Account
-                    </a>
+                    Account
+                </a>
                 @endif
 
                 @if ($cartUrl)
-                    <a
-                        href="{{ $cartUrl }}"
-                        class="inline-flex min-h-11 items-center gap-2
+                <a
+                    href="{{ $cartUrl }}"
+                    class="inline-flex min-h-11 items-center gap-2
                             rounded-full px-3 text-[0.66rem] font-semibold
                             uppercase tracking-[0.15em] text-current
                             opacity-80 transition duration-300 ease-island
                             hover:text-brand-coral hover:opacity-100"
-                        aria-label="View shopping cart">
+                    aria-label="View shopping cart">
+                    <svg
+                        class="size-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5.5 8.5h13l-1 11h-11l-1-11Z" />
+
+                        <path
+                            stroke-linecap="round"
+                            d="M9 9V6.75a3 3 0 0 1 6 0V9" />
+                    </svg>
+
+                    Cart
+
+                    <livewire:cart.cart-count />
+                </a>
+                @endif
+            </div>
+
+            <div class="flex items-center gap-2 xl:hidden">
+                @if ($cartUrl)
+                <a
+                    href="{{ $cartUrl }}"
+                    class="inline-flex size-11 items-center justify-center
+                            rounded-full border border-current/25 text-current
+                            transition hover:border-brand-coral
+                            hover:text-brand-coral"
+                    aria-label="View shopping cart">
+                    <span class="relative">
                         <svg
-                            class="size-4"
+                            class="size-5"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -360,73 +392,13 @@
                                 d="M9 9V6.75a3 3 0 0 1 6 0V9" />
                         </svg>
 
-                        Cart
-
-                        <livewire:cart.cart-count />
-                    </a>
-                @endif
-
-                <a
-                    href="{{ route('reservation-request.create') }}"
-                    class="inline-flex min-h-11 items-center justify-center
-                        rounded-full border border-current/30 px-5 py-2
-                        text-[0.64rem] font-semibold uppercase
-                        tracking-[0.15em] text-current transition
-                        duration-300 ease-island hover:-translate-y-0.5
-                        hover:border-brand-coral hover:bg-brand-coral
-                        hover:text-white motion-reduce:transform-none
-                        motion-reduce:transition-none">
-                    Reserve
-                </a>
-
-                <a
-                    href="{{ $orderUrl }}"
-                    class="inline-flex min-h-11 items-center justify-center
-                        rounded-full bg-brand-coral px-5 py-2
-                        text-[0.64rem] font-semibold uppercase
-                        tracking-[0.15em] text-white transition
-                        duration-300 ease-island hover:-translate-y-0.5
-                        hover:bg-brand-coral-dark hover:shadow-island
-                        motion-reduce:transform-none
-                        motion-reduce:transition-none">
-                    Order Online
-                </a>
-            </div>
-
-            <div class="flex items-center gap-2 xl:hidden">
-                @if ($cartUrl)
-                    <a
-                        href="{{ $cartUrl }}"
-                        class="inline-flex size-11 items-center justify-center
-                            rounded-full border border-current/25 text-current
-                            transition hover:border-brand-coral
-                            hover:text-brand-coral"
-                        aria-label="View shopping cart">
-                        <span class="relative">
-                            <svg
-                                class="size-5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.75"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M5.5 8.5h13l-1 11h-11l-1-11Z" />
-
-                                <path
-                                    stroke-linecap="round"
-                                    d="M9 9V6.75a3 3 0 0 1 6 0V9" />
-                            </svg>
-
-                            <span
-                                class="absolute -right-3 -top-3
+                        <span
+                            class="absolute -right-3 -top-3
                                     text-brand-coral">
-                                <livewire:cart.cart-count />
-                            </span>
+                            <livewire:cart.cart-count />
                         </span>
-                    </a>
+                    </span>
+                </a>
                 @endif
 
                 <button
@@ -488,96 +460,78 @@
         <div class="public-container py-6">
             <div class="flex flex-col">
                 @foreach ($primaryLinks as $link)
-                    @php
-                        $isActive = request()->routeIs(
-                            ...$link['patterns'],
-                        );
-                    @endphp
+                @php
+                $isActive = request()->routeIs(
+                ...$link['patterns'],
+                );
+                @endphp
 
-                    <a
-                        href="{{ route($link['route']) }}"
-                        @click="open = false"
-                        @class([
-                            'flex items-center justify-between border-b
+                <a
+                    href="{{ route($link['route']) }}"
+                    @click="open = false"
+                    @class([ 'flex items-center justify-between border-b
                                 border-brand-palm/10 py-4 text-sm
                                 font-semibold uppercase tracking-[0.17em]
-                                transition duration-300',
-                            'text-brand-coral' => $isActive,
-                            'text-brand-forest hover:text-brand-coral' => ! $isActive,
-                        ])
-                        @if ($isActive) aria-current="page" @endif>
-                        {{ $link['label'] }}
+                                transition duration-300' , 'text-brand-coral'=> $isActive,
+                    'text-brand-forest hover:text-brand-coral' => ! $isActive,
+                    ])
+                    @if ($isActive) aria-current="page" @endif>
+                    {{ $link['label'] }}
 
-                        <span
-                            class="text-brand-coral"
-                            aria-hidden="true">
-                            &rarr;
-                        </span>
-                    </a>
+                    <span
+                        class="text-brand-coral"
+                        aria-hidden="true">
+                        &rarr;
+                    </span>
+                </a>
                 @endforeach
             </div>
 
             @if ($accountUrl)
-                <a
-                    href="{{ $accountUrl }}"
-                    @click="open = false"
-                    class="mt-5 inline-flex items-center gap-2 text-sm
+            <a
+                href="{{ $accountUrl }}"
+                @click="open = false"
+                class="mt-5 inline-flex items-center gap-2 text-sm
                         font-semibold text-brand-palm transition
                         hover:text-brand-coral">
-                    <svg
-                        class="size-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.75"
-                        aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.25" />
+                <svg
+                    class="size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.25" />
 
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-                    </svg>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+                </svg>
 
-                    Account
-                </a>
+                Account
+            </a>
             @endif
 
-            <div class="mt-6 grid gap-3 sm:grid-cols-2">
-                <a
-                    href="{{ route('reservation-request.create') }}"
-                    @click="open = false"
-                    class="public-button-secondary text-brand-palm">
-                    Reserve a Table
-                </a>
-
-                <a
-                    href="{{ $orderUrl }}"
-                    @click="open = false"
-                    class="public-button-primary">
-                    Order Online
-                </a>
-            </div>
-
             @if ($phoneTarget || $openingHours)
-                <div
-                    class="mt-7 rounded-island bg-brand-sand-soft p-5
+            <div
+                class="mt-7 rounded-island bg-brand-sand-soft p-5
                         text-sm text-brand-muted">
-                    @if ($phoneTarget)
-                        <a
-                            href="tel:{{ $phoneTarget }}"
-                            class="font-semibold text-brand-palm transition
+                @if ($phoneTarget)
+                <a
+                    href="tel:{{ $phoneTarget }}"
+                    class="font-semibold text-brand-palm transition
                                 hover:text-brand-coral">
-                            {{ $phone }}
-                        </a>
-                    @endif
+                    {{ $phone }}
+                </a>
+                @endif
 
-                    @if ($openingHours)
-                        <p class="mt-2 leading-6">
-                            {{ $openingHours }}
-                        </p>
-                    @endif
-                </div>
+                @if ($openingHours)
+                <p class="mt-2 leading-6">
+                    {{ $openingHours }}
+                </p>
+                @endif
+            </div>
             @endif
         </div>
     </nav>

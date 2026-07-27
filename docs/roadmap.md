@@ -270,8 +270,6 @@ Visible:
 * About
 * Gallery
 * Contact
-* Reserve a Table
-* Order Online
 * Cart
 * Account
 

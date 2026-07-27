@@ -4,9 +4,7 @@ use App\Filament\Resources\ContactInquiries\Tables\ContactInquiriesTable;
 use App\Filament\Resources\GalleryImages\Tables\GalleryImagesTable;
 use App\Filament\Resources\MenuCategories\Tables\MenuCategoriesTable;
 use App\Filament\Resources\MenuItems\Tables\MenuItemsTable;
-use App\Filament\Resources\OrderInquiries\Tables\OrderInquiriesTable;
 use App\Filament\Resources\Pages\Tables\PagesTable;
-use App\Filament\Resources\ReservationRequests\Tables\ReservationRequestsTable;
 use App\Filament\Resources\SiteSettings\Tables\SiteSettingsTable;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
@@ -31,8 +29,6 @@ test('resource tables provide clear branded empty states', function (string $tab
         ->and($table->getEmptyStateIcon())
         ->not->toBeEmpty();
 })->with([
-    'reservation requests' => [ReservationRequestsTable::class, 'No reservation requests yet'],
-    'order inquiries' => [OrderInquiriesTable::class, 'No order inquiries yet'],
     'contact inquiries' => [ContactInquiriesTable::class, 'No contact inquiries yet'],
     'menu items' => [MenuItemsTable::class, 'No menu items yet'],
     'menu categories' => [MenuCategoriesTable::class, 'No menu categories yet'],
@@ -59,8 +55,6 @@ test('inquiry tables use review labels and preserve the review filter', function
         ->and($reviewFilter->getFalseLabel())
         ->toBe('New');
 })->with([
-    'reservation requests' => [ReservationRequestsTable::class],
-    'order inquiries' => [OrderInquiriesTable::class],
     'contact inquiries' => [ContactInquiriesTable::class],
 ]);
 
@@ -78,9 +72,6 @@ test('secondary table columns become visible from their desktop breakpoint', fun
         ->and($column->getHiddenFrom())
         ->toBeNull();
 })->with([
-    'reservation phone' => [ReservationRequestsTable::class, 'phone', 'md'],
-    'reservation email' => [ReservationRequestsTable::class, 'email', 'lg'],
-    'order phone' => [OrderInquiriesTable::class, 'phone', 'md'],
     'contact email' => [ContactInquiriesTable::class, 'email', 'md'],
     'menu item image' => [MenuItemsTable::class, 'responsive_thumbnail', 'md'],
     'menu category slug' => [MenuCategoriesTable::class, 'slug', 'lg'],

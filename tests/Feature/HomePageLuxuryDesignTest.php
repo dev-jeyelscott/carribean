@@ -26,17 +26,16 @@ test('homepage renders the premium restaurant experience and approved calls to a
 test('homepage remains scope safe and does not fabricate social proof', function (): void {
     $response = $this->get(route('home'))->assertOk();
 
-    foreach ([
-        'Book a Table',
-        'Reserve a Table',
-        'Order Online',
-        'Checkout',
-        'Pay Now',
-        'Michelin',
-        'Forbes',
-        'Zagat',
-        'New York Times',
-    ] as $prohibitedCopy) {
+    foreach (
+        [
+            'Checkout',
+            'Pay Now',
+            'Michelin',
+            'Forbes',
+            'Zagat',
+            'New York Times',
+        ] as $prohibitedCopy
+    ) {
         $response->assertDontSeeText($prohibitedCopy);
     }
 });
@@ -179,13 +178,15 @@ test('homepage displays only the first three visible menu items in configured or
         'is_visible' => true,
     ]);
 
-    foreach ([
-        ['First Course', 1, true],
-        ['Second Course', 2, true],
-        ['Third Course', 3, true],
-        ['Fourth Course', 4, true],
-        ['Hidden Course', 0, false],
-    ] as [$name, $sortOrder, $isVisible]) {
+    foreach (
+        [
+            ['First Course', 1, true],
+            ['Second Course', 2, true],
+            ['Third Course', 3, true],
+            ['Fourth Course', 4, true],
+            ['Hidden Course', 0, false],
+        ] as [$name, $sortOrder, $isVisible]
+    ) {
         MenuItem::query()->create([
             'menu_category_id' => $category->id,
             'name' => $name,

@@ -2,28 +2,28 @@
     :title="$page?->meta_title ?: ($settings['meta_title'] ?? 'Home')"
     :description="$page?->meta_description ?: ($settings['meta_description'] ?? 'Caribbean food, warm hospitality, and California ease.')">
     @php
-        $restaurantName = $settings['restaurant_name']
-            ?? config('app.name');
+    $restaurantName = $settings['restaurant_name']
+    ?? config('app.name');
 
-        $phone = $settings['phone'] ?? null;
-        $email = $settings['email'] ?? null;
-        $address = $settings['address'] ?? null;
-        $openingHours = $settings['opening_hours'] ?? null;
-        $mapLink = $settings['map_link'] ?? null;
+    $phone = $settings['phone'] ?? null;
+    $email = $settings['email'] ?? null;
+    $address = $settings['address'] ?? null;
+    $openingHours = $settings['opening_hours'] ?? null;
+    $mapLink = $settings['map_link'] ?? null;
 
-        $phoneDigits = is_string($phone)
-            ? preg_replace('/\D+/', '', $phone)
-            : null;
+    $phoneDigits = is_string($phone)
+    ? preg_replace('/\D+/', '', $phone)
+    : null;
 
-        $phoneTelTarget = is_string($phone)
-            && is_string($phoneDigits)
-            && $phoneDigits !== ''
-                ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
-                : null;
+    $phoneTelTarget = is_string($phone)
+    && is_string($phoneDigits)
+    && $phoneDigits !== ''
+    ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
+    : null;
 
-        $orderUrl = \Illuminate\Support\Facades\Route::has('cart.index')
-            ? route('cart.index')
-            : route('menu');
+    $orderUrl = \Illuminate\Support\Facades\Route::has('cart.index')
+    ? route('cart.index')
+    : route('menu');
     @endphp
 
     <div data-home-motion>
@@ -33,10 +33,6 @@
             :description="$page?->excerpt ?: 'Vibrant Caribbean flavors, fresh local ingredients, and genuine hospitality—welcome to your escape.'"
             :image="$heroImage"
             :image-alt="$heroImage?->alt_text ?: $heroImage?->title ?: 'Caribbean seafood and cocktails beside the California coast'"
-            primary-label="Order Online"
-            :primary-url="$orderUrl"
-            secondary-label="Reserve a Table"
-            :secondary-url="route('reservation-request.create')"
             :address="$address"
             :opening-hours="$openingHours"
             fulfillment-label="Pickup and local delivery available"
@@ -56,15 +52,15 @@
                     class="mt-10 grid gap-4 sm:grid-cols-2
                         lg:grid-cols-4 lg:gap-5">
                     @forelse ($featuredCategories as $category)
-                        <x-public.home-category-card
-                            :category="$category"
-                            :item="$category->visibleMenuItems->first()" />
+                    <x-public.home-category-card
+                        :category="$category"
+                        :item="$category->visibleMenuItems->first()" />
                     @empty
-                        <x-public.alert
-                            type="warning"
-                            class="sm:col-span-2 lg:col-span-4">
-                            Our menu categories are being prepared.
-                        </x-public.alert>
+                    <x-public.alert
+                        type="warning"
+                        class="sm:col-span-2 lg:col-span-4">
+                        Our menu categories are being prepared.
+                    </x-public.alert>
                     @endforelse
                 </div>
             </div>
@@ -91,20 +87,20 @@
                     class="relative min-h-[28rem] overflow-hidden
                         bg-surface-soft sm:min-h-[34rem]">
                     @if ($storyImage?->image_url)
-                        <x-public.responsive-image
-                            :image="$storyImage"
-                            :alt="$storyImage->alt_text ?: $storyImage->title ?: 'Warm Coast and Cay restaurant interior'"
-                            variant="large"
-                            sizes="(min-width: 1024px) 50vw, 100vw"
-                            width="1200"
-                            height="900"
-                            img-class="absolute inset-0 h-full w-full
+                    <x-public.responsive-image
+                        :image="$storyImage"
+                        :alt="$storyImage->alt_text ?: $storyImage->title ?: 'Warm Coast and Cay restaurant interior'"
+                        variant="large"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                        width="1200"
+                        height="900"
+                        img-class="absolute inset-0 h-full w-full
                                 object-cover" />
                     @else
-                        <div
-                            class="absolute inset-0
+                    <div
+                        class="absolute inset-0
                                 bg-[radial-gradient(circle_at_30%_20%,rgba(242,199,107,0.30),transparent_32%),linear-gradient(145deg,#206f7c,#0c342b)]">
-                        </div>
+                    </div>
                     @endif
                 </div>
 
@@ -148,15 +144,15 @@
                     class="mt-10 grid gap-5 sm:grid-cols-2
                         xl:grid-cols-4">
                     @forelse ($featuredMenuItems as $item)
-                        <x-public.menu-card
-                            :item="$item"
-                            variant="default" />
+                    <x-public.menu-card
+                        :item="$item"
+                        variant="default" />
                     @empty
-                        <x-public.alert
-                            type="warning"
-                            class="sm:col-span-2 xl:col-span-4">
-                            Our chef's selections are being prepared.
-                        </x-public.alert>
+                    <x-public.alert
+                        type="warning"
+                        class="sm:col-span-2 xl:col-span-4">
+                        Our chef's selections are being prepared.
+                    </x-public.alert>
                     @endforelse
                 </div>
 
@@ -213,64 +209,64 @@
                     theme="light" />
 
                 @if ($galleryImages->isNotEmpty())
-                    <div
-                        class="mt-10 grid gap-3
+                <div
+                    class="mt-10 grid gap-3
                             lg:grid-cols-[0.85fr_1.7fr_0.85fr]">
-                        <x-public.gallery-tile
-                            :image="$galleryImages->get(0)"
-                            class="min-h-80 lg:min-h-[34rem]"
-                            sizes="(min-width: 1024px) 24vw, 100vw" />
+                    <x-public.gallery-tile
+                        :image="$galleryImages->get(0)"
+                        class="min-h-80 lg:min-h-[34rem]"
+                        sizes="(min-width: 1024px) 24vw, 100vw" />
 
-                        <div class="grid gap-3">
-                            <div class="grid gap-3 sm:grid-cols-2">
-                                <x-public.gallery-tile
-                                    :image="$galleryImages->get(1)"
-                                    class="min-h-56"
-                                    sizes="(min-width: 1024px) 23vw, 50vw" />
+                    <div class="grid gap-3">
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <x-public.gallery-tile
+                                :image="$galleryImages->get(1)"
+                                class="min-h-56"
+                                sizes="(min-width: 1024px) 23vw, 50vw" />
 
-                                <x-public.gallery-tile
-                                    :image="$galleryImages->get(2)"
-                                    class="min-h-56"
-                                    sizes="(min-width: 1024px) 23vw, 50vw" />
-                            </div>
-
-                            <div
-                                class="grid gap-3 sm:grid-cols-3
-                                    lg:min-h-[20.25rem]">
-                                <x-public.gallery-tile
-                                    :image="$galleryImages->get(3)"
-                                    class="min-h-52"
-                                    sizes="(min-width: 1024px) 15vw, 33vw" />
-
-                                <x-public.gallery-tile
-                                    :image="$galleryImages->get(4)"
-                                    class="min-h-52"
-                                    sizes="(min-width: 1024px) 15vw, 33vw" />
-
-                                <x-public.gallery-tile
-                                    :image="$galleryImages->get(5)"
-                                    class="min-h-52"
-                                    sizes="(min-width: 1024px) 15vw, 33vw" />
-                            </div>
+                            <x-public.gallery-tile
+                                :image="$galleryImages->get(2)"
+                                class="min-h-56"
+                                sizes="(min-width: 1024px) 23vw, 50vw" />
                         </div>
 
-                        <x-public.gallery-tile
-                            :image="$galleryImages->get(6)"
-                            class="min-h-80 lg:min-h-[34rem]"
-                            sizes="(min-width: 1024px) 24vw, 100vw" />
+                        <div
+                            class="grid gap-3 sm:grid-cols-3
+                                    lg:min-h-[20.25rem]">
+                            <x-public.gallery-tile
+                                :image="$galleryImages->get(3)"
+                                class="min-h-52"
+                                sizes="(min-width: 1024px) 15vw, 33vw" />
+
+                            <x-public.gallery-tile
+                                :image="$galleryImages->get(4)"
+                                class="min-h-52"
+                                sizes="(min-width: 1024px) 15vw, 33vw" />
+
+                            <x-public.gallery-tile
+                                :image="$galleryImages->get(5)"
+                                class="min-h-52"
+                                sizes="(min-width: 1024px) 15vw, 33vw" />
+                        </div>
                     </div>
 
-                    <div class="mt-10 text-center">
-                        <a
-                            href="{{ route('gallery') }}"
-                            class="public-button-secondary text-primary">
-                            View the Gallery
-                        </a>
-                    </div>
+                    <x-public.gallery-tile
+                        :image="$galleryImages->get(6)"
+                        class="min-h-80 lg:min-h-[34rem]"
+                        sizes="(min-width: 1024px) 24vw, 100vw" />
+                </div>
+
+                <div class="mt-10 text-center">
+                    <a
+                        href="{{ route('gallery') }}"
+                        class="public-button-secondary text-primary">
+                        View the Gallery
+                    </a>
+                </div>
                 @else
-                    <x-public.alert type="warning" class="mt-10">
-                        Restaurant photography is being prepared.
-                    </x-public.alert>
+                <x-public.alert type="warning" class="mt-10">
+                    Restaurant photography is being prepared.
+                </x-public.alert>
                 @endif
             </div>
         </section>
@@ -303,57 +299,42 @@
                             text-white/72 sm:grid-cols-2">
                         <div class="space-y-4">
                             @if ($address)
-                                <p>
-                                    {{ $address }}
-                                </p>
+                            <p>
+                                {{ $address }}
+                            </p>
                             @endif
 
                             @if ($phoneTelTarget)
-                                <a
-                                    href="tel:{{ $phoneTelTarget }}"
-                                    class="block transition hover:text-sun">
-                                    {{ $phone }}
-                                </a>
+                            <a
+                                href="tel:{{ $phoneTelTarget }}"
+                                class="block transition hover:text-sun">
+                                {{ $phone }}
+                            </a>
                             @endif
 
                             @if ($email)
-                                <a
-                                    href="mailto:{{ $email }}"
-                                    class="block break-words transition
+                            <a
+                                href="mailto:{{ $email }}"
+                                class="block break-words transition
                                         hover:text-sun">
-                                    {{ $email }}
-                                </a>
+                                {{ $email }}
+                            </a>
                             @endif
                         </div>
 
                         @if ($openingHours)
-                            <p class="whitespace-pre-line">
-                                {{ $openingHours }}
-                            </p>
+                        <p class="whitespace-pre-line">
+                            {{ $openingHours }}
+                        </p>
                         @endif
-                    </div>
-
-                    <div
-                        class="mt-9 flex flex-col gap-3 sm:flex-row">
-                        <a
-                            href="{{ $orderUrl }}"
-                            class="public-button-primary">
-                            Order Online
-                        </a>
-
-                        <a
-                            href="{{ route('reservation-request.create') }}"
-                            class="public-button-secondary text-white">
-                            Reserve a Table
-                        </a>
                     </div>
                 </article>
 
                 <a
                     href="{{ $mapLink ?: route('contact.create') }}"
                     @if ($mapLink)
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     @endif
                     data-gsap="panel"
                     class="group relative isolate min-h-[28rem]

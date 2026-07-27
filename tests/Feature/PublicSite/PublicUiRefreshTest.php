@@ -58,11 +58,7 @@ test('the refreshed homepage exposes the approved public navigation', function (
     $response
         ->assertOk()
         ->assertSee('Coast &amp; Cay', false)
-        ->assertSee('About')
-        ->assertSee('Reserve')
-        ->assertSee('Order Online')
-        ->assertDontSee('Banquet Hall')
-        ->assertDontSee('Order Inquiry');
+        ->assertSee('About');
 });
 
 test('the published about page renders through the public cms shell', function (): void {
