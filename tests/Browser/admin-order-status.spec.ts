@@ -38,8 +38,11 @@ test(
         );
 
         const adminPasswordInput =
-            adminPage.getByLabel(
-                /password/i,
+            adminPage.getByRole(
+                'textbox',
+                {
+                    name: /^Password\s*\*?$/i,
+                },
             );
 
         await expect(
