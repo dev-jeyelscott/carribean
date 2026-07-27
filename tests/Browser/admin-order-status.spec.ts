@@ -46,6 +46,8 @@ test("administrator confirms an order and customer sees the update", async ({
         })
         .click();
 
+    await expect(adminPage).toHaveURL(/\/admin\/orders\/[^/]+$/);
+
     const orderOverview = adminPage.locator(
         '[id="infolist.order-overview::section"]',
     );
@@ -59,20 +61,42 @@ test("administrator confirms an order and customer sees the update", async ({
     await adminPage
         .getByRole("button", {
             name: "Confirm Order",
+            exact: true,
         })
         .click();
 
-    const confirmationDialog = adminPage.getByRole("dialog");
+    /*
+     * Target the mounted Filament action modal through its stable action key.
+     * The outer role="dialog" wrapper does not expose a reliable accessible
+     * name or visibility box in this Filament render.
+     */
+    const confirmationModal = adminPage.locator(
+        '[wire\\:key$="actions.transitionToConfirmed.modal"]',
+    );
 
-    await expect(confirmationDialog).toBeVisible();
-
-    await confirmationDialog
-        .getByRole("button", {
+    const confirmationButton = confirmationModal.getByRole(
+        "button",
+        {
             name: "Confirm Order",
-        })
-        .click();
+            exact: true,
+        },
+    );
 
-    await expect(adminPage.getByText("Order marked Confirmed")).toBeVisible();
+    await expect(confirmationButton).toBeVisible();
+
+    await confirmationButton.click();
+
+    await expect(
+        adminPage.getByText("Order marked Confirmed", {
+            exact: true,
+        }),
+    ).toBeVisible();
+
+    await expect(
+        orderOverview.getByText("Confirmed", {
+            exact: true,
+        }),
+    ).toBeVisible();
 
     await adminContext.close();
 
@@ -104,22 +128,22 @@ test("administrator confirms an order and customer sees the update", async ({
 
     await customerPage.goto("/account/orders");
 
+    const customerOrderCard = customerPage.locator("article").filter({
+        hasText: "CC-BROWSER-0001",
+    });
+
+    await expect(customerOrderCard).toBeVisible();
+
     await expect(
-        customerPage.getByText("CC-BROWSER-0001", {
+        customerOrderCard.getByText("Confirmed", {
             exact: true,
         }),
     ).toBeVisible();
 
-    await expect(
-        customerPage.getByRole("heading", {
-            name: "Confirmed",
-            exact: true,
-        }),
-    ).toBeVisible();
-
-    await customerPage
+    await customerOrderCard
         .getByRole("link", {
             name: "View order",
+            exact: true,
         })
         .click();
 
