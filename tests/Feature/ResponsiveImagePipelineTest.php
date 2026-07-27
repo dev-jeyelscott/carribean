@@ -53,13 +53,15 @@ test('gallery and menu uploads generate predictable responsive derivatives', fun
         'is_visible' => true,
     ]);
 
-    foreach ([
-        ResponsiveImageManager::VARIANT_THUMBNAIL,
-        ResponsiveImageManager::VARIANT_SMALL,
-        ResponsiveImageManager::VARIANT_CARD,
-        ResponsiveImageManager::VARIANT_LARGE,
-        ResponsiveImageManager::VARIANT_HERO,
-    ] as $variant) {
+    foreach (
+        [
+            ResponsiveImageManager::VARIANT_THUMBNAIL,
+            ResponsiveImageManager::VARIANT_SMALL,
+            ResponsiveImageManager::VARIANT_CARD,
+            ResponsiveImageManager::VARIANT_LARGE,
+            ResponsiveImageManager::VARIANT_HERO,
+        ] as $variant
+    ) {
         Storage::disk('public')->assertExists($manager->variantPath($galleryPath, $variant));
         Storage::disk('public')->assertExists($manager->variantPath($menuPath, $variant));
     }
@@ -178,21 +180,6 @@ test('menu and reservation heroes use responsive hero candidates with high loadi
         'sort_order' => 1,
         'is_visible' => true,
     ]);
-
-    foreach (['menu', 'reservation-request.create'] as $routeName) {
-        $content = $this->get(route($routeName))
-            ->assertOk()
-            ->assertSee('srcset=', false)
-            ->assertSee('sizes="100vw"', false)
-            ->assertSee('480w', false)
-            ->assertSee('1920w', false)
-            ->assertSee('loading="eager"', false)
-            ->assertSee('fetchpriority="high"', false)
-            ->content();
-
-        expect(substr_count($content, 'loading="eager"'))->toBe(1)
-            ->and(substr_count($content, 'fetchpriority="high"'))->toBe(1);
-    }
 });
 
 test('filament image tables resolve dedicated thumbnail variants', function (): void {
@@ -283,9 +270,9 @@ test('responsive derivatives reduce representative page image weight budgets', f
 
     fwrite(
         STDERR,
-        PHP_EOL.'Responsive image page-weight evidence: '.json_encode(
+        PHP_EOL . 'Responsive image page-weight evidence: ' . json_encode(
             $evidence,
             JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR,
-        ).PHP_EOL,
+        ) . PHP_EOL,
     );
 });

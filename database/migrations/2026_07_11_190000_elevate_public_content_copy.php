@@ -22,18 +22,6 @@ return new class extends Migration
                 'meta_title' => ['Menu | Le Jardin Fine Dining', 'Seasonal Menu | Le Jardin Fine Dining'],
                 'meta_description' => ['Browse menu categories, dish descriptions, and prices from Le Jardin Fine Dining.', 'Explore Le Jardin’s considered menu of delicate starters, signature mains, elegant desserts, and composed beverages.'],
             ],
-            'reservation-request' => [
-                'title' => ['Reservation Request', 'Plan Your Evening at Le Jardin'],
-                'excerpt' => ['Submit your preferred dining date and time for manual restaurant review.', 'Share your preferred date, time, and party size, and our team will personally confirm availability with you.'],
-                'content' => ['Reservation requests are reviewed by our team. A submitted request is not yet a confirmed reservation.', 'Tell us when you would like to join us and who will be dining. Every request is reviewed personally so the details of your visit can be handled with care.'],
-                'meta_description' => ['Submit a reservation request for manual confirmation by the restaurant team.', 'Request a table at Le Jardin. Our team personally reviews each preferred date, time, and party size before confirming availability.'],
-            ],
-            'order-inquiry' => [
-                'title' => ['Order Inquiry', 'Bring Le Jardin to Your Table'],
-                'excerpt' => ['Send your pickup or delivery inquiry for manual restaurant review.', 'Share your preferred dishes and pickup or delivery details, and our team will personally review availability and pricing with you.'],
-                'content' => ['Order inquiries are reviewed by our team. Availability, final total, payment, and pickup or delivery details are confirmed directly with you.', 'Share the dishes you are considering, your preferred timing, and any special notes. Our team will then confirm availability, pricing, and fulfillment arrangements with you.'],
-                'meta_description' => ['Submit an order inquiry for pickup or delivery review by the restaurant team.', 'Submit an Order Inquiry for pickup or delivery. Our team will confirm availability, final pricing, and arrangements directly with you.'],
-            ],
             'gallery' => [
                 'title' => ['Gallery', 'A Portrait of Le Jardin'],
                 'excerpt' => ['View our restaurant interiors, dishes, events, and ambiance.', 'Discover the atmosphere, culinary craft, and celebrations that define Le Jardin.'],

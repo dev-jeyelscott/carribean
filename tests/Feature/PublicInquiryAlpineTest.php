@@ -6,8 +6,6 @@ test('shared Alpine inquiry controller keeps page-specific success titles', func
     expect($script)
         ->not->toBeFalse()
         ->toContain('contact: \'Contact Inquiry received\'')
-        ->toContain('\'order-inquiry\': \'Order Inquiry received\'')
-        ->toContain('\'reservation-request\': \'Reservation Request received\'')
         ->toContain('resetAfterSuccess()')
         ->toContain('\'Unable to connect\'')
         ->toContain('\'Unable to process inquiry\'')

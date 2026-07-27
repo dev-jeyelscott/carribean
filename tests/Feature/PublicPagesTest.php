@@ -24,8 +24,6 @@ test('approved public page routes are registered with stable paths', function ()
         'home' => '/',
         'menu' => '/menu',
         'gallery' => '/gallery',
-        'reservation-request.create' => '/reservation-request',
-        'order-inquiry.create' => '/order-inquiry',
         'contact.create' => '/contact',
     ];
 
@@ -112,7 +110,7 @@ test('representative public pages execute one site settings query on a cold cach
         ->assertSeeText('Shared Query Bistro');
 
     $siteSettingQueries = collect(DB::getQueryLog())
-        ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
+        ->filter(fn(array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
 
     DB::disableQueryLog();
 

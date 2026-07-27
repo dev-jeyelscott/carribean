@@ -30,11 +30,6 @@ final class SitemapController extends Controller
         $this->addUrl($urls, route('gallery'));
         $this->addUrl($urls, route('contact.create'));
 
-        $this->addUrl(
-            $urls,
-            route('reservation-request.create'),
-        );
-
         $this->addPublishedPages($urls);
         $this->addVisibleMenuItems($urls);
         $this->addBlogPosts($urls);

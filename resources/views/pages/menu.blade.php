@@ -85,12 +85,6 @@
                         <a href="#menu-selections" class="public-button-primary">
                             Explore the Menu
                         </a>
-
-                        <a
-                            href="{{ route('reservation-request.create') }}"
-                            class="public-button-secondary text-white">
-                            Reserve a Table
-                        </a>
                     </div>
                 </div>
             </div>
@@ -238,11 +232,6 @@
                 <div
                     data-menu-motion="closing-actions"
                     class="flex flex-col gap-4 sm:flex-row lg:flex-col">
-                    <a
-                        href="{{ route('reservation-request.create') }}"
-                        class="public-button-primary">
-                        Reserve a Table
-                    </a>
 
                     <a
                         href="{{ route('contact.create') }}"

@@ -58,9 +58,4 @@ test('reservation hero renders its approved fallback for a stale managed image p
         'sort_order' => 1,
         'is_visible' => true,
     ]);
-
-    $this->get(route('reservation-request.create'))
-        ->assertOk()
-        ->assertDontSee(Storage::disk('public')->url($missingPath), false)
-        ->assertSee('linear-gradient(135deg,#353126,#171916_68%)', false);
 });

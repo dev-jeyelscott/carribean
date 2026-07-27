@@ -386,51 +386,5 @@
                 </a>
             </div>
         </section>
-
-        {{-- Reservation call to action --}}
-        <section
-            data-gsap="section"
-            class="relative isolate overflow-hidden bg-coral px-5
-                py-16 text-center text-white sm:py-20 lg:py-24">
-            <div
-                class="pointer-events-none absolute inset-0 -z-10
-                    bg-[radial-gradient(circle_at_18%_28%,rgba(255,255,255,0.14),transparent_30%),radial-gradient(circle_at_88%_78%,rgba(12,52,43,0.12),transparent_34%)]"
-                aria-hidden="true">
-            </div>
-
-            <div class="mx-auto max-w-3xl">
-                <p
-                    data-gsap-reveal
-                    class="text-xs font-semibold uppercase
-                        tracking-[0.27em] text-white/75">
-                    Reserve Your Table
-                </p>
-
-                <h2
-                    data-gsap-reveal
-                    class="mt-5 font-display text-4xl leading-tight
-                        sm:text-5xl">
-                    Good food. Good company. Good times.
-                </h2>
-
-                <p
-                    data-gsap-reveal
-                    class="mx-auto mt-5 max-w-xl text-base
-                        leading-8 text-white/78">
-                    Reserve your table and let us take care of the rest.
-                </p>
-
-                <a
-                    data-gsap-reveal
-                    href="{{ route('reservation-request.create') }}"
-                    class="public-button-secondary mt-8 text-white">
-                    Reserve a Table
-
-                    <span class="ml-2" aria-hidden="true">
-                        &rarr;
-                    </span>
-                </a>
-            </div>
-        </section>
     </div>
 </x-layouts.public>

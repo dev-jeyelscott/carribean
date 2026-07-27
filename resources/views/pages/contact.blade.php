@@ -94,15 +94,6 @@
                         </div>
                     </div>
                     @endif
-
-                    <div data-gsap="frame" data-gsap-reveal class="mt-10 border border-brand-gold/35 bg-brand-paper p-6 text-sm leading-7 text-brand-muted">
-                        <p class="font-semibold text-brand-ink">Planning a visit?</p>
-                        <p class="mt-2">For reservations and order requests, please use the dedicated forms so our team receives the right details for manual review.</p>
-                        <div class="mt-5 grid gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink sm:flex sm:flex-wrap sm:gap-x-6">
-                            <a href="{{ route('reservation-request.create') }}" class="transition hover:text-brand-gold-dark">Reservation Request</a>
-                            <a href="{{ route('order-inquiry.create') }}" class="transition hover:text-brand-gold-dark">Order Inquiry</a>
-                        </div>
-                    </div>
                 </aside>
 
                 <div>

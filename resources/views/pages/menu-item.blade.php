@@ -254,12 +254,6 @@
                             class="public-button-primary">
                             Back to Menu
                         </a>
-
-                        <a
-                            href="{{ route('reservation-request.create') }}"
-                            class="public-button-secondary text-brand-palm">
-                            Reserve a Table
-                        </a>
                     </div>
                 </div>
             </div>

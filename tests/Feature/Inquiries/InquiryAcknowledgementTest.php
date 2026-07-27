@@ -39,31 +39,6 @@ it('queues both contact inquiry notifications', function (): void {
     );
 });
 
-it('queues both reservation request notifications', function (): void {
-    Queue::fake();
-
-    config()->set(
-        'mail.inquiries_to',
-        'restaurant@example.com',
-    );
-
-    $this->post(
-        route('reservation-requests.store'),
-        [
-            'customer_name' => 'Taylor Guest',
-            'email' => 'taylor@example.com',
-            'phone' => '555-0102',
-            'preferred_date' => now()
-                ->addDay()
-                ->toDateString(),
-            'preferred_time' => '7:00 PM',
-            'guest_count' => 4,
-            'special_requests' => null,
-            'website' => null,
-        ],
-    )->assertRedirect();
-});
-
 it('sends a contact acknowledgement only once', function (): void {
     Mail::fake();
 
