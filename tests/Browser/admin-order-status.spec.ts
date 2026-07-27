@@ -37,14 +37,18 @@ test(
             'browser.admin@example.com',
         );
 
-        await adminPage
-            .getByLabel(
-                'Password',
-                {
-                    exact: true,
-                },
-            )
-            .fill('password');
+        const adminPasswordInput =
+            adminPage.getByLabel(
+                /password/i,
+            );
+
+        await expect(
+            adminPasswordInput,
+        ).toBeVisible();
+
+        await adminPasswordInput.fill(
+            'password',
+        );
 
         await adminPage
             .getByRole(

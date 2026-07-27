@@ -1,11 +1,14 @@
-import Alpine from "alpinejs";
+import {
+    Alpine,
+    Livewire,
+} from "../../vendor/livewire/livewire/dist/livewire.esm";
 import contactForm from "./forms/contact-form";
 
 window.Alpine = Alpine;
 
 Alpine.data("contactForm", contactForm);
 
-Alpine.start();
+Livewire.start();
 
 if (document.querySelector("[data-reveal]")) {
     import("./public-reveals")
