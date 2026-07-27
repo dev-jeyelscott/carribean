@@ -89,7 +89,7 @@ final class CheckoutPage extends Component
 
         $this->checkoutToken =
             is_string($storedToken)
-                && Str::isUuid($storedToken)
+            && Str::isUuid($storedToken)
             ? $storedToken
             : (string) Str::uuid();
 
@@ -100,11 +100,10 @@ final class CheckoutPage extends Component
     }
 
     /**
-     * Validate checkout input, create the order, and start payment.
+     * Validate checkout input, create the order, and start the selected payment flow.
      */
     public function placeOrder(
         PlaceOrder $placeOrder,
-        StripeCheckoutService $stripeCheckout,
     ): void {
         $sessionCart = app(
             SessionCart::class,
@@ -112,7 +111,7 @@ final class CheckoutPage extends Component
 
         $fulfillmentMethod =
             $sessionCart
-                ->fulfillmentMethod();
+            ->fulfillmentMethod();
 
         $validated = $this->validate(
             $this->rulesFor(
@@ -122,9 +121,7 @@ final class CheckoutPage extends Component
 
         $paymentMethod =
             PaymentMethod::from(
-                $validated[
-                    'paymentMethod'
-                ],
+                $validated['paymentMethod'],
             );
 
         $paymentOptions =
@@ -145,29 +142,23 @@ final class CheckoutPage extends Component
 
         $deliveryAddress =
             $fulfillmentMethod
-                === FulfillmentMethod::Delivery
+            === FulfillmentMethod::Delivery
             ? [
                 'recipient_name' => $validated['recipientName'],
 
                 'street_address' => $validated['streetAddress'],
 
-                'apartment_or_unit' => $validated[
-                        'apartmentOrUnit'
-                    ] ?? null,
+                'apartment_or_unit' => $validated['apartmentOrUnit'] ?? null,
 
                 'city' => $validated['deliveryCity'],
 
                 'state' => $validated['deliveryState'],
 
-                'postal_code' => $validated[
-                        'deliveryPostalCode'
-                    ],
+                'postal_code' => $validated['deliveryPostalCode'],
 
                 'phone' => $validated['deliveryPhone'],
 
-                'delivery_instructions' => $validated[
-                        'deliveryInstructions'
-                    ] ?? null,
+                'delivery_instructions' => $validated['deliveryInstructions'] ?? null,
             ]
             : null;
 
@@ -192,9 +183,7 @@ final class CheckoutPage extends Component
             $paymentMethod,
             $deliveryAddress,
 
-            $validated[
-                'customerNote'
-            ] ?? null,
+            $validated['customerNote'] ?? null,
 
             $this->checkoutToken,
         );
@@ -214,7 +203,7 @@ final class CheckoutPage extends Component
 
         if (
             $paymentMethod
-                !== PaymentMethod::Stripe
+            !== PaymentMethod::Stripe
         ) {
             $this->redirect(
                 $successUrl,
@@ -224,15 +213,23 @@ final class CheckoutPage extends Component
         }
 
         try {
+            /*
+         * Resolve Stripe only after confirming that the customer selected
+         * Stripe. Cash checkout must not require Stripe configuration.
+         */
+            $stripeCheckout = app(
+                StripeCheckoutService::class,
+            );
+
             $checkoutSession =
                 $stripeCheckout
-                    ->createCheckoutSession(
-                        $order,
-                    );
+                ->createCheckoutSession(
+                    $order,
+                );
 
             if (
                 $checkoutSession->status
-                    === 'complete'
+                === 'complete'
             ) {
                 $this->redirect(
                     $successUrl,
@@ -258,9 +255,9 @@ final class CheckoutPage extends Component
             );
         } catch (
             ApiErrorException
-            |\LogicException
-            |\RuntimeException
-                $exception
+            | \LogicException
+            | \RuntimeException
+            $exception
         ) {
             report($exception);
 
@@ -315,7 +312,7 @@ final class CheckoutPage extends Component
     ): array {
         $requiresDelivery =
             $fulfillmentMethod
-                === FulfillmentMethod::Delivery;
+            === FulfillmentMethod::Delivery;
 
         return [
             'name' => [
@@ -435,29 +432,23 @@ final class CheckoutPage extends Component
         if (
             StripeCheckoutService::isConfigured()
         ) {
-            $options[
-                PaymentMethod::Stripe->value
-            ] = PaymentMethod::Stripe->label();
+            $options[PaymentMethod::Stripe->value] = PaymentMethod::Stripe->label();
         }
 
         if (
             $fulfillmentMethod
-                === FulfillmentMethod::Pickup
+            === FulfillmentMethod::Pickup
             && SiteSetting::cashAtPickupEnabled()
         ) {
-            $options[
-                PaymentMethod::CashAtPickup->value
-            ] = PaymentMethod::CashAtPickup->label();
+            $options[PaymentMethod::CashAtPickup->value] = PaymentMethod::CashAtPickup->label();
         }
 
         if (
             $fulfillmentMethod
-                === FulfillmentMethod::Delivery
+            === FulfillmentMethod::Delivery
             && SiteSetting::cashOnDeliveryEnabled()
         ) {
-            $options[
-                PaymentMethod::CashOnDelivery->value
-            ] = PaymentMethod::CashOnDelivery->label();
+            $options[PaymentMethod::CashOnDelivery->value] = PaymentMethod::CashOnDelivery->label();
         }
 
         return $options;
