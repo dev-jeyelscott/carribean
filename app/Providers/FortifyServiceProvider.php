@@ -14,7 +14,7 @@ use Laravel\Fortify\Fortify;
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Register the application's Fortify services.
      */
     public function register(): void
     {
@@ -22,7 +22,7 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap any application services.
+     * Bootstrap the application's Fortify configuration.
      */
     public function boot(): void
     {
@@ -32,7 +32,7 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Configure Fortify actions.
+     * Configure the actions used by Fortify.
      */
     private function configureActions(): void
     {
@@ -41,7 +41,7 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Configure Fortify views.
+     * Configure the authentication views returned by Fortify.
      */
     private function configureViews(): void
     {
@@ -55,26 +55,22 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Configure rate limiting.
+     * Configure authentication-related rate limiters.
      */
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+            return Limit::perMinute(5)
+                ->by($request->session()->get('login.id'));
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(
+                Str::lower($request->input(Fortify::username()))
+                    .'|'.$request->ip(),
+            );
 
             return Limit::perMinute(5)->by($throttleKey);
-        });
-
-        RateLimiter::for('passkeys', function (Request $request) {
-            $credentialId = $request->input('credential.id');
-
-            return Limit::perMinute(10)->by(
-                ($credentialId ?: $request->session()->getId()).'|'.$request->ip(),
-            );
         });
     }
 }
