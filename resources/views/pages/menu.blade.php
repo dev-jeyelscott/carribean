@@ -38,18 +38,25 @@
             <div
                 data-gsap="hero-image"
                 data-menu-motion="hero-image"
-                class="absolute inset-0 -z-30 bg-[radial-gradient(circle_at_72%_28%,rgba(242,199,107,0.28),transparent_25%),linear-gradient(135deg,#206f7c,#0c342b_62%)]"></div>
+                class="absolute inset-0 -z-30
+                    bg-[radial-gradient(circle_at_72%_28%,rgba(242,199,107,0.28),transparent_25%),linear-gradient(135deg,#206f7c,#0c342b_62%)]">
+            </div>
             @endif
 
             <div
-                class="absolute inset-0 -z-20 bg-[linear-gradient(to_bottom,rgba(12,52,43,0.45),rgba(12,52,43,0.64)_45%,rgba(12,52,43,0.98))]"></div>
+                class="absolute inset-0 -z-20
+                    bg-[linear-gradient(to_bottom,rgba(12,52,43,0.45),rgba(12,52,43,0.64)_45%,rgba(12,52,43,0.98))]">
+            </div>
 
             <div
                 class="absolute inset-0 -z-10 bg-gradient-to-r
                     from-brand-palm-dark/95 via-brand-palm-dark/55
-                    to-brand-palm-dark/15"></div>
+                    to-brand-palm-dark/15">
+            </div>
 
-            <div class="public-container pb-16 pt-32 sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-48">
+            <div
+                class="public-container pb-16 pt-32
+                    sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-48">
                 <div
                     data-gsap="hero-content"
                     data-menu-motion="hero-content"
@@ -82,7 +89,9 @@
                         data-gsap-reveal
                         data-menu-motion="hero-item"
                         class="mt-10 flex flex-col gap-4 sm:flex-row">
-                        <a href="#menu-selections" class="public-button-primary">
+                        <a
+                            href="#menu-selections"
+                            class="public-button-primary">
                             Explore the Menu
                         </a>
                     </div>
@@ -97,16 +106,15 @@
             aria-label="Menu categories">
             <div
                 class="relative mx-auto flex max-w-7xl gap-7 overflow-x-auto
-                        px-5 py-5 sm:px-6 lg:justify-center lg:px-10">
+                    px-5 py-5 sm:px-6 lg:justify-center lg:px-10">
                 @foreach ($categories as $category)
                 <a
                     href="#category-{{ $category->slug }}"
                     data-menu-category-link
                     @if ($loop->first) aria-current="true" @endif
-                    class="shrink-0 text-[0.68rem] font-semibold
-                    uppercase tracking-[0.2em] text-brand-palm
-                    transition hover:text-brand-coral-dark"
-                    >
+                    class="shrink-0 text-[0.68rem] font-semibold uppercase
+                        tracking-[0.2em] text-brand-palm transition
+                        hover:text-brand-coral-dark">
                     {{ $category->name }}
                 </a>
                 @endforeach
@@ -114,7 +122,7 @@
                 <span
                     data-menu-category-indicator
                     class="pointer-events-none absolute bottom-0 left-0
-                            h-0.5 w-0 bg-brand-coral"
+                        h-0.5 w-0 bg-brand-coral"
                     aria-hidden="true"></span>
             </div>
         </nav>
@@ -135,16 +143,17 @@
                     <section
                         id="category-{{ $category->slug }}"
                         data-menu-motion="course"
-                        class="scroll-mt-28 py-16 first:pt-0 last:pb-0 lg:py-24">
+                        class="scroll-mt-28 py-16 first:pt-0 last:pb-0
+                            lg:py-24">
                         <div
                             class="grid gap-12 lg:grid-cols-[0.32fr_0.68fr]
-                                    lg:gap-16">
+                                lg:gap-16">
                             <div>
                                 <p
                                     data-menu-motion="course-number"
                                     class="text-[0.68rem] font-semibold
-                                            uppercase tracking-[0.28em]
-                                            text-brand-sun">
+                                        uppercase tracking-[0.28em]
+                                        text-brand-sun">
                                     Selection
                                     {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}
                                 </p>
@@ -152,8 +161,8 @@
                                 <h2
                                     data-menu-motion="course-title"
                                     class="mt-4 font-display text-4xl
-                                            leading-tight text-brand-cream
-                                            sm:text-5xl">
+                                        leading-tight text-brand-cream
+                                        sm:text-5xl">
                                     {{ $category->name }}
                                 </h2>
 
@@ -161,7 +170,7 @@
                                 <p
                                     data-menu-motion="course-description"
                                     class="mt-5 max-w-md text-sm leading-7
-                                                text-brand-cream/60">
+                                        text-brand-cream/60">
                                     {{ $category->description }}
                                 </p>
                                 @endif
@@ -169,11 +178,12 @@
                                 <div
                                     data-menu-motion="course-rule"
                                     class="mt-8 h-0.5 w-16 origin-left
-                                            scale-x-0 bg-brand-coral"
+                                        scale-x-0 bg-brand-coral"
                                     aria-hidden="true"></div>
                             </div>
 
-                            <div class="grid gap-x-8 gap-y-12 sm:grid-cols-2">
+                            <div
+                                class="grid gap-x-8 gap-y-12 sm:grid-cols-2">
                                 @forelse ($category->menuItems as $item)
                                 <x-public.menu-card
                                     :item="$item"
@@ -202,7 +212,9 @@
             class="relative isolate overflow-hidden bg-brand-sand-soft py-24
                 text-brand-forest lg:py-28">
             <div
-                class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_85%_20%,rgba(230,110,80,0.18),transparent_28%)]"></div>
+                class="absolute inset-0 -z-10
+                    bg-[radial-gradient(circle_at_85%_20%,rgba(230,110,80,0.18),transparent_28%)]">
+            </div>
 
             <div
                 class="public-container grid items-center gap-12
@@ -211,27 +223,33 @@
                     <p
                         data-menu-motion="closing-item"
                         class="public-eyebrow">
-                        Join Us
+                        Bring It Home
                     </p>
 
                     <h2
                         data-menu-motion="closing-item"
                         class="mt-5 max-w-3xl font-display text-4xl
                             leading-tight sm:text-5xl">
-                        Good food tastes even better around a shared table.
+                        Ready for island flavor?
                     </h2>
 
                     <p
                         data-menu-motion="closing-item"
-                        class="mt-6 max-w-2xl text-base leading-8 text-brand-muted">
-                        Request a table or contact the restaurant team with
-                        questions about the current menu.
+                        class="mt-6 max-w-2xl text-base leading-8
+                            text-brand-muted">
+                        Order online for pickup or local delivery, or contact
+                        the restaurant team with a question about the menu.
                     </p>
                 </div>
 
                 <div
                     data-menu-motion="closing-actions"
                     class="flex flex-col gap-4 sm:flex-row lg:flex-col">
+                    <a
+                        href="{{ route('cart.index') }}"
+                        class="public-button-primary">
+                        Order Online
+                    </a>
 
                     <a
                         href="{{ route('contact.create') }}"

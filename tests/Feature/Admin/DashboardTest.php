@@ -43,13 +43,14 @@ it('renders the branded dashboard for the configured admin', function (): void {
         ->assertSee('Website overview');
 });
 
-it('shows accurate unread inquiry counts', function (): void {
+it('shows accurate unread contact inquiry counts', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
-    dashboardTestContactInquiry();
-    dashboardTestContactInquiry();
-    dashboardTestContactInquiry();
-    dashboardTestContactInquiry();
+    foreach (range(1, 4) as $index) {
+        dashboardTestContactInquiry([
+            'email' => "guest-{$index}@example.test",
+        ]);
+    }
 
     Livewire::test(InquiryOverview::class)
         ->assertSee('Unread Contact Inquiries')
@@ -57,47 +58,53 @@ it('shows accurate unread inquiry counts', function (): void {
         ->assertSee('Awaiting manual review');
 });
 
-it('shows recent inquiries without exposing unnecessary customer data', function (): void {
+it('shows recent contact inquiries without exposing unnecessary customer data', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
     dashboardTestContactInquiry([
-        'customer_name' => 'Maria Santos',
+        'customer_name' => 'Maria Carter',
         'email' => 'private-customer@example.test',
-        'phone' => '09171234567',
-        'subject' => 'Private dining question',
-        'message' => 'Sensitive event information should not appear on the dashboard.',
+        'phone' => '+1 (555) 401-3100',
+        'subject' => 'Online order question',
+        'message' => 'Sensitive order information should not appear on the dashboard.',
     ]);
 
     Livewire::test(RecentInquiries::class)
-        ->assertSee('Recent inquiries')
-        ->assertSee('Maria Santos')
-        ->assertSee('Private dining question')
+        ->assertSee('Recent contact inquiries')
+        ->assertSee('Maria Carter')
+        ->assertSee('Online order question')
         ->assertSee('New')
         ->assertDontSee('private-customer@example.test')
-        ->assertDontSee('09171234567')
-        ->assertDontSee('Sensitive event information');
+        ->assertDontSee('+1 (555) 401-3100')
+        ->assertDontSee('Sensitive order information');
 });
 
-it('shows the globally newest inquiries when one type has more than four records', function (): void {
+it('limits recent contact inquiries to the newest eight records', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
-    $widget = Livewire::test(RecentInquiries::class);
-
-    foreach (range(1, 8) as $index) {
-        $widget->assertSee("Newest Reservation {$index}");
+    foreach (range(1, 9) as $index) {
+        dashboardTestContactInquiry([
+            'customer_name' => "Contact Guest {$index}",
+            'email' => "contact-{$index}@example.test",
+            'created_at' => now()->subMinutes(10 - $index),
+            'updated_at' => now()->subMinutes(10 - $index),
+        ]);
     }
 
-    $widget->assertDontSee('Older Contact');
+    Livewire::test(RecentInquiries::class)
+        ->assertSee('Contact Guest 9')
+        ->assertSee('Contact Guest 2')
+        ->assertDontSee('Contact Guest 1');
 });
 
-it('renders a polished empty inquiry state', function (): void {
+it('renders a contact-only empty inquiry state', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
     Livewire::test(RecentInquiries::class)
-        ->assertSee('No inquiries yet')
-        ->assertSee('Reservation Requests')
-        ->assertSee('Order Inquiries')
-        ->assertSee('Contact Inquiries');
+        ->assertSee('No contact inquiries yet')
+        ->assertSee('public contact form')
+        ->assertDontSee('Reservation Requests')
+        ->assertDontSee('Order Inquiries');
 });
 
 it('links quick actions to approved protected resources', function (): void {
@@ -122,7 +129,7 @@ it('links quick actions to approved protected resources', function (): void {
         );
 });
 
-it('loads recent inquiries within a fixed query budget', function (): void {
+it('loads recent contact inquiries within a fixed query budget', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
     dashboardTestContactInquiry();
@@ -131,7 +138,7 @@ it('loads recent inquiries within a fixed query budget', function (): void {
     DB::enableQueryLog();
 
     Livewire::test(RecentInquiries::class)
-        ->assertSee('Recent inquiries');
+        ->assertSee('Recent contact inquiries');
 
     $selectQueryCount = collect(DB::getQueryLog())
         ->filter(
@@ -164,7 +171,7 @@ function dashboardTestContactInquiry(
         'customer_name' => 'Contact Guest',
         'email' => 'contact@example.test',
         'phone' => null,
-        'subject' => 'General inquiry',
+        'subject' => 'General restaurant question',
         'message' => 'Please contact me about the restaurant.',
         'is_read' => false,
     ], $overrides));

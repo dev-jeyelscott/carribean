@@ -10,17 +10,17 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's complete development baseline.
+     * Seed the complete Coast & Cay development baseline.
      */
     public function run(): void
     {
         $this->call([
             AdminUserSeeder::class,
             SiteSettingSeeder::class,
+            PageSeeder::class,
             MenuSeeder::class,
             GalleryImageSeeder::class,
-            PremiumPublicContentSeeder::class,
-            InquirySeeder::class,
+            ContactInquirySeeder::class,
             PhaseTenContentSeeder::class,
         ]);
     }

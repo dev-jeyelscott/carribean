@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ContactInquiry;
 use App\Models\GalleryImage;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
@@ -18,7 +19,7 @@ class DatabaseSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_database_seeders_create_demo_records_with_configured_admin_credentials(): void
+    public function test_database_seeders_create_current_scope_records_with_configured_admin_credentials(): void
     {
         $credentials = [
             'name' => 'Configured Admin',
@@ -35,21 +36,39 @@ class DatabaseSeederTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame($credentials['name'], $admin->name);
-        $this->assertTrue(Hash::check($credentials['password'], $admin->password));
+        $this->assertTrue(
+            Hash::check($credentials['password'], $admin->password),
+        );
 
         $this->assertDatabaseHas(SiteSetting::class, [
             'key' => 'restaurant_name',
+            'value' => 'Coast & Cay',
         ]);
 
         $this->assertDatabaseHas(Page::class, [
             'slug' => 'home',
         ]);
 
-        $this->assertGreaterThanOrEqual(4, MenuCategory::query()->count('*'));
-        $this->assertGreaterThanOrEqual(12, MenuItem::query()->count('*'));
-        $this->assertGreaterThanOrEqual(4, GalleryImage::query()->count('*'));
+        $this->assertGreaterThanOrEqual(
+            4,
+            MenuCategory::query()->count('*'),
+        );
+        $this->assertGreaterThanOrEqual(
+            12,
+            MenuItem::query()->count('*'),
+        );
+        $this->assertGreaterThanOrEqual(
+            3,
+            GalleryImage::query()->count('*'),
+        );
+        $this->assertGreaterThanOrEqual(
+            2,
+            ContactInquiry::query()->count('*'),
+        );
 
-        $this->assertGreaterThanOrEqual(2, ContactInquiry::query()->count('*'));
+        $this->assertDatabaseMissing(Page::class, [
+            'title' => 'Welcome to Le Jardin',
+        ]);
     }
 
     public function test_admin_user_seeder_rejects_a_missing_password(): void
@@ -61,7 +80,9 @@ class DatabaseSeederTest extends TestCase
         ]);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('ADMIN_USER_PASSWORD must be configured before seeding the admin user.');
+        $this->expectExceptionMessage(
+            'ADMIN_USER_PASSWORD must be configured before seeding the admin user.',
+        );
 
         $this->seed(AdminUserSeeder::class);
     }

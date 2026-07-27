@@ -1,129 +1,92 @@
 ## Project Overview
 
-This project is a professional, responsive website for a fine-dining restaurant. The website should present the restaurant brand, menu, ambiance, gallery, contact information, and customer inquiry flows in a clean, modern, and family-friendly way.
+Coast & Cay is a single-location Caribbean restaurant website and online-ordering application.
 
-The project is intentionally scoped as a restaurant marketing website with admin-managed content and request/inquiry forms. It is not a full restaurant operations platform.
+The public experience should feel warm, vibrant, hospitable, relaxed, and distinctly island-inspired without becoming visually noisy or culturally generic.
 
-## Project Context
+## Current Product Scope
 
-The core business goal is to help customers:
+Customers can:
 
 - Learn about the restaurant.
-- Browse menu categories, item names, descriptions, and prices.
-- View restaurant interiors, dishes, events.
-- Submit reservation requests.
-- Submit pickup or delivery order inquiries.
-- Contact the restaurant through form, phone, email, map, or social links.
+- Browse menu categories and menu-item details.
+- Configure item-specific options and add-ons.
+- Use a server-side session cart.
+- Complete guest or registered checkout.
+- Choose pickup or ZIP-code-based local delivery.
+- Pay through Stripe-hosted Checkout or an enabled cash method.
+- View secure order status and order history.
+- Read published blog posts, FAQs, and legal pages.
+- Contact the restaurant through the public contact form.
 
-Restaurant staff should be able to manage common website content through the admin area, including menu items, prices, images, gallery content, general page content, site settings, and submitted inquiries.
+Administrators use one Filament panel to manage:
 
-Use the terms **Reservation Request** and **Order Inquiry** consistently. These workflows require manual restaurant review and confirmation.
+- Menu categories and menu items.
+- Item option groups and options.
+- Coupons.
+- Orders and customers.
+- Blog posts, FAQs, pages, site settings, and gallery images.
+- Contact inquiries.
 
-## Scope Boundaries
+## Retired Workflows
 
-### In Scope
+Do not restore, advertise, or imply these retired workflows:
 
-- Public pages:
-    - Home
-    - Menu
-    - Gallery
-    - Contact
+- Reservation Request.
+- Order Inquiry.
+- Banquet Hall.
+- Catering.
+- Private-event or private-dining inquiry workflow.
 
-- Responsive desktop, tablet, and mobile layout.
-- Basic SEO metadata and clean page structure.
-- Admin access for website content management.
-- Menu category and menu item management.
-- Gallery/image management.
-- Site settings and general page content management.
-- Contact inquiry form.
-- Server-side validation.
-- Database storage for inquiries.
-- Basic SMTP email notifications.
-- Public image storage and display.
-- Basic deployment readiness, logs, backups, and handover support.
+Historical migrations may retain old schema history. Do not delete or rewrite migrations that may already have run. Current runtime routes, UI, seeders, tests, and documentation must not expose the retired workflows.
 
-### Out of Scope Unless Explicitly Approved
+## Architecture Constraints
 
-Do not implement or imply:
+- Work only on `develop`.
+- Use Laravel 13, PHP 8.4, Livewire 4, Flux UI, Filament 5, Alpine.js 3, Tailwind CSS 4, Vite 8, and GSAP.
+- Use a Laravel monolith.
+- Use MySQL, database sessions, and database queues.
+- Use one Filament admin panel.
+- Use one session cart per browser.
+- Use one payment provider.
+- Store money in integer cents.
+- Recalculate all prices on the server.
+- Snapshot order item, option, address, coupon, tax, and total data.
+- Keep payment and order state changes transactional and idempotent.
+- Prefer Laravel-native patterns and existing project components.
+- Do not introduce Redis, microservices, a JavaScript SPA, a repository layer, a command bus, or an event bus without explicit approval.
 
-- Real-time table availability.
-- Automatic reservation approval.
-- Table assignment or table management.
-- Customer accounts or customer login.
-- Shopping cart.
-- Checkout.
-- Online payment processing.
-- Delivery fee calculation.
-- Tax calculation.
-- Promo codes or discounts.
-- Live order status tracking.
-- Kitchen dashboard.
+## Explicitly Excluded
+
+- Multiple restaurant locations.
 - POS integration.
-- Inventory management.
-- SMS notifications.
-- Loyalty or rewards system.
-- Multi-branch support.
-- Mobile app.
-- Advanced reporting or analytics.
-- Ongoing SEO or digital marketing services.
-- Any custom third-party integration not approved in the final scope.
-
-## Recommended Technical Direction
-
-Use a simple Laravel monolith.
-
-Preferred stack:
-
-- Runtime target: PHP 8.5. The Composer constraint remains `^8.4` so the supported PHP 8.4 and PHP 8.5 CI matrix and compatible hosting environments continue to work.
-- Backend: Laravel
-- Frontend: Blade templates
-- Styling: Tailwind CSS
-- Lightweight interactivity: Alpine.js
-- Admin panel: Filament
-- Database: MySQL
-- Email: SMTP provider
-- Storage: Laravel public storage or hosting-supported persistent storage
-- Deployment: Laravel-compatible hosting, VPS, managed Laravel hosting, or Laravel Cloud where appropriate
-
-Avoid unnecessary architecture complexity. Do not introduce a separate SPA frontend, headless CMS, API gateway, microservices, payment subsystem, real-time infrastructure, or restaurant operations system unless the user explicitly changes the approved scope.
-
-## Documentation Guidance for Agents
-
-Project documentation exists and should be treated as the source of truth when needed.
-
-Relevant documents may include:
-
-- `Project-Details.txt`
-- `Scope-of-Work.txt`
-- `project-understanding.md`
-- `project-requirements.md`
-- `project-architecture.md`
-- `project-technical-design.md`
-- `project-implementation-roadmap.md`
-- `project-devops-and-operations.md`
-- `project-deliverables.md`
-- `project-acceptance-criteria.md`
-
-Do not load or reread all documentation for every prompt. Only consult these documents when the task requires project context, scope clarification, architecture alignment, implementation planning, acceptance criteria, deployment guidance, or a decision that could affect scope.
-
-When unsure whether a requested feature is included, check the relevant documentation before implementing. If the documentation does not clearly include the feature, treat it as out of scope unless the user explicitly approves it.
+- Ingredient inventory and recipe costing.
+- Scheduled ordering.
+- Driver accounts and live driver tracking.
+- Distance-based delivery fees.
+- Kitchen display systems.
+- Reservation or table-capacity systems.
+- Catering or banquet workflows.
+- Loyalty points, gift cards, wishlists, or product reviews.
+- Newsletter platforms and social login.
+- Saved customer address books.
+- Multiple currencies or languages.
+- Advanced coupon targeting.
+- Refund management inside Filament.
+- Native mobile applications.
 
 ## Implementation Expectations
 
-- Keep the build simple, production-ready, secure, and maintainable.
-- Follow existing Laravel, Filament, Blade, Tailwind, and project conventions.
-- Prefer Laravel-native patterns before custom abstractions.
-- Use server-side validation for all public forms.
-- Protect admin routes with authentication.
-- Restrict image uploads to safe image types and reasonable file sizes.
-- Store customer inquiries before or while sending email notifications so requests are not lost if SMTP fails.
-- Use clear success messages that explain submissions are received for manual review, not automatically confirmed.
-- Do not expose debug details, secrets, stack traces, or inquiry data publicly.
-- Test every meaningful change with the minimum relevant automated tests.
-- Keep documentation changes limited unless the user explicitly asks for documentation.
-
-<laravel-boost-guidelines>
-=== foundation rules ===
+- Keep the build simple, secure, production-ready, and maintainable.
+- Inspect existing sibling files before creating or changing code.
+- Use full server-side validation and authorization.
+- Keep public content accessible and responsive.
+- Respect reduced-motion preferences.
+- Protect payment webhooks with signature verification and idempotency.
+- Queue transactional mail after database commits.
+- Add or update the minimum meaningful Pest coverage for every change.
+- Run Pint, Larastan, Pest, and Vite build before committing.
+- Do not create documentation files unless explicitly requested.
 
 # Laravel Boost Guidelines
 

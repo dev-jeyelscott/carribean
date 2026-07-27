@@ -1,8 +1,8 @@
-# Locked Option A Scope
+# Locked Coast & Cay Scope
 
 ## Product
 
-A single-location Caribbean restaurant website with a modern public experience and basic online ordering.
+A single-location Caribbean restaurant website with online ordering.
 
 Temporary development identity:
 
@@ -14,8 +14,8 @@ Temporary development identity:
 
 - Responsive public website
 - Homepage
-- Menu categories
-- Menu-item listing and details
+- About page
+- Menu categories and item details
 - Item-specific options and add-ons
 - Session-based cart
 - One coupon per order
@@ -30,17 +30,31 @@ Temporary development identity:
 - Secure guest order links
 - Order status tracking
 - Filament administration
-- Menu and order management
+- Menu, coupon, customer, and order management
 - Contact inquiries
-- Reservation requests
 - Blog
 - FAQ
 - Legal pages
+- Gallery
 - Basic SEO
 - Queued email notifications
 - Automated tests
 - GitHub Actions CI
 - Production deployment documentation
+
+## Retired and removed
+
+The following legacy workflows must not be restored:
+
+- Reservation Request
+- Order Inquiry
+- Banquet Hall
+- Catering
+- Private-event or private-dining inquiry workflow
+
+Historical migrations may remain for audit and deployment safety. Runtime code,
+routes, views, seeders, tests, navigation, sitemap entries, and documentation
+must not expose these workflows.
 
 ## Architecture constraints
 
@@ -50,7 +64,7 @@ Temporary development identity:
 - One Filament admin panel
 - One session cart per browser
 - One coupon per order
-- One delivery fee rule
+- One delivery-fee rule
 - MySQL
 - Database sessions
 - Database queues
@@ -71,7 +85,8 @@ Temporary development identity:
 - Live delivery tracking
 - Distance-based delivery fees
 - Kitchen display system
-- Reservation capacity engine
+- Reservation or table-capacity system
+- Banquet or catering workflow
 - Loyalty points
 - Gift cards
 - Wishlists
@@ -83,30 +98,14 @@ Temporary development identity:
 - Multiple languages
 - Advanced coupon targeting
 - Refund management inside Filament
-- Catering workflow
 - Native mobile applications
-
-## Scope-change examples
-
-The following require a separate change request:
-
-- Another payment provider
-- Another restaurant location
-- Scheduled pickup or delivery
-- POS integration
-- Driver management
-- Advanced inventory
-- Address-specific tax calculation
-- New third-party integrations
-- New promotion-rule types
 
 ## Pending client configuration
 
 - Final restaurant name
 - Logo
 - Brand story
-- Menu
-- Prices
+- Menu and prices
 - Item options
 - Address
 - Delivery ZIP codes

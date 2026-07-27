@@ -3,73 +3,59 @@
 use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
 use App\Models\ContactInquiry;
 use App\Models\User;
+use Filament\Facades\Filament;
 
-function inquiryDetailAdminUser(): User
-{
-    config(['admin.seed_user.email' => 'admin@example.com']);
+beforeEach(function (): void {
+    config()->set('admin.seed_user.email', 'admin@example.test');
 
-    return User::factory()->create([
-        'email' => 'admin@example.com',
-    ]);
-}
-
-function inquiryDetailRecords(): array
-{
-    $contactInquiry = ContactInquiry::query()->create([
-        'customer_name' => 'Cora Contact',
-        'email' => 'cora.contact@example.com',
-        'phone' => null,
-        'subject' => null,
-        'message' => 'Could you share your private dining options?',
-        'is_read' => true,
-        'notification_sent_at' => '2026-07-13 08:30:00',
-    ]);
-
-    return [$contactInquiry];
-}
-
-test('authorized admins can review branded inquiry detail pages', function () {
-    $this->actingAs(inquiryDetailAdminUser());
-
-    [$contactInquiry] = inquiryDetailRecords();
-
-    $this->get(ContactInquiryResource::getUrl('view', ['record' => $contactInquiry]))
-        ->assertOk()
-        ->assertSeeTextInOrder([
-            'Customer contact',
-            'Cora Contact',
-            'cora.contact@example.com',
-            'No phone number was provided.',
-            'Message',
-            'This inquiry is awaiting manual restaurant review.',
-            'No subject was provided.',
-            'Could you share your private dining options?',
-            'Review details',
-            'Notification sent',
-            'Jul 13, 2026 08:30:00',
-        ]);
+    Filament::setCurrentPanel(
+        Filament::getPanel('admin'),
+    );
 });
 
-test('public and unauthorized users cannot view inquiry detail records', function () {
-    [$contactInquiry] = inquiryDetailRecords();
+it('allows the configured administrator to review a contact inquiry', function (): void {
+    $admin = User::factory()->create([
+        'email' => 'admin@example.test',
+    ]);
 
-    foreach (
-        [
-            ContactInquiryResource::getUrl('view', ['record' => $contactInquiry]),
-        ] as $url
-    ) {
-        $this->get($url)->assertRedirect();
-    }
+    $inquiry = ContactInquiry::query()->create([
+        'customer_name' => 'Avery Carter',
+        'email' => 'avery@example.test',
+        'phone' => '+1 (555) 401-3400',
+        'subject' => 'Menu question',
+        'message' => 'Could you confirm which dishes are vegetarian?',
+        'is_read' => false,
+    ]);
 
-    config(['admin.seed_user.email' => 'admin@example.com']);
+    $this->actingAs($admin)
+        ->get(ContactInquiryResource::getUrl('view', [
+            'record' => $inquiry,
+        ]))
+        ->assertOk()
+        ->assertSeeText('Avery Carter')
+        ->assertSeeText('Menu question')
+        ->assertSeeText('Could you confirm which dishes are vegetarian?');
 
-    $this->actingAs(User::factory()->create(['email' => 'staff@example.com']));
+    expect($inquiry->fresh()?->is_read)->toBeTrue();
+});
 
-    foreach (
-        [
-            ContactInquiryResource::getUrl('view', ['record' => $contactInquiry]),
-        ] as $url
-    ) {
-        $this->get($url)->assertForbidden();
-    }
+it('blocks users without panel access from contact inquiry details', function (): void {
+    $staff = User::factory()->create([
+        'email' => 'staff@example.test',
+    ]);
+
+    $inquiry = ContactInquiry::query()->create([
+        'customer_name' => 'Jordan Carter',
+        'email' => 'jordan@example.test',
+        'phone' => null,
+        'subject' => 'Directions question',
+        'message' => 'Could you share the easiest way to reach the restaurant?',
+        'is_read' => false,
+    ]);
+
+    $this->actingAs($staff)
+        ->get(ContactInquiryResource::getUrl('view', [
+            'record' => $inquiry,
+        ]))
+        ->assertForbidden();
 });

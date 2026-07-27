@@ -270,9 +270,9 @@ test('responsive derivatives reduce representative page image weight budgets', f
 
     fwrite(
         STDERR,
-        PHP_EOL . 'Responsive image page-weight evidence: ' . json_encode(
+        PHP_EOL.'Responsive image page-weight evidence: '.json_encode(
             $evidence,
             JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR,
-        ) . PHP_EOL,
+        ).PHP_EOL,
     );
 });

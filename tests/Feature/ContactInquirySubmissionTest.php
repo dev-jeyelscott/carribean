@@ -9,11 +9,11 @@ uses(RefreshDatabase::class);
 
 $validPayload = static function (array $overrides = []): array {
     return array_merge([
-        'customer_name' => 'Maria Santos',
+        'customer_name' => 'Maria Carter',
         'email' => 'maria@example.com',
-        'phone' => '09171234567',
-        'subject' => 'Private dining inquiry',
-        'message' => 'Hello, I would like to ask about your available dining packages.',
+        'phone' => '+1 (555) 401-3200',
+        'subject' => 'Menu question',
+        'message' => 'Hello, I would like to ask about your vegetarian menu options.',
         'website' => '',
     ], $overrides);
 };
@@ -26,7 +26,7 @@ test('invalid payload fails validation', function () use ($contactFormUrl): void
     $response = $this
         ->from(route('contact.create'))
         ->post(route('contact-inquiries.store'), [
-            'subject' => 'inquiry',
+            'subject' => 'Menu question',
         ]);
 
     $response
@@ -36,7 +36,7 @@ test('invalid payload fails validation', function () use ($contactFormUrl): void
             'email',
             'message',
         ])
-        ->assertSessionHasInput('subject', 'inquiry');
+        ->assertSessionHasInput('subject', 'Menu question');
 
     $this->assertDatabaseCount('contact_inquiries', 0);
 
@@ -57,11 +57,11 @@ test('valid payload stores database record', function () use ($contactFormUrl, $
     $this->assertDatabaseCount('contact_inquiries', 1);
 
     $this->assertDatabaseHas('contact_inquiries', [
-        'customer_name' => 'Maria Santos',
+        'customer_name' => 'Maria Carter',
         'email' => 'maria@example.com',
-        'phone' => '09171234567',
-        'subject' => 'Private dining inquiry',
-        'message' => 'Hello, I would like to ask about your available dining packages.',
+        'phone' => '+1 (555) 401-3200',
+        'subject' => 'Menu question',
+        'message' => 'Hello, I would like to ask about your vegetarian menu options.',
     ]);
 });
 
@@ -70,12 +70,21 @@ test('valid JSON payload stores once and returns a safe success response', funct
 
     $response = $this
         ->withHeader('Accept', 'application/json')
-        ->postJson(route('contact-inquiries.store'), $validPayload());
+        ->postJson(
+            route('contact-inquiries.store'),
+            $validPayload(),
+        );
 
     $response
         ->assertOk()
         ->assertJsonPath('success', true)
-        ->assertJsonPath('message', fn (string $message): bool => str_contains($message, 'Contact Inquiry'));
+        ->assertJsonPath(
+            'message',
+            fn (string $message): bool => str_contains(
+                $message,
+                'Contact Inquiry',
+            ),
+        );
 
     $this->assertDatabaseCount('contact_inquiries', 1);
 });
@@ -91,7 +100,11 @@ test('invalid JSON payload returns field errors without storing', function (): v
 
     $response
         ->assertStatus(422)
-        ->assertJsonValidationErrors(['customer_name', 'email', 'message']);
+        ->assertJsonValidationErrors([
+            'customer_name',
+            'email',
+            'message',
+        ]);
 
     $this->assertDatabaseCount('contact_inquiries', 0);
 });

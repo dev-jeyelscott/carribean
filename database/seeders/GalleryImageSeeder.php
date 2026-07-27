@@ -26,6 +26,9 @@ class GalleryImageSeeder extends Seeder
         'image/webp' => 'webp',
     ];
 
+    /**
+     * Seed reusable Coast & Cay gallery placeholders.
+     */
     public function run(): void
     {
         $disk = Storage::disk('public');
@@ -34,61 +37,72 @@ class GalleryImageSeeder extends Seeder
 
         $images = [
             [
-                'title' => 'Elegant Dining Room',
-                'alt_text' => 'Elegant fine-dining restaurant interior',
+                'title' => 'Coastal Dining Room',
+                'alt_text' => 'Warm Coast & Cay dining room with relaxed island-inspired details',
                 'image' => 'dining-room.webp',
                 'category' => 'interior',
                 'sort_order' => 1,
                 'is_visible' => true,
             ],
             [
-                'title' => 'Signature Dish',
-                'alt_text' => 'Chef-prepared signature dish presentation',
+                'title' => 'Island-Inspired Signature Plate',
+                'alt_text' => 'Colorful Caribbean-inspired dish prepared at Coast & Cay',
                 'image' => 'Seared-Hokkaido-Scallops.webp',
                 'category' => 'dish',
                 'sort_order' => 2,
                 'is_visible' => true,
             ],
             [
-                'title' => 'Warm Restaurant Ambiance',
-                'alt_text' => 'Warm restaurant lighting and ambiance',
+                'title' => 'Warm Coast & Cay Ambiance',
+                'alt_text' => 'Warm evening ambiance inside Coast & Cay',
                 'image' => 'warm-ambiance.webp',
                 'category' => 'ambiance',
-                'sort_order' => 4,
+                'sort_order' => 3,
                 'is_visible' => true,
             ],
         ];
 
         foreach ($images as $imageData) {
-            $imageFilename = $imageData['image'];
+            $sourceFilename = $imageData['image'];
 
             unset($imageData['image']);
 
+            $imagePath = $this->storeSeedImage(
+                disk: $disk,
+                sourceFilename: $sourceFilename,
+            );
+
             GalleryImage::updateOrCreate(
-                ['title' => $imageData['title']],
+                ['image_path' => $imagePath],
                 [
                     ...$imageData,
-                    'image_path' => $this->storeSeedImage(
-                        disk: $disk,
-                        sourceFilename: $imageFilename,
-                    ),
+                    'image_path' => $imagePath,
                 ],
             );
         }
     }
 
+    /**
+     * Copy a trusted development image into public storage.
+     */
     private function storeSeedImage(
         FilesystemAdapter $disk,
         string $sourceFilename,
     ): string {
-        $sourcePath = database_path(self::IMAGE_SOURCE_DIRECTORY.'/'.$sourceFilename);
+        $sourcePath = database_path(
+            self::IMAGE_SOURCE_DIRECTORY.'/'.$sourceFilename,
+        );
 
         if (! File::isFile($sourcePath)) {
-            throw new RuntimeException("Gallery seed image does not exist: {$sourcePath}");
+            throw new RuntimeException(
+                "Gallery seed image does not exist: {$sourcePath}",
+            );
         }
 
         if (! File::isReadable($sourcePath)) {
-            throw new RuntimeException("Gallery seed image is not readable: {$sourcePath}");
+            throw new RuntimeException(
+                "Gallery seed image is not readable: {$sourcePath}",
+            );
         }
 
         $size = File::size($sourcePath);
@@ -105,7 +119,13 @@ class GalleryImageSeeder extends Seeder
 
         $mimeType = File::mimeType($sourcePath);
 
-        if (! is_string($mimeType) || ! array_key_exists($mimeType, self::IMAGE_EXTENSIONS_BY_MIME_TYPE)) {
+        if (
+            ! is_string($mimeType)
+            || ! array_key_exists(
+                $mimeType,
+                self::IMAGE_EXTENSIONS_BY_MIME_TYPE,
+            )
+        ) {
             throw new RuntimeException(
                 sprintf(
                     'Unsupported gallery seed image type "%s" for file: %s',
@@ -118,7 +138,9 @@ class GalleryImageSeeder extends Seeder
         $contentHash = hash_file('sha256', $sourcePath);
 
         if (! is_string($contentHash)) {
-            throw new RuntimeException("Unable to hash gallery seed image: {$sourcePath}");
+            throw new RuntimeException(
+                "Unable to hash gallery seed image: {$sourcePath}",
+            );
         }
 
         $destinationFilename = $contentHash.'.'.self::IMAGE_EXTENSIONS_BY_MIME_TYPE[$mimeType];
@@ -136,7 +158,9 @@ class GalleryImageSeeder extends Seeder
         );
 
         if ($storedPath === false) {
-            throw new RuntimeException("Unable to store gallery seed image: {$destinationPath}");
+            throw new RuntimeException(
+                "Unable to store gallery seed image: {$destinationPath}",
+            );
         }
 
         return $storedPath;

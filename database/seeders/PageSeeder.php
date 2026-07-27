@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class PageSeeder extends Seeder
 {
     /**
-     * Seed development placeholder content for public CMS pages.
+     * Seed editable development placeholder content for public CMS pages.
      */
     public function run(): void
     {
@@ -19,7 +19,7 @@ class PageSeeder extends Seeder
                 'excerpt' => 'A warm gathering place for vibrant Caribbean dishes, thoughtful drinks, and relaxed hospitality.',
                 'content' => 'Coast & Cay brings Caribbean warmth to California through generous food, relaxed hospitality, and a dining room made for gathering.',
                 'meta_title' => 'Coast & Cay | Caribbean Restaurant in California',
-                'meta_description' => 'Discover Caribbean food, warm hospitality, reservations, and relaxed California dining at Coast & Cay.',
+                'meta_description' => 'Discover Caribbean food, online ordering, pickup, local delivery, and relaxed California dining at Coast & Cay.',
                 'is_published' => true,
             ],
             [
@@ -45,7 +45,7 @@ HTML,
                 'excerpt' => 'Explore colorful starters, generous mains, sweet finishes, and drinks made for slow afternoons and lively evenings.',
                 'content' => 'Food made with warmth, color, and a generous sense of hospitality.',
                 'meta_title' => 'Menu | Coast & Cay',
-                'meta_description' => 'Explore the current Coast & Cay menu of starters, mains, desserts, and drinks.',
+                'meta_description' => 'Explore the current Coast & Cay menu of starters, mains, desserts, drinks, and online-ordering options.',
                 'is_published' => true,
             ],
             [
@@ -54,16 +54,16 @@ HTML,
                 'excerpt' => 'A look at the dishes, rooms, and warm details shaping the Coast & Cay experience.',
                 'content' => 'Final restaurant photography will replace the current development imagery once approved assets are supplied.',
                 'meta_title' => 'Gallery | Coast & Cay',
-                'meta_description' => 'Explore the food, hospitality, and restaurant atmosphere of Coast & Cay.',
+                'meta_description' => 'Explore the food, hospitality, and relaxed restaurant atmosphere of Coast & Cay.',
                 'is_published' => true,
             ],
             [
                 'slug' => 'contact',
                 'title' => 'Come Say Hello',
-                'excerpt' => 'Questions about the menu, a future visit, or the restaurant? Our team will be pleased to help.',
+                'excerpt' => 'Questions about the menu, an online order, directions, or the restaurant? Our team will be pleased to help.',
                 'content' => 'Reach the restaurant by phone, email, location map, or the contact form.',
                 'meta_title' => 'Contact Coast & Cay',
-                'meta_description' => 'Contact Coast & Cay for menu questions, directions, reservations, and restaurant information.',
+                'meta_description' => 'Contact Coast & Cay for menu questions, online-order support, directions, and restaurant information.',
                 'is_published' => true,
             ],
         ];

@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 class PhaseTenContentSeeder extends Seeder
 {
     /**
-     * Seed editable Phase 10 development content.
+     * Seed editable blog, FAQ, and legal-page development content.
      */
     public function run(): void
     {
@@ -47,14 +47,14 @@ HTML,
     }
 
     /**
-     * Create editable frequently asked questions.
+     * Create editable frequently asked questions for active website features.
      */
     private function seedFaqs(): void
     {
         $faqs = [
             [
-                'question' => 'Is a reservation request automatically confirmed?',
-                'answer' => '<p>No. A reservation remains a request until the restaurant team contacts you and confirms availability.</p>',
+                'question' => 'Can I order without creating an account?',
+                'answer' => '<p>Yes. Guest checkout is available, and you will receive a secure link to view your order after checkout.</p>',
                 'sort_order' => 10,
             ],
             [

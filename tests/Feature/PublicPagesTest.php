@@ -110,7 +110,7 @@ test('representative public pages execute one site settings query on a cold cach
         ->assertSeeText('Shared Query Bistro');
 
     $siteSettingQueries = collect(DB::getQueryLog())
-        ->filter(fn(array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
+        ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
 
     DB::disableQueryLog();
 
@@ -286,20 +286,20 @@ test('contact hero falls back to the first visible ordered image when no interio
         ->assertDontSee('Second fallback alt', false);
 });
 
-test('public pages do not expose out of scope ecommerce or live booking calls to action', function (string $routeName): void {
+test('public pages do not expose retired inquiry or event workflows', function (string $routeName): void {
     $response = $this->get(route($routeName))->assertOk();
 
     foreach (
         [
-            'Book Now',
-            'Order Now',
-            'Pay Online',
-            'Track Order',
-            'Confirmed Booking',
-            'Add to Cart',
-        ] as $outOfScopeLabel
+            'Reservation Request',
+            'Order Inquiry',
+            'Banquet Hall',
+            'Private Celebrations',
+            'private-event',
+            'Submit Order Inquiry',
+        ] as $retiredLabel
     ) {
-        $response->assertDontSeeText($outOfScopeLabel);
+        $response->assertDontSeeText($retiredLabel);
     }
 })->with([
     'home' => 'home',

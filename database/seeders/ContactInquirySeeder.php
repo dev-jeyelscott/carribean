@@ -5,19 +5,22 @@ namespace Database\Seeders;
 use App\Models\ContactInquiry;
 use Illuminate\Database\Seeder;
 
-class InquirySeeder extends Seeder
+class ContactInquirySeeder extends Seeder
 {
+    /**
+     * Seed development-only contact messages that match the active contact flow.
+     */
     public function run(): void
     {
         ContactInquiry::updateOrCreate(
             [
                 'email' => 'sophia@example.com',
-                'subject' => 'Private dinner inquiry',
+                'subject' => 'Online order question',
             ],
             [
                 'customer_name' => 'Sophia Williams',
                 'phone' => '+1 (555) 401-3001',
-                'message' => 'Hello, I would like to ask about hosting a private dinner for 12 guests next month.',
+                'message' => 'Hello, I have a question about pickup availability for an online order.',
                 'is_read' => false,
             ],
         );
@@ -30,7 +33,7 @@ class InquirySeeder extends Seeder
             [
                 'customer_name' => 'Liam Carter',
                 'phone' => '+1 (555) 401-3002',
-                'message' => 'Do you have vegetarian options available for dinner service?',
+                'message' => 'Do you have vegetarian options available on the current menu?',
                 'is_read' => true,
             ],
         );
