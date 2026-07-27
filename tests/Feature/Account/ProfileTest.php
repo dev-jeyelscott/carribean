@@ -24,7 +24,8 @@ test('authenticated customers can view the account shell', function (): void {
         ->get(route('account.index'))
         ->assertOk()
         ->assertSee('Welcome back')
-        ->assertSee('No orders yet');
+        ->assertSee('Order history')
+        ->assertSee('View orders');
 
     $this->actingAs($customer)
         ->get(route('account.orders.index'))
