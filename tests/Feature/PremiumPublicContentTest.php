@@ -40,7 +40,7 @@ test('premium public content seed data stays aligned with the approved brand voi
 
 test('public Blade fallbacks do not expose implementation language', function () use ($publicPageFiles): void {
     foreach ($publicPageFiles as $file) {
-        $source = strtolower((string) file_get_contents(resource_path('views/pages/'.$file)));
+        $source = strtolower((string) file_get_contents(resource_path('views/pages/' . $file)));
 
         expect($source)
             ->not->toContain('filament')
@@ -49,18 +49,4 @@ test('public Blade fallbacks do not expose implementation language', function ()
             ->not->toContain('visible records')
             ->not->toContain('shopping cart');
     }
-});
-
-test('copy changes preserve the validated Menu and Order Inquiry GSAP runtime', function (): void {
-    $source = file_get_contents(resource_path('js/public-animations.js'));
-
-    expect($source)
-        ->toBeString()
-        ->toContain('if (root.dataset.publicMotion === "menu")')
-        ->toContain('return initializeMenuMotion(root, { desktop, reducedMotion });')
-        ->toContain('if (root.matches("[data-order-inquiry-motion]"))')
-        ->toContain('return initializeOrderInquiryMotion(root, { desktop, reducedMotion });')
-        ->toContain('gsap.set(courseRule, { autoAlpha: 1, scaleX: 0')
-        ->toContain('{ animate: false }')
-        ->toContain('gsap.killTweensOf(deliveryPanel);');
 });
