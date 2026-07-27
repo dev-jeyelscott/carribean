@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ContactInquiries\Pages;
 
 use App\Filament\Resources\ContactInquiries\ContactInquiryResource;
+use App\Models\ContactInquiry;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewContactInquiry extends ViewRecord
@@ -16,11 +17,16 @@ class ViewContactInquiry extends ViewRecord
     {
         parent::mount($record);
 
-        if (! $this->record->is_read) {
-            $this->record->update([
-                'is_read' => true,
-            ]);
+        /** @var ContactInquiry $contactInquiry */
+        $contactInquiry = $this->getRecord();
+
+        if ($contactInquiry->is_read) {
+            return;
         }
+
+        $contactInquiry->update([
+            'is_read' => true,
+        ]);
     }
 
     /**
