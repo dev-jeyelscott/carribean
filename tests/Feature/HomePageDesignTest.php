@@ -5,11 +5,13 @@ use Illuminate\Support\Facades\File;
 test('homepage renders the approved Caribbean restaurant sections', function (): void {
     $this->get(route('home'))
         ->assertOk()
-        ->assertSeeText('Flavors worth sharing')
-        ->assertSeeText('Caribbean warmth. California ease.')
-        ->assertSeeText('Island favorites')
-        ->assertSeeText('Dine your way')
-        ->assertSeeText('A taste of the island')
+        ->assertSeeText('Taste the Caribbean.')
+        ->assertSeeText('Feel the Islands.')
+        ->assertSeeText('Featured Dishes')
+        ->assertSeeText('Rooted in Tradition.')
+        ->assertSeeText('Find your next favorite')
+        ->assertSeeText('Made for Good Company')
+        ->assertSeeText('Caribbean warmth, California ease.')
         ->assertSeeText('We can’t wait to welcome you');
 });
 
@@ -21,9 +23,10 @@ test('homepage exposes accessible navigation and progressive motion hooks', func
         ->assertSee('aria-label="Primary navigation"', false)
         ->assertSee('aria-label="Mobile navigation"', false)
         ->assertSee('data-home-motion', false)
-        ->assertSee('data-gsap="hero-image"', false)
-        ->assertSee('data-gsap="menu"', false)
-        ->assertSee('data-gsap="panel"', false);
+        ->assertSee('data-public-hero', false)
+        ->assertSee('data-gsap="hero-content"', false)
+        ->assertSee('data-gsap-reveal', false)
+        ->assertSee('data-reveal', false);
 });
 
 test('public motion no longer loads the retired home gallery carousel or delivery address helper', function (): void {

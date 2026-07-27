@@ -1,220 +1,134 @@
-import {
-    expect,
-    test,
-} from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-test(
-    'administrator confirms an order and customer sees the update',
-    async ({
-        browser,
+test("administrator confirms an order and customer sees the update", async ({
+    browser,
+    baseURL,
+}) => {
+    const adminContext = await browser.newContext({
         baseURL,
-    }) => {
-        const adminContext =
-            await browser.newContext({
-                baseURL,
-            });
+    });
 
-        const adminPage =
-            await adminContext.newPage();
+    const adminPage = await adminContext.newPage();
 
-        await adminPage.goto(
-            '/admin/login',
-        );
+    await adminPage.goto("/admin/login");
 
-        const adminEmailInput =
-            adminPage.getByRole(
-                'textbox',
-                {
-                    name: /email/i,
-                },
-            );
+    const adminEmailInput = adminPage.getByRole("textbox", {
+        name: /email/i,
+    });
 
-        await expect(
-            adminEmailInput,
-        ).toBeVisible();
+    await expect(adminEmailInput).toBeVisible();
 
-        await adminEmailInput.fill(
-            'browser.admin@example.com',
-        );
+    await adminEmailInput.fill("browser.admin@example.com");
 
-        const adminPasswordInput =
-            adminPage.getByRole(
-                'textbox',
-                {
-                    name: /^Password\s*\*?$/i,
-                },
-            );
+    const adminPasswordInput = adminPage.getByRole("textbox", {
+        name: /^Password\s*\*?$/i,
+    });
 
-        await expect(
-            adminPasswordInput,
-        ).toBeVisible();
+    await expect(adminPasswordInput).toBeVisible();
 
-        await adminPasswordInput.fill(
-            'password',
-        );
+    await adminPasswordInput.fill("password");
 
-        await adminPage
-            .getByRole(
-                'button',
-                {
-                    name: /sign in/i,
-                },
-            )
-            .click();
+    await adminPage
+        .getByRole("button", {
+            name: /sign in/i,
+        })
+        .click();
 
-        await expect(
-            adminPage,
-        ).not.toHaveURL(
-            /\/admin\/login$/,
-        );
+    await expect(adminPage).not.toHaveURL(/\/admin\/login$/);
 
-        await adminPage.goto(
-            '/admin/orders',
-        );
+    await adminPage.goto("/admin/orders");
 
-        await expect(
-            adminPage,
-        ).toHaveURL(
-            /\/admin\/orders$/,
-        );
+    await expect(adminPage).toHaveURL(/\/admin\/orders$/);
 
-        await adminPage
-            .getByText(
-                'CC-BROWSER-0001',
-                {
-                    exact: true,
-                },
-            )
-            .click();
+    await adminPage
+        .getByText("CC-BROWSER-0001", {
+            exact: true,
+        })
+        .click();
 
-        await expect(
-            adminPage.getByText(
-                'Pending Confirmation',
-                {
-                    exact: true,
-                },
-            ),
-        ).toBeVisible();
+    const orderOverview = adminPage.locator(
+        '[id="infolist.order-overview::section"]',
+    );
 
-        await adminPage
-            .getByRole(
-                'button',
-                {
-                    name: 'Confirm Order',
-                },
-            )
-            .click();
+    await expect(
+        orderOverview.getByText("Pending Confirmation", {
+            exact: true,
+        }),
+    ).toBeVisible();
 
-        const confirmationDialog =
-            adminPage.getByRole(
-                'dialog',
-            );
+    await adminPage
+        .getByRole("button", {
+            name: "Confirm Order",
+        })
+        .click();
 
-        await expect(
-            confirmationDialog,
-        ).toBeVisible();
+    const confirmationDialog = adminPage.getByRole("dialog");
 
-        await confirmationDialog
-            .getByRole(
-                'button',
-                {
-                    name: 'Confirm Order',
-                },
-            )
-            .click();
+    await expect(confirmationDialog).toBeVisible();
 
-        await expect(
-            adminPage.getByText(
-                'Order marked Confirmed',
-            ),
-        ).toBeVisible();
+    await confirmationDialog
+        .getByRole("button", {
+            name: "Confirm Order",
+        })
+        .click();
 
-        await adminContext.close();
+    await expect(adminPage.getByText("Order marked Confirmed")).toBeVisible();
 
-        const customerContext =
-            await browser.newContext({
-                baseURL,
-            });
+    await adminContext.close();
 
-        const customerPage =
-            await customerContext.newPage();
+    const customerContext = await browser.newContext({
+        baseURL,
+    });
 
-        await customerPage.goto(
-            '/login',
-        );
+    const customerPage = await customerContext.newPage();
 
-        await customerPage
-            .getByLabel(
-                'Email address',
-            )
-            .fill(
-                'browser.customer@example.com',
-            );
+    await customerPage.goto("/login");
 
-        await customerPage
-            .getByLabel(
-                'Password',
-                {
-                    exact: true,
-                },
-            )
-            .fill('password');
+    await customerPage
+        .getByLabel("Email address")
+        .fill("browser.customer@example.com");
 
-        await customerPage
-            .getByRole(
-                'button',
-                {
-                    name: 'Log in',
-                },
-            )
-            .click();
+    await customerPage
+        .getByLabel("Password", {
+            exact: true,
+        })
+        .fill("password");
 
-        await expect(
-            customerPage,
-        ).not.toHaveURL(
-            /\/login$/,
-        );
+    await customerPage
+        .getByRole("button", {
+            name: "Log in",
+        })
+        .click();
 
-        await customerPage.goto(
-            '/account/orders',
-        );
+    await expect(customerPage).not.toHaveURL(/\/login$/);
 
-        await expect(
-            customerPage.getByText(
-                'CC-BROWSER-0001',
-                {
-                    exact: true,
-                },
-            ),
-        ).toBeVisible();
+    await customerPage.goto("/account/orders");
 
-        await expect(
-            customerPage.getByText(
-                'Confirmed',
-                {
-                    exact: true,
-                },
-            ),
-        ).toBeVisible();
+    await expect(
+        customerPage.getByText("CC-BROWSER-0001", {
+            exact: true,
+        }),
+    ).toBeVisible();
 
-        await customerPage
-            .getByRole(
-                'link',
-                {
-                    name: 'View order',
-                },
-            )
-            .click();
+    await expect(
+        customerPage.getByRole("heading", {
+            name: "Confirmed",
+            exact: true,
+        }),
+    ).toBeVisible();
 
-        await expect(
-            customerPage.getByText(
-                'Confirmed',
-                {
-                    exact: true,
-                },
-            ),
-        ).toBeVisible();
+    await customerPage
+        .getByRole("link", {
+            name: "View order",
+        })
+        .click();
 
-        await customerContext.close();
-    },
-);
+    await expect(
+        customerPage.getByRole("heading", {
+            name: "Confirmed",
+            exact: true,
+        }),
+    ).toBeVisible();
+
+    await customerContext.close();
+});

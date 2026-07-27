@@ -71,12 +71,14 @@ test('approved public pages render successfully', function (string $routeName): 
     'contact' => 'contact.create',
 ]);
 
-test('all public pages share the homepage navigation and hero contract', function (string $routeName): void {
+test('all public pages share sticky navigation and an accessible hero contract', function (string $routeName): void {
     $this->get(route($routeName))
         ->assertOk()
-        ->assertSee('class="fixed inset-x-0 top-0 z-50', false)
+        ->assertSee('class="sticky inset-x-0 top-0 z-50', false)
+        ->assertSee('aria-label="Primary navigation"', false)
+        ->assertSee('aria-label="Mobile navigation"', false)
         ->assertSee('data-public-hero', false)
-        ->assertSee('public-hero-viewport', false)
+        ->assertSee('data-gsap="hero-content"', false)
         ->assertDontSee('min-h-[44rem]', false);
 })->with([
     'home' => 'home',
@@ -110,7 +112,7 @@ test('representative public pages execute one site settings query on a cold cach
         ->assertSeeText('Shared Query Bistro');
 
     $siteSettingQueries = collect(DB::getQueryLog())
-        ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
+        ->filter(fn(array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
 
     DB::disableQueryLog();
 

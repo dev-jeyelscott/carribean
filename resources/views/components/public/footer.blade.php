@@ -2,13 +2,13 @@
 use Illuminate\Support\Facades\Route;
 
 $restaurantName = $settings['restaurant_name']
-    ?? config('app.name');
+?? config('app.name');
 
 $tagline = $settings['tagline']
-    ?? 'Caribbean warmth, California ease.';
+?? 'Caribbean warmth, California ease.';
 
 $footerDescription = $settings['footer_description']
-    ?? 'Bold Caribbean flavors, relaxed hospitality, and memorable meals shared together.';
+?? 'Bold Caribbean flavors, relaxed hospitality, and memorable meals shared together.';
 
 $phone = $settings['phone'] ?? null;
 $email = $settings['email'] ?? null;
@@ -17,78 +17,78 @@ $openingHours = $settings['opening_hours'] ?? null;
 $mapLink = $settings['map_link'] ?? null;
 
 $phoneDigits = is_string($phone)
-    ? preg_replace('/\D+/', '', $phone)
-    : null;
+? preg_replace('/\D+/', '', $phone)
+: null;
 
 $phoneTarget = is_string($phone)
-    && is_string($phoneDigits)
-    && $phoneDigits !== ''
-    ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
-    : null;
+&& is_string($phoneDigits)
+&& $phoneDigits !== ''
+? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
+: null;
 
 $socialLinks = array_filter([
-    'Instagram' => $settings['instagram_url'] ?? null,
-    'Facebook' => $settings['facebook_url'] ?? null,
-    'TikTok' => $settings['tiktok_url'] ?? null,
+'Instagram' => $settings['instagram_url'] ?? null,
+'Facebook' => $settings['facebook_url'] ?? null,
+'TikTok' => $settings['tiktok_url'] ?? null,
 ]);
 
 $quickLinks = [
-    'Home' => route('home'),
-    'Menu' => route('menu'),
-    'About Us' => route('about'),
-    'Gallery' => route('gallery'),
-    'Contact' => route('contact.create'),
-    'Order Online' => route('menu'),
+'Home' => route('home'),
+'Menu' => route('menu'),
+'About Us' => route('about'),
+'Gallery' => route('gallery'),
+'Contact' => route('contact.create'),
+'Order Online' => route('menu'),
 ];
 
 if (
-    ($hasPublishedBlogPosts ?? false)
-    && Route::has('blog.index')
+($hasPublishedBlogPosts ?? false)
+&& Route::has('blog.index')
 ) {
-    $quickLinks['Journal'] = route('blog.index');
+$quickLinks['Journal'] = route('blog.index');
 }
 
 if (
-    ($hasVisibleFaqs ?? false)
-    && Route::has('faq')
+($hasVisibleFaqs ?? false)
+&& Route::has('faq')
 ) {
-    $quickLinks['FAQ'] = route('faq');
+$quickLinks['FAQ'] = route('faq');
 }
 
 $publishedPageSlugs = $publishedPageSlugs ?? [];
 
 $legalLinks = array_filter([
-    'Privacy Policy' => in_array(
-        'privacy-policy',
-        $publishedPageSlugs,
-        true,
-    ) && Route::has('privacy-policy')
-        ? route('privacy-policy')
-        : null,
+'Privacy Policy' => in_array(
+'privacy-policy',
+$publishedPageSlugs,
+true,
+) && Route::has('privacy-policy')
+? route('privacy-policy')
+: null,
 
-    'Terms of Service' => in_array(
-        'terms-and-conditions',
-        $publishedPageSlugs,
-        true,
-    ) && Route::has('terms-and-conditions')
-        ? route('terms-and-conditions')
-        : null,
+'Terms of Service' => in_array(
+'terms-and-conditions',
+$publishedPageSlugs,
+true,
+) && Route::has('terms-and-conditions')
+? route('terms-and-conditions')
+: null,
 
-    'Refund Policy' => in_array(
-        'refund-and-cancellation-policy',
-        $publishedPageSlugs,
-        true,
-    ) && Route::has('refund-and-cancellation-policy')
-        ? route('refund-and-cancellation-policy')
-        : null,
+'Refund Policy' => in_array(
+'refund-and-cancellation-policy',
+$publishedPageSlugs,
+true,
+) && Route::has('refund-and-cancellation-policy')
+? route('refund-and-cancellation-policy')
+: null,
 
-    'Delivery Policy' => in_array(
-        'delivery-and-pickup-policy',
-        $publishedPageSlugs,
-        true,
-    ) && Route::has('delivery-and-pickup-policy')
-        ? route('delivery-and-pickup-policy')
-        : null,
+'Delivery Policy' => in_array(
+'delivery-and-pickup-policy',
+$publishedPageSlugs,
+true,
+) && Route::has('delivery-and-pickup-policy')
+? route('delivery-and-pickup-policy')
+: null,
 ]);
 @endphp
 
@@ -139,21 +139,21 @@ $legalLinks = array_filter([
             </p>
 
             @if ($socialLinks !== [])
-                <div class="mt-6 flex flex-wrap gap-2">
-                    @foreach ($socialLinks as $label => $url)
-                        <a
-                            href="{{ $url }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex min-h-9 items-center
+            <div class="mt-6 flex flex-wrap gap-2">
+                @foreach ($socialLinks as $label => $url)
+                <a
+                    href="{{ $url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex min-h-9 items-center
                                 justify-center rounded-full border border-line
                                 bg-surface px-4 text-xs font-semibold
                                 text-primary transition hover:border-coral/40
                                 hover:text-coral">
-                            {{ $label }}
-                        </a>
-                    @endforeach
-                </div>
+                    {{ $label }}
+                </a>
+                @endforeach
+            </div>
             @endif
         </section>
 
@@ -168,11 +168,11 @@ $legalLinks = array_filter([
                 class="mt-5 flex flex-col gap-2.5 text-sm text-muted"
                 aria-label="Footer navigation">
                 @foreach ($quickLinks as $label => $url)
-                    <a
-                        href="{{ $url }}"
-                        class="transition hover:text-coral">
-                        {{ $label }}
-                    </a>
+                <a
+                    href="{{ $url }}"
+                    class="transition hover:text-coral">
+                    {{ $label }}
+                </a>
                 @endforeach
             </nav>
         </section>
@@ -186,34 +186,47 @@ $legalLinks = array_filter([
 
             <div class="mt-5 space-y-4 text-sm leading-6 text-muted">
                 @if ($phoneTarget)
-                    <a
-                        href="tel:{{ $phoneTarget }}"
-                        class="block transition hover:text-coral">
-                        {{ $phone }}
-                    </a>
+                <a
+                    href="tel:{{ $phoneTarget }}"
+                    class="block transition hover:text-coral">
+                    {{ $phone }}
+                </a>
                 @endif
 
                 @if ($email)
-                    <a
-                        href="mailto:{{ $email }}"
-                        class="block break-words transition
+                <a
+                    href="mailto:{{ $email }}"
+                    class="block break-words transition
                             hover:text-coral">
-                        {{ $email }}
-                    </a>
+                    {{ $email }}
+                </a>
                 @endif
 
                 @if ($address)
-                    @if ($mapLink)
-                        <a
-                            href="{{ $mapLink }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="block transition hover:text-coral">
-                            {{ $address }}
-                        </a>
-                    @else
-                        <p>{{ $address }}</p>
-                    @endif
+                @if ($mapLink)
+                <a
+                    href="{{ $mapLink }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block transition hover:text-coral">
+                    {{ $address }}
+                </a>
+                @else
+                <p>{{ $address }}</p>
+                @endif
+                @endif
+
+                @if ($mapLink)
+                <a
+                    href="{{ $mapLink }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 font-semibold
+                            text-primary transition hover:text-coral">
+                    Get directions
+
+                    <span aria-hidden="true">&rarr;</span>
+                </a>
                 @endif
             </div>
         </section>
@@ -226,15 +239,15 @@ $legalLinks = array_filter([
             </h2>
 
             @if ($openingHours)
-                <p
-                    class="mt-5 whitespace-pre-line text-sm leading-7
+            <p
+                class="mt-5 whitespace-pre-line text-sm leading-7
                         text-muted">
-                    {{ $openingHours }}
-                </p>
+                {{ $openingHours }}
+            </p>
             @else
-                <p class="mt-5 text-sm leading-7 text-muted">
-                    Opening hours will be published soon.
-                </p>
+            <p class="mt-5 text-sm leading-7 text-muted">
+                Opening hours will be published soon.
+            </p>
             @endif
 
             <p
@@ -256,17 +269,17 @@ $legalLinks = array_filter([
             </p>
 
             @if ($legalLinks !== [])
-                <nav
-                    class="flex flex-wrap gap-x-5 gap-y-2"
-                    aria-label="Legal navigation">
-                    @foreach ($legalLinks as $label => $url)
-                        <a
-                            href="{{ $url }}"
-                            class="transition hover:text-coral">
-                            {{ $label }}
-                        </a>
-                    @endforeach
-                </nav>
+            <nav
+                class="flex flex-wrap gap-x-5 gap-y-2"
+                aria-label="Legal navigation">
+                @foreach ($legalLinks as $label => $url)
+                <a
+                    href="{{ $url }}"
+                    class="transition hover:text-coral">
+                    {{ $label }}
+                </a>
+                @endforeach
+            </nav>
             @endif
         </div>
     </div>
