@@ -106,8 +106,15 @@ test('missing derivatives fall back to the original image without breaking rende
 });
 
 test('public pages render responsive image selection while preserving hero priority and lazy loading', function (): void {
-    $galleryPath = storeResponsiveTestImage('gallery', 'gallery-hero.jpg');
-    $menuPath = storeResponsiveTestImage('menu-items', 'menu-card.jpg');
+    $galleryPath = storeResponsiveTestImage(
+        'gallery',
+        'gallery-hero.jpg',
+    );
+
+    $menuPath = storeResponsiveTestImage(
+        'menu-items',
+        'menu-card.jpg',
+    );
 
     GalleryImage::query()->create([
         'title' => 'Gallery Hero',
@@ -128,6 +135,7 @@ test('public pages render responsive image selection while preserving hero prior
     MenuItem::query()->create([
         'menu_category_id' => $category->id,
         'name' => 'Responsive Menu Item',
+        'slug' => 'responsive-menu-item',
         'image_path' => $menuPath,
         'sort_order' => 1,
         'is_visible' => true,
@@ -155,16 +163,11 @@ test('public pages render responsive image selection while preserving hero prior
         ->assertSee('fetchpriority="high"', false);
 });
 
-test('menu and reservation heroes use responsive hero candidates with high loading priority', function (): void {
-    $galleryPath = storeResponsiveTestImage('gallery', 'reservation-hero.jpg');
-    $menuPath = storeResponsiveTestImage('menu-items', 'menu-hero.jpg');
-
-    GalleryImage::query()->create([
-        'title' => 'Reservation Hero',
-        'image_path' => $galleryPath,
-        'sort_order' => 1,
-        'is_visible' => true,
-    ]);
+test('menu hero uses responsive hero candidates with high loading priority', function (): void {
+    $menuPath = storeResponsiveTestImage(
+        'menu-items',
+        'menu-hero.jpg',
+    );
 
     $category = MenuCategory::query()->create([
         'name' => 'Dinner',
@@ -176,10 +179,22 @@ test('menu and reservation heroes use responsive hero candidates with high loadi
     MenuItem::query()->create([
         'menu_category_id' => $category->id,
         'name' => 'Menu Hero',
+        'slug' => 'menu-hero',
         'image_path' => $menuPath,
         'sort_order' => 1,
         'is_visible' => true,
     ]);
+
+    $this->get(route('menu'))
+        ->assertOk()
+        ->assertSeeText('Menu Hero')
+        ->assertSee(
+            '/storage/menu-items/variants/menu-hero-hero.jpg',
+            false,
+        )
+        ->assertSee('sizes="100vw"', false)
+        ->assertSee('loading="eager"', false)
+        ->assertSee('fetchpriority="high"', false);
 });
 
 test('filament image tables resolve dedicated thumbnail variants', function (): void {

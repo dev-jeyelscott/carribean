@@ -3,9 +3,17 @@
 use Illuminate\Support\Facades\File;
 
 test('development seeders use the Coast and Cay scope and brand voice', function (): void {
-    $pageSeeder = File::get(database_path('seeders/PageSeeder.php'));
-    $gallerySeeder = File::get(database_path('seeders/GalleryImageSeeder.php'));
-    $databaseSeeder = File::get(database_path('seeders/DatabaseSeeder.php'));
+    $pageSeeder = File::get(
+        database_path('seeders/PageSeeder.php'),
+    );
+
+    $gallerySeeder = File::get(
+        database_path('seeders/GalleryImageSeeder.php'),
+    );
+
+    $databaseSeeder = File::get(
+        database_path('seeders/DatabaseSeeder.php'),
+    );
 
     expect($pageSeeder)
         ->toContain('Coast & Cay')
@@ -22,8 +30,14 @@ test('development seeders use the Coast and Cay scope and brand voice', function
     expect($databaseSeeder)
         ->toContain('PageSeeder::class')
         ->toContain('ContactInquirySeeder::class')
-        ->not->toContain('PremiumPublicContentSeeder::class')
-        ->not->toContain('InquirySeeder::class');
+        ->not->toContain('PremiumPublicContentSeeder::class');
+
+    expect(
+        preg_match(
+            '/^\s*InquirySeeder::class,\s*$/m',
+            $databaseSeeder,
+        ),
+    )->toBe(0);
 });
 
 test('active public views do not expose retired workflow copy', function (): void {
@@ -35,7 +49,9 @@ test('active public views do not expose retired workflow copy', function (): voi
             'contact.blade.php',
         ] as $filename
     ) {
-        $source = File::get(resource_path('views/pages/'.$filename));
+        $source = File::get(
+            resource_path('views/pages/'.$filename),
+        );
 
         expect($source)
             ->not->toContain('Le Jardin')

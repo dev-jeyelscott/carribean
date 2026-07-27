@@ -11,7 +11,6 @@ export default defineConfig({
                 "resources/css/public.css",
                 "resources/css/filament/admin/app.css",
                 "resources/js/app.js",
-                "resources/js/passkeys.js",
             ],
             refresh: true,
             fonts: [

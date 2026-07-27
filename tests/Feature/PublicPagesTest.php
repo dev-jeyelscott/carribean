@@ -45,10 +45,10 @@ test('public pages use an isolated Vite stylesheet without Flux sources', functi
 
     expect($publicStyles)
         ->toContain('@import "tailwindcss" source(none);')
-        ->toContain("@source '../views/pages/**/*.blade.php';")
-        ->toContain("@source '../views/components/public/**/*.blade.php';")
-        ->toContain("@source '../views/components/layouts/public.blade.php';")
-        ->toContain("@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';");
+        ->toContain('@source "../views/pages/**/*.blade.php";')
+        ->toContain('@source "../views/components/public/**/*.blade.php";')
+        ->toContain('@source "../views/components/layouts/public.blade.php";')
+        ->toContain('@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";');
     expect(str_contains($publicStyles, 'livewire/flux'))->toBeFalse();
     expect(str_contains($publicStyles, 'flux-pro'))->toBeFalse();
 

@@ -3,7 +3,7 @@
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 
-test('menu page presents visible orderable items in the Coast and Cay layout', function (): void {
+beforeEach(function (): void {
     $category = MenuCategory::query()->create([
         'name' => 'Island Favorites',
         'slug' => 'island-favorites',
@@ -23,7 +23,9 @@ test('menu page presents visible orderable items in the Coast and Cay layout', f
         'is_available' => true,
         'is_purchasable' => true,
     ]);
+});
 
+test('menu page presents visible orderable items in the Coast and Cay layout', function (): void {
     $this->get(route('menu'))
         ->assertOk()
         ->assertSee('id="menu-selections"', false)

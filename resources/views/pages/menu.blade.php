@@ -135,7 +135,7 @@
                 <x-public.section-heading
                     data-menu-motion="full-heading"
                     eyebrow="From Our Kitchen"
-                    title="The {{ $restaurantName }} Menu"
+                    :title="'The '.$restaurantName.' Menu'"
                     :description="$page?->content ?: 'Food made with warmth, color, and a generous sense of hospitality.'" />
 
                 <div class="mt-20 divide-y divide-white/15">

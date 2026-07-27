@@ -17,7 +17,7 @@
 
 <section
     data-public-hero
-    class="relative bg-primary-deep text-white">
+    class="public-hero-viewport relative bg-primary-deep text-white">
     <div
         class="relative isolate flex min-h-[42rem] items-center
             overflow-hidden sm:min-h-[45rem] lg:min-h-[47rem]">

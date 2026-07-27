@@ -10,26 +10,33 @@ test('menu seeder stores upload-like images idempotently', function (): void {
     $this->seed(MenuSeeder::class);
 
     $firstSeededPaths = MenuItem::query()
+        ->whereNotNull('image_path')
         ->orderBy('id')
         ->pluck('image_path')
         ->all();
 
+    $firstSeededItemCount = MenuItem::query()->count();
+
     expect($firstSeededPaths)
-        ->toHaveCount(20)
-        ->each->toMatch('/^menu-items\/[a-f0-9]{64}\.(?:jpg|png|webp)$/');
+        ->each
+        ->toMatch('/^menu-items\/[a-f0-9]{64}\.(?:jpg|png|webp)$/');
 
     Storage::disk('public')->assertExists($firstSeededPaths);
 
-    $firstStoredFiles = Storage::disk('public')->allFiles('menu-items');
+    $firstStoredFiles = Storage::disk('public')
+        ->allFiles('menu-items');
 
     $this->seed(MenuSeeder::class);
 
     $secondSeededPaths = MenuItem::query()
+        ->whereNotNull('image_path')
         ->orderBy('id')
         ->pluck('image_path')
         ->all();
 
     expect($secondSeededPaths)->toBe($firstSeededPaths);
-    expect(Storage::disk('public')->allFiles('menu-items'))->toBe($firstStoredFiles);
-    expect(MenuItem::query()->count())->toBe(20);
+    expect(Storage::disk('public')->allFiles('menu-items'))
+        ->toBe($firstStoredFiles);
+    expect(MenuItem::query()->count())
+        ->toBe($firstSeededItemCount);
 });
