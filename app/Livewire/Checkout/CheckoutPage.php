@@ -111,7 +111,7 @@ final class CheckoutPage extends Component
 
         $fulfillmentMethod =
             $sessionCart
-            ->fulfillmentMethod();
+                ->fulfillmentMethod();
 
         $validated = $this->validate(
             $this->rulesFor(
@@ -223,9 +223,9 @@ final class CheckoutPage extends Component
 
             $checkoutSession =
                 $stripeCheckout
-                ->createCheckoutSession(
-                    $order,
-                );
+                    ->createCheckoutSession(
+                        $order,
+                    );
 
             if (
                 $checkoutSession->status
@@ -255,8 +255,8 @@ final class CheckoutPage extends Component
             );
         } catch (
             ApiErrorException
-            | \LogicException
-            | \RuntimeException
+            |\LogicException
+            |\RuntimeException
             $exception
         ) {
             report($exception);

@@ -7,6 +7,6 @@ it('renders the complete public homepage layout', function (): void {
         ->assertOk()
         ->assertSee('id="main-content"', escape: false)
         ->assertSeeText(
-            'Island Hospitality, Made for the California Coast',
+            'Island hospitality, made for the California coast.',
         );
 });

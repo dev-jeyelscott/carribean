@@ -13,5 +13,7 @@ it('renders the refreshed restaurant homepage sections', function (): void {
         ->assertSeeText('Dine your way')
         ->assertSeeText('A taste of the island')
         ->assertSeeText('We can’t wait to welcome you')
-        ->assertSeeText('Good food. Good company. Good times.');
+        ->assertSeeText(
+            'Good food. Good people. Good vibes. That is island life.',
+        );
 });
