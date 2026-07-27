@@ -1,0 +1,136 @@
+name: Browser Acceptance
+
+on:
+    push:
+        branches:
+            - develop
+
+    pull_request:
+        branches:
+            - develop
+
+permissions:
+    contents: read
+
+concurrency:
+    group: browser-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    chromium:
+        name: Chromium Acceptance
+        runs-on: ubuntu-24.04
+        timeout-minutes: 25
+
+        services:
+            mysql:
+                image: mysql:8.4
+                env:
+                    MYSQL_DATABASE: testing_browser
+                    MYSQL_USER: sail
+                    MYSQL_PASSWORD: password
+                    MYSQL_ROOT_PASSWORD: password
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1 -ppassword --silent"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v6
+
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: mbstring, intl, pdo_mysql, zip
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  cache: npm
+                  cache-dependency-path: package-lock.json
+
+            - name: Install PHP dependencies
+              run: >
+                  composer install
+                  --no-interaction
+                  --prefer-dist
+                  --no-progress
+
+            - name: Install frontend dependencies
+              run: npm ci
+
+            - name: Prepare browser environment
+              run: |
+                  cat > .env.browser <<'ENVEOF'
+                  APP_NAME="Coast & Cay"
+                  APP_ENV=browser
+                  APP_KEY=
+                  APP_DEBUG=false
+                  APP_URL=http://127.0.0.1:8000
+
+                  LOG_CHANNEL=stack
+                  LOG_LEVEL=warning
+
+                  BCRYPT_ROUNDS=4
+
+                  DB_CONNECTION=mysql
+                  DB_HOST=127.0.0.1
+                  DB_PORT=3306
+                  DB_DATABASE=testing_browser
+                  DB_USERNAME=sail
+                  DB_PASSWORD=password
+
+                  SESSION_DRIVER=database
+                  CACHE_STORE=array
+                  QUEUE_CONNECTION=sync
+                  MAIL_MAILER=array
+                  FILESYSTEM_DISK=local
+
+                  ADMIN_USER_NAME="Browser Administrator"
+                  ADMIN_USER_EMAIL=browser.admin@example.com
+                  ADMIN_USER_PASSWORD=password
+
+                  STRIPE_KEY=
+                  STRIPE_SECRET=
+                  STRIPE_WEBHOOK_SECRET=
+                  ENVEOF
+
+                  php artisan key:generate \
+                      --env=browser \
+                      --force
+
+            - name: Build production assets
+              run: npm run build
+
+            - name: Prepare acceptance database
+              run: >
+                  php artisan migrate:fresh
+                  --seed
+                  --seeder=BrowserAcceptanceSeeder
+                  --env=browser
+                  --force
+
+            - name: Install Chromium
+              run: npx playwright install --with-deps chromium
+
+            - name: Run Chromium acceptance tests
+              run: npm run test:browser
+
+            - name: Upload Playwright report
+              if: always()
+              uses: actions/upload-artifact@v5
+              with:
+                  name: playwright-report
+                  path: |
+                      playwright-report/
+                      test-results/
+                  if-no-files-found: ignore
+                  retention-days: 14

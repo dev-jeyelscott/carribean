@@ -4,7 +4,11 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:browser": "playwright test",
+        "test:browser:headed": "playwright test --headed",
+        "test:browser:ui": "playwright test --ui",
+        "test:browser:report": "playwright show-report"
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",
@@ -15,6 +19,9 @@
         "laravel-vite-plugin": "^3.1",
         "tailwindcss": "^4.0.7",
         "vite": "^8.0.0"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.61.1"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",

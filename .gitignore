@@ -8,6 +8,7 @@
 /storage/pail
 /vendor
 .env
+.env.browser
 .env.backup.*
 .env.production
 .phpactor.json
@@ -23,6 +24,8 @@ yarn-error.log
 /.vscode
 /.zed
 /context
+/playwright-report
+/test-results
 _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php
