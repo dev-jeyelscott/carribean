@@ -53,7 +53,7 @@ test('admin logo uses the context-aware brand component', function () {
 
 test('normal branded accent text meets wcag contrast in light and dark themes', function () {
     $lightAccent = filamentThemeToken('resources/css/brand-tokens.css', '--color-brand-gold-text');
-    $darkAccent = filamentThemeToken('resources/css/brand-tokens.css', '--color-brand-gold');
+    $darkAccent = filamentThemeToken('resources/css/brand-tokens.css', '--color-coral');
 
     expect(filamentThemeContrastRatio($lightAccent, '#faf8f2'))
         ->toBeGreaterThanOrEqual(4.5)
@@ -82,8 +82,8 @@ test('dashboard focus indicators use the final accessible focus layer', function
         ->toContain('outline: 2px solid var(--admin-focus);')
         ->toContain('outline-offset: 2px;');
 
-    $lightFocus = filamentThemeToken('resources/css/brand-tokens.css', '--color-brand-gold-dark');
-    $darkFocus = filamentThemeToken('resources/css/brand-tokens.css', '--color-brand-gold');
+    $lightFocus = filamentThemeToken('resources/css/brand-tokens.css', '--color-coral-deep');
+    $darkFocus = filamentThemeToken('resources/css/brand-tokens.css', '--color-coral');
 
     expect(filamentThemeContrastRatio($lightFocus, '#fffdf9'))
         ->toBeGreaterThanOrEqual(3.0)

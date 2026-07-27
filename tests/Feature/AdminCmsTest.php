@@ -169,14 +169,10 @@ test('admin routes remain within approved website cms and inquiry scope', functi
 
     foreach (
         [
-            'cart',
-            'checkout',
-            'payment',
             'inventory',
-            'kitchen',
-            'order-status',
-            'customer-account',
-            'customer-login',
+            'kitchen-display',
+            'driver-management',
+            'point-of-sale',
         ] as $unsupportedFeature
     ) {
         expect($normalizedRoutes)->not->toContain($unsupportedFeature);

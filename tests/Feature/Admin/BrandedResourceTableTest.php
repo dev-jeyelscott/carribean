@@ -53,7 +53,7 @@ test('inquiry tables use review labels and preserve the review filter', function
         ->and($reviewFilter->getTrueLabel())
         ->toBe('Reviewed')
         ->and($reviewFilter->getFalseLabel())
-        ->toBe('New');
+        ->toBe('Unread');
 })->with([
     'contact inquiries' => [ContactInquiriesTable::class],
 ]);

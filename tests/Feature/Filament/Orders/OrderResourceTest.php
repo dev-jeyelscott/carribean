@@ -12,8 +12,7 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-
-use function Pest\Livewire\livewire;
+use Livewire\Livewire;
 
 /**
  * Create one deterministic order for Filament acceptance tests.
@@ -109,7 +108,7 @@ test(
     function (): void {
         $order = createFilamentOrder();
 
-        livewire(ListOrders::class)
+        Livewire::test(ListOrders::class)
             ->assertOk()
             ->assertCanSeeTableRecords([$order])
             ->searchTable($order->order_number)
@@ -122,7 +121,7 @@ test(
     function (): void {
         $order = createFilamentOrder();
 
-        livewire(
+        Livewire::test(
             ViewOrder::class,
             [
                 'record' => $order->getRouteKey(),
@@ -142,7 +141,7 @@ test(
     function (): void {
         $order = createFilamentOrder();
 
-        livewire(
+        Livewire::test(
             ViewOrder::class,
             [
                 'record' => $order->getRouteKey(),
@@ -173,12 +172,16 @@ test(
 
         expect(
             $order->statusHistories()
-                ->latest('id')
-                ->first()
-                ?->new_status,
-        )->toBe(
-            OrderStatus::Confirmed,
-        );
+                ->where(
+                    'previous_status',
+                    OrderStatus::PendingConfirmation,
+                )
+                ->where(
+                    'new_status',
+                    OrderStatus::Confirmed,
+                )
+                ->exists(),
+        )->toBeTrue();
     },
 );
 
@@ -187,7 +190,7 @@ test(
     function (): void {
         $order = createFilamentOrder();
 
-        livewire(
+        Livewire::test(
             ViewOrder::class,
             [
                 'record' => $order->getRouteKey(),
@@ -225,7 +228,7 @@ test(
     function (): void {
         $order = createFilamentOrder();
 
-        livewire(
+        Livewire::test(
             ViewOrder::class,
             [
                 'record' => $order->getRouteKey(),
@@ -254,7 +257,7 @@ test(
 
         $order = createFilamentOrder();
 
-        livewire(
+        Livewire::test(
             ViewOrder::class,
             [
                 'record' => $order->getRouteKey(),

@@ -47,7 +47,15 @@ test('approved editable resources use labelled form sections', function (string 
     'site settings' => [SiteSettingForm::class, ['Setting details', 'Setting value']],
     'pages' => [PageForm::class, ['Page content', 'Search preview', 'Publication']],
     'menu categories' => [MenuCategoryForm::class, ['Category details', 'Display settings']],
-    'menu items' => [MenuItemForm::class, ['Menu item details', 'Menu image', 'Display settings']],
+    'menu items' => [
+        MenuItemForm::class,
+        [
+            'Menu item details',
+            'Ordering and display',
+            'Options and add-ons',
+            'Menu image',
+        ],
+    ],
     'gallery images' => [GalleryImageForm::class, ['Image details', 'Gallery image', 'Display settings']],
 ]);
 

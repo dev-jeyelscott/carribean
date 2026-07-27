@@ -167,7 +167,20 @@ function dashboardTestAdmin(): User
 function dashboardTestContactInquiry(
     array $overrides = [],
 ): ContactInquiry {
-    return ContactInquiry::query()->create(array_merge([
+    $timestamps = array_filter(
+        [
+            'created_at' => $overrides['created_at'] ?? null,
+            'updated_at' => $overrides['updated_at'] ?? null,
+        ],
+        static fn (mixed $value): bool => $value !== null,
+    );
+
+    unset(
+        $overrides['created_at'],
+        $overrides['updated_at'],
+    );
+
+    $inquiry = ContactInquiry::query()->create(array_merge([
         'customer_name' => 'Contact Guest',
         'email' => 'contact@example.test',
         'phone' => null,
@@ -175,4 +188,10 @@ function dashboardTestContactInquiry(
         'message' => 'Please contact me about the restaurant.',
         'is_read' => false,
     ], $overrides));
+
+    if ($timestamps !== []) {
+        $inquiry->forceFill($timestamps)->saveQuietly();
+    }
+
+    return $inquiry->refresh();
 }
