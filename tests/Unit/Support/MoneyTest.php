@@ -1,7 +1,6 @@
 <?php
 
 use App\Support\Money;
-use InvalidArgumentException;
 
 test('it converts decimal values into integer cents', function (): void {
     expect(Money::decimalToCents('18.50'))->toBe(1850)

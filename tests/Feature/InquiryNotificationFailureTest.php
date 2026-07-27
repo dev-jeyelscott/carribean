@@ -3,7 +3,6 @@
 use App\Jobs\SendContactInquiryNotification;
 use App\Models\ContactInquiry;
 use Illuminate\Support\Facades\Mail;
-use RuntimeException;
 
 test('contact inquiry notification failure leaves the stored inquiry available for retry', function (): void {
     $inquiry = ContactInquiry::query()->create([

@@ -46,7 +46,7 @@ class ContactInquiriesTable
                     ->visibleFrom('lg'),
 
                 TextColumn::make('is_read')
-                    ->label('Review')
+                    ->label('Review status')
                     ->badge()
                     ->formatStateUsing(
                         fn (bool $state): string => $state
@@ -84,7 +84,20 @@ class ContactInquiriesTable
             )
             ->emptyStateIcon('heroicon-o-envelope')
             ->recordActions([
+
                 ViewAction::make(),
+
+                Action::make('markAsReviewed')
+                    ->label('Mark as reviewed')
+                    ->icon('heroicon-o-eye')
+                    ->visible(
+                        fn (ContactInquiry $record): bool => ! $record->is_read,
+                    )
+                    ->action(
+                        fn (ContactInquiry $record): bool => $record->update([
+                            'is_read' => true,
+                        ]),
+                    ),
 
                 Action::make('startProgress')
                     ->label('Start Progress')

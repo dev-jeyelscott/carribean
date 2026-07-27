@@ -68,7 +68,7 @@ test('admin can create menu categories and menu items', function () {
             'name' => 'Truffle Pasta',
             'slug' => 'truffle-pasta',
             'description' => 'House pasta with truffle cream.',
-            'price' => '18.50',
+            'price_cents' => '18.50',
             'sort_order' => 1,
             'is_visible' => true,
         ])
@@ -79,7 +79,7 @@ test('admin can create menu categories and menu items', function () {
 
     expect($menuItem->menu_category_id)->toBe($category->id);
     expect($menuItem->name)->toBe('Truffle Pasta');
-    expect($menuItem->price)->toBe('18.50');
+    expect($menuItem->price_cents)->toBe(1850);
     expect($menuItem->is_visible)->toBeTrue();
 });
 
