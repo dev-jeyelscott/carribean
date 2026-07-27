@@ -43,9 +43,8 @@ return [
     | Customer Home Path
     |--------------------------------------------------------------------------
     |
-    | Public customers should return to their account area after successful
-    | login, registration, password reset, or email verification. Filament
-    | continues to manage its own /admin authentication and authorization.
+    | Public customers return to their account area after login,
+    | registration, password reset, or email verification.
     |
     */
 
@@ -78,7 +77,6 @@ return [
     'limiters' => [
         'login' => 'login',
         'two-factor' => 'two-factor',
-        'passkeys' => 'passkeys',
     ],
 
     /*
@@ -91,24 +89,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Passkeys
+    | Authentication Features
     |--------------------------------------------------------------------------
-    */
-
-    'passkeys' => [
-        'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        'allowed_origins' => [config('app.url')],
-        'user_handle_secret' => env(
-            'PASSKEYS_USER_HANDLE_SECRET',
-            config('app.key'),
-        ),
-        'timeout' => 60000,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Features
-    |--------------------------------------------------------------------------
+    |
+    | Keep the customer authentication surface limited to registration,
+    | password recovery, email verification, and optional two-factor
+    | authentication. Passkey authentication is outside the locked scope.
+    |
     */
 
     'features' => [
@@ -117,9 +104,6 @@ return [
         Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
-            'confirmPassword' => true,
-        ]),
-        Features::passkeys([
             'confirmPassword' => true,
         ]),
     ],

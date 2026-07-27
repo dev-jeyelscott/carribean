@@ -1,16 +1,15 @@
-
 # Production Deployment and Launch Runbook
 
 ## Purpose
 
-This document defines the production deployment, operations, launch validation,
-backup, and administrator handover process for Coast & Cay.
+This document defines the production deployment, operations, backup, launch
+validation, and administrator handover process for Coast & Cay.
 
 The application is deployed from the `develop` branch.
 
-## Production Architecture
+## Production architecture
 
-The production environment uses:
+Production requires:
 
 - PHP 8.4-FPM
 - Nginx
@@ -28,23 +27,21 @@ The production environment uses:
 
 Laravel Sail and Mailpit are development-only services.
 
-## Application Location
+## Application location
 
-The expected production path is:
+Expected application path:
 
 ```text
 /var/www/carribean
-````
+```
 
-The Nginx document root must be:
+Nginx document root:
 
 ```text
 /var/www/carribean/public
 ```
 
-## Required Production Configuration
-
-Production must use:
+## Required production configuration
 
 ```dotenv
 APP_ENV=production
@@ -62,17 +59,11 @@ DB_QUEUE_RETRY_AFTER=90
 FILESYSTEM_DISK=public
 ```
 
-The production queue worker uses a 60-second timeout so it remains below the
-database queue's 90-second retry interval.
-
-## Required Secrets
-
-Configure these values outside source control:
+Keep these values outside source control:
 
 * `APP_KEY`
 * Database credentials
 * SMTP credentials
-* Stripe publishable key
 * Stripe secret key
 * Stripe webhook signing secret
 * Administrator credentials
@@ -81,14 +72,18 @@ Configure these values outside source control:
 
 Never commit the production `.env` file.
 
-## First Deployment
+## First deployment
 
-Clone the repository:
+Create the application directory:
 
 ```bash
 sudo mkdir -p /var/www/carribean
 sudo chown "$USER":www-data /var/www/carribean
+```
 
+Clone the delivery branch:
+
+```bash
 git clone \
     --branch develop \
     https://github.com/dev-jeyelscott/carribean.git \
@@ -123,22 +118,22 @@ cp deploy/.env.production.example .env
 
 Replace every placeholder before continuing.
 
-Generate the production key:
+Generate the application key only during the first deployment:
 
 ```bash
 php artisan key:generate --force
 ```
 
-Do not replace the application key after production data has been encrypted.
+Do not replace `APP_KEY` after production data has been encrypted.
 
-Apply migrations:
+Apply production-safe migrations:
 
 ```bash
 php artisan migrate --force
 ```
 
-Do not use `migrate:fresh`, `db:wipe`, or destructive reset commands in
-production.
+Never use `migrate:fresh`, `migrate:reset`, `db:wipe`, or automated destructive
+rollbacks in production.
 
 Create the public storage link:
 
@@ -152,14 +147,7 @@ Optimize the application:
 php artisan optimize
 ```
 
-## Directory Permissions
-
-The application and queue worker must be able to write to:
-
-* `storage`
-* `bootstrap/cache`
-
-Configure permissions:
+## Directory permissions
 
 ```bash
 sudo chown -R "$USER":www-data /var/www/carribean
@@ -175,7 +163,7 @@ sudo find storage bootstrap/cache \
 
 ## Nginx
 
-Install the repository Nginx configuration:
+Install the repository configuration:
 
 ```bash
 sudo cp \
@@ -183,9 +171,7 @@ sudo cp \
     /etc/nginx/sites-available/carribean
 ```
 
-Update the domain and application path before enabling it.
-
-Enable the site:
+Update the domain and application path before enabling it:
 
 ```bash
 sudo ln -sfn \
@@ -198,7 +184,7 @@ sudo systemctl reload nginx
 
 ## HTTPS
 
-After DNS points to the server, obtain and install the certificate:
+After DNS points to the server:
 
 ```bash
 sudo certbot \
@@ -208,14 +194,14 @@ sudo certbot \
     --redirect
 ```
 
-Confirm that certificate renewal is enabled:
+Validate renewal:
 
 ```bash
-sudo systemctl status certbot.timer
+sudo systemctl status certbot.timer --no-pager
 sudo certbot renew --dry-run
 ```
 
-## Queue Worker
+## Queue worker
 
 Install the Supervisor configuration:
 
@@ -229,69 +215,47 @@ sudo supervisorctl update
 sudo supervisorctl start "carribean-worker:*"
 ```
 
-Validate the worker:
+Validate:
 
 ```bash
 sudo supervisorctl status "carribean-worker:*"
-```
-
-Expected result:
-
-```text
-RUNNING
-```
-
-Review failed jobs:
-
-```bash
 php artisan queue:failed
 ```
 
-Retry a confirmed safe failed job:
-
-```bash
-php artisan queue:retry <job-id>
-```
-
-Do not retry payment or notification jobs blindly without reviewing the
-failure and confirming idempotency.
+Do not blindly retry payment-related jobs. Review the failure and verify the
+operation is idempotent first.
 
 ## Scheduler
 
-Install the Laravel scheduler for the web-server user:
+Create the scheduler cron entry:
 
 ```bash
-sudo bash -c "cat > /etc/cron.d/carribean-scheduler <<'CRON'
+sudo tee /etc/cron.d/carribean-scheduler > /dev/null <<'CRON'
 * * * * * www-data cd /var/www/carribean && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
-CRON"
+CRON
 ```
 
-Set the correct permissions:
+Enable it:
 
 ```bash
 sudo chmod 644 /etc/cron.d/carribean-scheduler
 sudo systemctl restart cron
-```
-
-Review Laravel's registered schedule:
-
-```bash
 php artisan schedule:list
 ```
 
 The `orders:complete-fulfilled` command must appear as an hourly command.
 
-## Routine Deployment
+## Routine deployment
 
 Before deploying:
 
-1. Confirm GitHub Actions is green.
-2. Confirm the production backup completed.
-3. Confirm the working tree is clean.
-4. Review pending migrations.
-5. Confirm Stripe and mail services are healthy.
+* Confirm GitHub Actions is green.
+* Confirm the latest database backup completed.
+* Confirm the production working tree is clean.
+* Review pending migrations.
+* Confirm Stripe and SMTP services are available.
 
-Run:
+Deploy:
 
 ```bash
 cd /var/www/carribean
@@ -302,11 +266,11 @@ HEALTH_URL=https://restaurant.example.com/up \
 ./deploy/scripts/deploy.sh
 ```
 
-## Database Backups
+## Database backups
 
 Use provider-managed automated backups when available.
 
-Before each production migration, create an additional manual backup:
+Before a production migration:
 
 ```bash
 mkdir -p "$HOME/backups/carribean"
@@ -324,10 +288,22 @@ mysqldump \
     > "$HOME/backups/carribean/database-$(date +%Y%m%d-%H%M%S).sql.gz"
 ```
 
-Verify the archive:
+Validate the newest archive:
 
 ```bash
-gzip -t "$HOME"/backups/carribean/database-*.sql.gz
+latest_database_backup="$(
+    find "$HOME/backups/carribean" \
+        -maxdepth 1 \
+        -type f \
+        -name 'database-*.sql.gz' \
+        -printf '%T@ %p\n' \
+        | sort -nr \
+        | head -n 1 \
+        | cut -d' ' -f2-
+)"
+
+test -n "$latest_database_backup"
+gzip -t "$latest_database_backup"
 ```
 
 Back up uploaded files:
@@ -339,39 +315,41 @@ tar \
     public
 ```
 
-A backup is not considered verified until it has been restored successfully
-into a temporary non-production database.
+A backup is not verified until it has been restored into a temporary,
+non-production database.
 
-## Stripe Launch Configuration
+## Stripe configuration
 
-Configure a live HTTPS webhook endpoint:
+Production webhook endpoint:
 
 ```text
 https://restaurant.example.com/webhooks/stripe
 ```
 
-Configure the live endpoint's unique signing secret in the production `.env`:
+Configure the endpoint-specific signing secret:
 
 ```dotenv
 STRIPE_WEBHOOK_SECRET=
 ```
 
-Confirm:
+Verify:
 
-* Successful Checkout Session events are delivered.
-* Asynchronous payment events are delivered.
-* Refund events are delivered.
+* Valid signatures are accepted.
 * Invalid signatures are rejected.
-* Duplicate events do not duplicate payments or orders.
-* The application does not mark an order paid from the success page alone.
+* Successful Checkout Sessions mark the payment paid.
+* Asynchronous payment events are processed.
+* Refund events update the local payment state.
+* Duplicate webhook events are harmless.
+* The browser success page alone cannot mark an order paid.
+* Payment amount and currency are validated.
 
-## Transactional Mail
+## Transactional mail
 
-Confirm SMTP configuration with:
+Confirm:
 
 * Production sender address
 * Production sender name
-* Administrator inquiry address
+* Contact-inquiry recipient
 * Verified sending domain
 * SPF
 * DKIM
@@ -382,18 +360,16 @@ Test:
 * Order received
 * Payment confirmed
 * Order confirmed
+* Order rejected
 * Ready for pickup
 * Out for delivery
 * Delivered
 * Cancelled
-* Reservation acknowledgement
 * Contact acknowledgement
 * Administrator order notification
-* Administrator inquiry notification
+* Administrator contact-inquiry notification
 
-## Production Smoke Test
-
-Run:
+## Production smoke test
 
 ```bash
 curl --fail --silent --show-error https://restaurant.example.com/up
@@ -417,88 +393,75 @@ Check infrastructure:
 
 ```bash
 sudo nginx -t
-sudo systemctl status nginx
-sudo systemctl status php8.4-fpm
-sudo systemctl status cron
+sudo systemctl status nginx --no-pager
+sudo systemctl status php8.4-fpm --no-pager
+sudo systemctl status cron --no-pager
 sudo supervisorctl status "carribean-worker:*"
 ```
 
-## Manual Launch Acceptance
+## Manual launch acceptance
 
 Verify:
 
-1. Homepage loads through HTTPS.
-2. HTTP redirects to HTTPS.
-3. Public images load.
-4. Uploaded images remain available after deployment.
-5. Menu categories and items display.
-6. Item options can be selected.
-7. Cart totals are recalculated correctly.
-8. Guest cash checkout succeeds.
-9. Registered checkout succeeds.
-10. Stripe Checkout succeeds.
-11. Stripe webhook marks payment paid.
-12. Duplicate Stripe webhook delivery is harmless.
-13. Customer receives the confirmation email.
-14. Administrator receives the new-order email.
-15. Administrator can confirm the order.
-16. Customer sees the updated status.
-17. Pickup lifecycle works.
-18. Delivery lifecycle works.
-19. Reservation request sends both emails.
-20. Contact inquiry sends both emails.
-21. Online ordering can be disabled from Filament.
-22. Disabled ordering blocks checkout.
-23. Scheduler completes eligible fulfilled orders.
-24. Queue jobs are processed.
-25. Database backup is successful.
-26. Backup restoration has been tested.
+* Homepage loads through HTTPS.
+* HTTP redirects to HTTPS.
+* Public and uploaded images load.
+* Menu categories and items display.
+* Item options can be selected.
+* Cart totals are recalculated by the server.
+* Coupons, tax, delivery ZIP codes, and delivery minimums work.
+* Guest cash checkout succeeds.
+* Registered checkout succeeds.
+* Stripe Checkout succeeds.
+* Stripe webhook marks payment paid.
+* Duplicate webhook delivery is harmless.
+* Customer receives order notifications.
+* Administrator receives new-order notifications.
+* Administrator can update valid order statuses.
+* Customer sees the updated order status.
+* Pickup and delivery lifecycles work.
+* Contact inquiry sends its acknowledgement and administrator notification.
+* Online ordering can be disabled from Filament.
+* Disabled online ordering blocks checkout.
+* The scheduler completes eligible fulfilled orders.
+* Queue jobs are processed.
+* Database and uploaded-file backups succeed.
+* Backup restoration has been tested.
 
-## Rollback Policy
+## Rollback policy
 
-Do not run destructive database rollbacks automatically.
+Do not automatically execute destructive database rollbacks.
 
-All production migrations must remain backward-compatible during the deployment
-window.
+When an application rollback is needed:
 
-When an application rollback is required:
-
-1. Create a revert commit locally on `develop`.
+1. Create a revert commit on `develop`.
 2. Run the complete CI pipeline.
 3. Push the revert commit.
-4. Deploy the new revert commit normally.
-5. Do not execute `migrate:rollback` unless a migration-specific recovery plan
-   has been reviewed and approved.
+4. Deploy the revert commit normally.
+5. Use `migrate:rollback` only with an approved migration-specific recovery plan.
 
-## Administrator Handover
+## Administrator handover
 
 Training must cover:
 
 * Logging in to Filament
 * Editing restaurant identity and contact information
 * Managing opening hours
-* Managing menu categories
-* Managing menu items
+* Managing menu categories and items
 * Managing item options and prices
-* Marking items unavailable
-* Enabling and disabling online ordering
+* Marking menu items unavailable
+* Enabling or disabling online ordering
 * Managing coupons
-* Reviewing new orders
-* Confirming and rejecting orders
-* Updating pickup statuses
-* Updating delivery statuses
-* Marking cash payments paid
+* Reviewing and updating orders
+* Recording collected cash payments
 * Resending customer notifications
-* Publishing pages
-* Publishing FAQs
-* Publishing blog posts
+* Publishing pages, FAQs, and blog posts
 * Uploading gallery images
-* Reviewing reservations
 * Reviewing contact inquiries
 * Checking failed queue jobs
 * Contacting technical support
 
-## Definition of Launch Completion
+## Definition of launch completion
 
 Launch is complete when:
 
@@ -516,26 +479,3 @@ Launch is complete when:
 * Smoke tests pass.
 * Manual acceptance passes.
 * Administrator training is complete.
-  MARKDOWN
-
-````
-
-Validate the generated document:
-
-```bash
-cat docs/deployment.md
-git diff --check
-git diff -- docs/deployment.md
-````
-
-Then run:
-
-```bash
-./vendor/bin/sail composer ci:check
-```
-
-**Conventional commit:**
-
-```text
-docs: fix production deployment runbook formatting
-```

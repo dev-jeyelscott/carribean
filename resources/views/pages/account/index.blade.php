@@ -42,7 +42,8 @@
 
                     <p class="mt-4 leading-7 text-brand-muted">
                         Keep your name, email address, and phone number
-                        current for faster checkout.
+                        current for faster checkout and reliable order
+                        notifications.
                     </p>
 
                     <a
@@ -63,13 +64,13 @@
                     </p>
 
                     <h2 class="mt-3 font-display text-3xl">
-                        No orders yet
+                        Order history
                     </h2>
 
                     <p class="mt-4 leading-7 text-brand-cream/70">
-                        Review order totals, payment state, fulfillment
-                        progress, and previous purchases from your order
-                        history.
+                        Review order totals, payment status, fulfillment
+                        progress, and previous purchases from your secure
+                        order history.
                     </p>
 
                     <a
