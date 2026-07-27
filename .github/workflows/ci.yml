@@ -113,3 +113,101 @@ jobs:
 
             - name: Run project quality gates
               run: composer ci:check
+
+    browser:
+        name: Browser Acceptance
+        needs:
+            - quality
+
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
+
+        services:
+            mysql:
+                image: mysql:8.4
+                env:
+                    MYSQL_DATABASE: testing_browser
+                    MYSQL_USER: sail
+                    MYSQL_PASSWORD: password
+                    MYSQL_ROOT_PASSWORD: password
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1 -ppassword --silent"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+
+        env:
+            CI: true
+
+            APP_ENV: browser
+            APP_DEBUG: false
+            APP_URL: http://127.0.0.1:8000
+
+            DB_CONNECTION: mysql
+            DB_HOST: 127.0.0.1
+            DB_PORT: 3306
+            DB_DATABASE: testing_browser
+            DB_USERNAME: sail
+            DB_PASSWORD: password
+
+            CACHE_STORE: array
+            SESSION_DRIVER: database
+            QUEUE_CONNECTION: sync
+            MAIL_MAILER: array
+            BROADCAST_CONNECTION: log
+            FILESYSTEM_DISK: local
+
+            ADMIN_USER_NAME: Browser Administrator
+            ADMIN_USER_EMAIL: browser.admin@example.com
+            ADMIN_USER_PASSWORD: password
+
+            PLAYWRIGHT_PORT: 8000
+            PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v6
+
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: mbstring, intl, pdo_mysql, zip
+                  coverage: none
+                  tools: composer:v2
+              env:
+                  fail-fast: true
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  cache: npm
+                  cache-dependency-path: package-lock.json
+
+            - name: Install PHP dependencies
+              run: composer install --no-interaction --prefer-dist --no-progress
+
+            - name: Install frontend dependencies
+              run: npm ci
+
+            - name: Prepare browser-test environment
+              run: |
+                  cp .env.browser.example .env.browser
+                  php artisan key:generate --env=browser --force
+                  php artisan migrate:fresh --env=browser --force
+                  php artisan db:seed \
+                      --env=browser \
+                      --class='Database\Seeders\BrowserAcceptanceSeeder' \
+                      --force
+
+            - name: Build production frontend assets
+              run: npm run build
+
+            - name: Install Chromium
+              run: npx playwright install --with-deps chromium
+
+            - name: Run Chromium acceptance tests
+              run: npm run test:browser
