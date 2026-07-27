@@ -55,7 +55,7 @@ class InquiryOverview extends StatsOverviewWidget
             $stats[] = $this->makeInquiryStat(
                 label: 'Unread Contact Inquiries',
                 count: $this->runCountQuery(
-                    fn(): int => ContactInquiry::query()
+                    fn (): int => ContactInquiry::query()
                         ->unread()
                         ->count('*'),
                 ),

@@ -3,10 +3,7 @@
 $publicPageFiles = [
     'home.blade.php',
     'menu.blade.php',
-    'reservation-request.blade.php',
-    'order-inquiry.blade.php',
     'gallery.blade.php',
-    'banquet-hall.blade.php',
     'contact.blade.php',
 ];
 

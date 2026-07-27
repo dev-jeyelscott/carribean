@@ -13,7 +13,7 @@ return new class extends Migration
                 'excerpt' => ['A refined dining experience for families, guests, and special occasions.', 'Season-led cuisine, gracious hospitality, and an intimate setting for dinners, celebrations, and private occasions.'],
                 'content' => ['Enjoy carefully prepared dishes, warm hospitality, and an elegant restaurant atmosphere designed for memorable dining experiences.', 'At Le Jardin, precise technique and generous hospitality come together in a dining experience that feels polished, personal, and warmly familiar.'],
                 'meta_title' => ['Home | Le Jardin Fine Dining', 'Le Jardin Fine Dining | Seasonal Cuisine & Private Occasions'],
-                'meta_description' => ['Discover Le Jardin Fine Dining, featuring curated menus, elegant ambiance, banquet options, and request-based reservations.', 'Discover seasonal cuisine, gracious hospitality, private dining, and beautifully considered occasions at Le Jardin Fine Dining.'],
+                'meta_description' => ['Discover Le Jardin Fine Dining, featuring curated menus, elegant ambiance, and request-based reservations.', 'Discover seasonal cuisine, gracious hospitality, private dining, and beautifully considered occasions at Le Jardin Fine Dining.'],
             ],
             'menu' => [
                 'title' => ['Our Menu', 'A Menu Guided by Season and Craft'],
@@ -37,15 +37,8 @@ return new class extends Migration
             'gallery' => [
                 'title' => ['Gallery', 'A Portrait of Le Jardin'],
                 'excerpt' => ['View our restaurant interiors, dishes, events, and ambiance.', 'Discover the atmosphere, culinary craft, and celebrations that define Le Jardin.'],
-                'content' => ['Browse a preview of our dining experience, food presentation, banquet spaces, and restaurant atmosphere.', 'From softly lit dining rooms to carefully finished plates and beautifully prepared celebrations, every image reflects our warmth, refinement, and attention to detail.'],
+                'content' => ['Browse a preview of our dining experience, food presentation, and restaurant atmosphere.', 'From softly lit dining rooms to carefully finished plates and beautifully prepared celebrations, every image reflects our warmth, refinement, and attention to detail.'],
                 'meta_description' => ['View restaurant interiors, dishes, events, and ambiance photos.', 'Explore Le Jardin’s dining rooms, signature dishes, private celebrations, and beautifully considered details.'],
-            ],
-            'banquet-hall' => [
-                'title' => ['Banquet Hall', 'A Setting for Meaningful Occasions'],
-                'excerpt' => ['Host family gatherings, private dining, and special events in an elegant setting.', 'Gather for private dinners, family milestones, celebrations, and corporate occasions in a setting shaped around attentive hospitality.'],
-                'content' => ['Our banquet hall supports private dining, celebrations, corporate gatherings, and special occasions. Please contact us to discuss availability and event details.', 'Our banquet hall offers a refined setting for family celebrations, private dining, corporate meals, and life’s most meaningful gatherings. Contact our team to discuss availability and event details.'],
-                'meta_title' => ['Banquet Hall | Le Jardin Fine Dining', 'Banquet Hall & Private Dining | Le Jardin Fine Dining'],
-                'meta_description' => ['Explore banquet hall information, event types, capacity, and inquiry options.', 'Discover Le Jardin’s banquet hall and private-dining setting for family milestones, celebrations, and corporate occasions.'],
             ],
             'contact' => [
                 'title' => ['Contact Us', 'Begin a Conversation with Le Jardin'],
@@ -86,7 +79,6 @@ return new class extends Migration
         $gallery = [
             'Elegant Dining Room' => ['title' => 'The Dining Room', 'alt_text' => ['Elegant fine-dining restaurant interior', 'Warmly lit fine-dining room at Le Jardin']],
             'Signature Dish' => ['title' => 'A Signature Composition', 'alt_text' => ['Chef-prepared signature dish presentation', 'Seared scallops presented with refined plating']],
-            'Banquet Setup' => ['title' => 'A Private Occasion', 'alt_text' => ['Banquet hall setup for a private event', 'Banquet hall arranged for a private celebration']],
             'Warm Restaurant Ambiance' => ['title' => 'Evening Ambiance', 'alt_text' => ['Warm restaurant lighting and ambiance', 'Warm evening ambiance inside Le Jardin']],
         ];
 

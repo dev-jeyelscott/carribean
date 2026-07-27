@@ -1,24 +1,22 @@
 <x-layouts.public
     :title="$page?->meta_title ?: 'Contact'"
-    :description="$page?->meta_description ?: 'Begin a conversation about dining, private occasions, Order Inquiries, directions, or your next visit.'"
->
+    :description="$page?->meta_description ?: 'Begin a conversation about dining, private occasions, Order Inquiries, directions, or your next visit.'">
     <div data-home-motion data-contact-motion>
         <section data-contact-hero data-public-hero class="public-hero-viewport relative isolate flex items-center overflow-hidden bg-brand-ink">
             <div data-gsap="hero-image" class="absolute inset-0 -z-30">
                 @if ($heroImage?->image_url)
-                    <x-public.responsive-image
-                        :image="$heroImage"
-                        :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Elegant restaurant interior'"
-                        variant="hero"
-                        sizes="100vw"
-                        width="1920"
-                        height="1280"
-                        loading="eager"
-                        fetchpriority="high"
-                        img-class="h-full w-full object-cover object-center"
-                    />
+                <x-public.responsive-image
+                    :image="$heroImage"
+                    :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Elegant restaurant interior'"
+                    variant="hero"
+                    sizes="100vw"
+                    width="1920"
+                    height="1280"
+                    loading="eager"
+                    fetchpriority="high"
+                    img-class="h-full w-full object-cover object-center" />
                 @else
-                    <div data-contact-hero-fallback class="h-full w-full bg-[radial-gradient(circle_at_70%_25%,rgba(201,164,93,0.3),transparent_26%),linear-gradient(135deg,#353126,#171916_68%)]"></div>
+                <div data-contact-hero-fallback class="h-full w-full bg-[radial-gradient(circle_at_70%_25%,rgba(201,164,93,0.3),transparent_26%),linear-gradient(135deg,#353126,#171916_68%)]"></div>
                 @endif
             </div>
 
@@ -31,104 +29,120 @@
                     <h1 data-gsap-reveal class="mt-6 max-w-4xl font-display text-5xl leading-[0.98] text-white sm:text-6xl lg:text-8xl">{{ $page?->title ?: 'Get in touch' }}</h1>
                     <p data-gsap-reveal class="mt-7 max-w-2xl text-base leading-8 text-stone-200 sm:text-lg">{{ $page?->excerpt ?: 'Whether you have a question, are planning a gathering, or simply wish to reach us, our team is here to help.' }}</p>
                     <a data-gsap-reveal href="#contact-inquiry" class="group mt-9 inline-flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:text-brand-gold">
-                    Send us a message
-                    <span class="transition duration-300 group-hover:translate-x-2" aria-hidden="true">&rarr;</span>
+                        Send us a message
+                        <span class="transition duration-300 group-hover:translate-x-2" aria-hidden="true">&rarr;</span>
                     </a>
                 </div>
             </div>
         </section>
 
         <section id="contact-inquiry" data-gsap="section" class="scroll-mt-20 overflow-hidden bg-brand-ivory py-20 text-brand-ink sm:py-24 lg:py-32">
-        @php
+            @php
             $phone = $settings['phone'] ?? null;
             $phoneDigits = is_string($phone) ? preg_replace('/\D+/', '', $phone) : null;
             $phoneTelTarget = is_string($phone) && is_string($phoneDigits) && $phoneDigits !== ''
-                ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
-                : null;
+            ? (str_starts_with(ltrim($phone), '+') ? '+' : '').$phoneDigits
+            : null;
             $inputClasses = 'mt-2 block min-h-12 w-full border border-stone-300 bg-brand-ivory px-4 py-3 text-base text-brand-ink placeholder:text-stone-400 transition hover:border-brand-gold-dark focus:border-brand-gold-dark focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-gold/25';
             $labelClasses = 'block text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink';
             $errorClasses = 'mt-2 text-sm text-brand-burgundy';
-        @endphp
+            @endphp
 
-        <div class="mx-auto grid max-w-7xl gap-14 px-5 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:gap-20 lg:px-10 xl:gap-28">
-            <aside class="lg:sticky lg:top-28 lg:self-start">
-                <p data-gsap-reveal class="text-xs font-semibold uppercase tracking-[0.32em] text-brand-gold-dark">Begin a conversation</p>
-                <h2 data-gsap-reveal class="mt-5 max-w-lg font-display text-4xl leading-tight sm:text-5xl">A warm response, thoughtfully given</h2>
-                <p data-gsap-reveal class="mt-6 max-w-xl text-base leading-8 text-brand-muted">Reach out directly or send us a message. Our team will personally review your inquiry and follow up as soon as practical.</p>
-                <div data-gsap-reveal class="mt-10 h-px w-16 origin-left bg-brand-gold"></div>
+            <div class="mx-auto grid max-w-7xl gap-14 px-5 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:gap-20 lg:px-10 xl:gap-28">
+                <aside class="lg:sticky lg:top-28 lg:self-start">
+                    <p data-gsap-reveal class="text-xs font-semibold uppercase tracking-[0.32em] text-brand-gold-dark">Begin a conversation</p>
+                    <h2 data-gsap-reveal class="mt-5 max-w-lg font-display text-4xl leading-tight sm:text-5xl">A warm response, thoughtfully given</h2>
+                    <p data-gsap-reveal class="mt-6 max-w-xl text-base leading-8 text-brand-muted">Reach out directly or send us a message. Our team will personally review your inquiry and follow up as soon as practical.</p>
+                    <div data-gsap-reveal class="mt-10 h-px w-16 origin-left bg-brand-gold"></div>
 
-                <dl class="mt-10 grid gap-7 border-l border-brand-gold/45 pl-6 text-sm leading-7">
-                    @if ($phoneTelTarget !== null)
-                        <div data-gsap-reveal><dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Phone</dt><dd class="mt-1 text-brand-muted"><a href="tel:{{ $phoneTelTarget }}" class="transition hover:text-brand-ink">{{ $phone }}</a></dd></div>
-                    @endif
-                    @if ($settings['email'] ?? null)
-                        <div data-gsap-reveal><dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Email</dt><dd class="mt-1 break-words text-brand-muted"><a href="mailto:{{ $settings['email'] }}" class="transition hover:text-brand-ink">{{ $settings['email'] }}</a></dd></div>
-                    @endif
-                    @if ($settings['address'] ?? null)
-                        <div data-gsap-reveal><dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Visit us</dt><dd class="mt-1 text-brand-muted">{{ $settings['address'] }}</dd></div>
-                    @endif
-                    @if ($settings['map_link'] ?? null)
-                        <div data-gsap-reveal><dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Directions</dt><dd class="mt-1"><a href="{{ $settings['map_link'] }}" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-3 font-semibold text-brand-ink transition hover:text-brand-gold-dark">Open location map <span class="transition group-hover:translate-x-1" aria-hidden="true">&rarr;</span></a></dd></div>
-                    @endif
-                </dl>
+                    <dl class="mt-10 grid gap-7 border-l border-brand-gold/45 pl-6 text-sm leading-7">
+                        @if ($phoneTelTarget !== null)
+                        <div data-gsap-reveal>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Phone</dt>
+                            <dd class="mt-1 text-brand-muted"><a href="tel:{{ $phoneTelTarget }}" class="transition hover:text-brand-ink">{{ $phone }}</a></dd>
+                        </div>
+                        @endif
+                        @if ($settings['email'] ?? null)
+                        <div data-gsap-reveal>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Email</dt>
+                            <dd class="mt-1 break-words text-brand-muted"><a href="mailto:{{ $settings['email'] }}" class="transition hover:text-brand-ink">{{ $settings['email'] }}</a></dd>
+                        </div>
+                        @endif
+                        @if ($settings['address'] ?? null)
+                        <div data-gsap-reveal>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Visit us</dt>
+                            <dd class="mt-1 text-brand-muted">{{ $settings['address'] }}</dd>
+                        </div>
+                        @endif
+                        @if ($settings['map_link'] ?? null)
+                        <div data-gsap-reveal>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Directions</dt>
+                            <dd class="mt-1"><a href="{{ $settings['map_link'] }}" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-3 font-semibold text-brand-ink transition hover:text-brand-gold-dark">Open location map <span class="transition group-hover:translate-x-1" aria-hidden="true">&rarr;</span></a></dd>
+                        </div>
+                        @endif
+                    </dl>
 
-                @if (($settings['facebook_url'] ?? null) || ($settings['instagram_url'] ?? null) || ($settings['tiktok_url'] ?? null))
+                    @if (($settings['facebook_url'] ?? null) || ($settings['instagram_url'] ?? null) || ($settings['tiktok_url'] ?? null))
                     <div data-gsap-reveal class="mt-10 border-t border-brand-gold/25 pt-7">
                         <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold-dark">Follow our table</h3>
                         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-brand-ink">
                             @foreach (['facebook_url' => 'Facebook', 'instagram_url' => 'Instagram', 'tiktok_url' => 'TikTok'] as $settingKey => $label)
-                                @if ($settings[$settingKey] ?? null)
-                                    <a href="{{ $settings[$settingKey] }}" target="_blank" rel="noopener noreferrer" class="border-b border-brand-gold/50 pb-1 transition hover:border-brand-gold-dark hover:text-brand-gold-dark">{{ $label }}</a>
-                                @endif
+                            @if ($settings[$settingKey] ?? null)
+                            <a href="{{ $settings[$settingKey] }}" target="_blank" rel="noopener noreferrer" class="border-b border-brand-gold/50 pb-1 transition hover:border-brand-gold-dark hover:text-brand-gold-dark">{{ $label }}</a>
+                            @endif
                             @endforeach
                         </div>
                     </div>
-                @endif
+                    @endif
 
-                <div data-gsap="frame" data-gsap-reveal class="mt-10 border border-brand-gold/35 bg-brand-paper p-6 text-sm leading-7 text-brand-muted">
-                    <p class="font-semibold text-brand-ink">Planning a visit?</p>
-                    <p class="mt-2">For reservations and order requests, please use the dedicated forms so our team receives the right details for manual review.</p>
-                    <div class="mt-5 grid gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink sm:flex sm:flex-wrap sm:gap-x-6">
-                        <a href="{{ route('reservation-request.create') }}" class="transition hover:text-brand-gold-dark">Reservation Request</a>
-                        <a href="{{ route('order-inquiry.create') }}" class="transition hover:text-brand-gold-dark">Order Inquiry</a>
+                    <div data-gsap="frame" data-gsap-reveal class="mt-10 border border-brand-gold/35 bg-brand-paper p-6 text-sm leading-7 text-brand-muted">
+                        <p class="font-semibold text-brand-ink">Planning a visit?</p>
+                        <p class="mt-2">For reservations and order requests, please use the dedicated forms so our team receives the right details for manual review.</p>
+                        <div class="mt-5 grid gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink sm:flex sm:flex-wrap sm:gap-x-6">
+                            <a href="{{ route('reservation-request.create') }}" class="transition hover:text-brand-gold-dark">Reservation Request</a>
+                            <a href="{{ route('order-inquiry.create') }}" class="transition hover:text-brand-gold-dark">Order Inquiry</a>
+                        </div>
                     </div>
-                </div>
-            </aside>
+                </aside>
 
-            <div>
-                @if (session()->has('status') || session()->has('success'))
+                <div>
+                    @if (session()->has('status') || session()->has('success'))
                     <div role="status" class="mb-6 border border-emerald-700/25 bg-emerald-50 p-5 text-sm leading-7 text-emerald-900">{{ session('status') ?? session('success') }}</div>
-                @endif
-                @if ($errors->any())
-                    <div role="alert" class="mb-6 border border-brand-burgundy/25 bg-red-50 p-5 text-sm leading-7 text-brand-burgundy"><p class="font-semibold">Please review the highlighted fields and try again.</p></div>
-                @endif
-
-                <form data-contact-form data-gsap="panel" method="POST" action="{{ route('contact-inquiries.store') }}" class="border border-brand-gold/30 bg-white p-6 shadow-[0_28px_80px_rgba(23,25,22,0.1)] sm:p-9 lg:p-12" x-data="inquiryForm" @submit.prevent="submit" novalidate x-bind:aria-busy="submitting">
-                    @csrf
-                    <input type="hidden" name="source_page" value="contact">
-                    <div class="hidden" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off" value="{{ old('website') }}"></div>
-
-                    <div data-gsap-reveal class="border-b border-brand-gold/25 pb-8">
-                        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold-dark">Your message</p>
-                        <h2 class="mt-3 font-display text-3xl leading-tight text-brand-ink sm:text-4xl">How may we assist you?</h2>
-                        <p class="mt-4 text-sm leading-7 text-brand-muted">Share a question, private-event detail, or note for our team. Fields marked with <span class="text-brand-burgundy">*</span> are required.</p>
+                    @endif
+                    @if ($errors->any())
+                    <div role="alert" class="mb-6 border border-brand-burgundy/25 bg-red-50 p-5 text-sm leading-7 text-brand-burgundy">
+                        <p class="font-semibold">Please review the highlighted fields and try again.</p>
                     </div>
+                    @endif
 
-                    <div class="mt-9 grid gap-x-6 gap-y-7 sm:grid-cols-2">
-                        <div data-gsap-reveal class="sm:col-span-2"><label for="customer_name" class="{{ $labelClasses }}">Full name <span class="text-brand-burgundy">*</span></label><input id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" autocomplete="name" required class="{{ $inputClasses }}" placeholder="Juan dela Cruz">@error('customer_name') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
-                        <div data-gsap-reveal><label for="email" class="{{ $labelClasses }}">Email address <span class="text-brand-burgundy">*</span></label><input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required class="{{ $inputClasses }}" placeholder="you@example.com">@error('email') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
-                        <div data-gsap-reveal><label for="phone" class="{{ $labelClasses }}">Phone number</label><input id="phone" name="phone" type="tel" value="{{ old('phone') }}" autocomplete="tel" class="{{ $inputClasses }}" placeholder="+63 912 345 6789">@error('phone') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
-                        <div data-gsap-reveal class="sm:col-span-2"><label for="subject" class="{{ $labelClasses }}">Subject</label><select id="subject" name="subject" class="{{ $inputClasses }}"><option value="">Select a topic</option>@foreach (['General inquiry', 'Banquet inquiry', 'Private event inquiry', 'Menu question', 'Other'] as $subject)<option value="{{ $subject }}" @selected(old('subject') === $subject)>{{ $subject }}</option>@endforeach</select>@error('subject') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
-                        <div data-gsap-reveal class="sm:col-span-2"><label for="message" class="{{ $labelClasses }}">Message <span class="text-brand-burgundy">*</span></label><textarea id="message" name="message" rows="7" required class="{{ $inputClasses }} resize-y" placeholder="How can we help?">{{ old('message') }}</textarea>@error('message') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
-                    </div>
+                    <form data-contact-form data-gsap="panel" method="POST" action="{{ route('contact-inquiries.store') }}" class="border border-brand-gold/30 bg-white p-6 shadow-[0_28px_80px_rgba(23,25,22,0.1)] sm:p-9 lg:p-12" x-data="inquiryForm" @submit.prevent="submit" novalidate x-bind:aria-busy="submitting">
+                        @csrf
+                        <input type="hidden" name="source_page" value="contact">
+                        <div class="hidden" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off" value="{{ old('website') }}"></div>
 
-                    <div data-gsap-reveal class="mt-9 border-t border-brand-gold/25 pt-8">
-                        <p class="max-w-xl text-sm leading-7 text-brand-muted">Your message will receive our personal attention. For table requests or Order Inquiries, use the dedicated forms so we have every detail needed to assist you.</p>
-                        <button type="submit" x-bind:disabled="submitting" class="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-brand-ink px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-brand-gold-dark disabled:cursor-wait disabled:opacity-60 focus-visible:outline-brand-gold sm:w-auto"><span x-text="submitting ? 'Submitting…' : 'Send Inquiry'">Send Inquiry</span></button>
-                    </div>
-                </form>
+                        <div data-gsap-reveal class="border-b border-brand-gold/25 pb-8">
+                            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold-dark">Your message</p>
+                            <h2 class="mt-3 font-display text-3xl leading-tight text-brand-ink sm:text-4xl">How may we assist you?</h2>
+                            <p class="mt-4 text-sm leading-7 text-brand-muted">Share a question, private-event detail, or note for our team. Fields marked with <span class="text-brand-burgundy">*</span> are required.</p>
+                        </div>
+
+                        <div class="mt-9 grid gap-x-6 gap-y-7 sm:grid-cols-2">
+                            <div data-gsap-reveal class="sm:col-span-2"><label for="customer_name" class="{{ $labelClasses }}">Full name <span class="text-brand-burgundy">*</span></label><input id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" autocomplete="name" required class="{{ $inputClasses }}" placeholder="Juan dela Cruz">@error('customer_name') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
+                            <div data-gsap-reveal><label for="email" class="{{ $labelClasses }}">Email address <span class="text-brand-burgundy">*</span></label><input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required class="{{ $inputClasses }}" placeholder="you@example.com">@error('email') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
+                            <div data-gsap-reveal><label for="phone" class="{{ $labelClasses }}">Phone number</label><input id="phone" name="phone" type="tel" value="{{ old('phone') }}" autocomplete="tel" class="{{ $inputClasses }}" placeholder="+63 912 345 6789">@error('phone') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
+                            <div data-gsap-reveal class="sm:col-span-2"><label for="subject" class="{{ $labelClasses }}">Subject</label><select id="subject" name="subject" class="{{ $inputClasses }}">
+                                    <option value="">Select a topic</option>@foreach (['General inquiry', 'Private event inquiry', 'Menu question', 'Other'] as $subject)<option value="{{ $subject }}" @selected(old('subject')===$subject)>{{ $subject }}</option>@endforeach
+                                </select>@error('subject') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
+                            <div data-gsap-reveal class="sm:col-span-2"><label for="message" class="{{ $labelClasses }}">Message <span class="text-brand-burgundy">*</span></label><textarea id="message" name="message" rows="7" required class="{{ $inputClasses }} resize-y" placeholder="How can we help?">{{ old('message') }}</textarea>@error('message') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror</div>
+                        </div>
+
+                        <div data-gsap-reveal class="mt-9 border-t border-brand-gold/25 pt-8">
+                            <p class="max-w-xl text-sm leading-7 text-brand-muted">Your message will receive our personal attention. For table requests or Order Inquiries, use the dedicated forms so we have every detail needed to assist you.</p>
+                            <button type="submit" x-bind:disabled="submitting" class="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-brand-ink px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-brand-gold-dark disabled:cursor-wait disabled:opacity-60 focus-visible:outline-brand-gold sm:w-auto"><span x-text="submitting ? 'Submitting…' : 'Send Inquiry'">Send Inquiry</span></button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
         </section>
     </div>
 </x-layouts.public>

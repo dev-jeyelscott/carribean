@@ -50,14 +50,6 @@ class GalleryImageSeeder extends Seeder
                 'is_visible' => true,
             ],
             [
-                'title' => 'Banquet Setup',
-                'alt_text' => 'Banquet hall setup for a private event',
-                'image' => 'banquet-room.webp',
-                'category' => 'banquet',
-                'sort_order' => 3,
-                'is_visible' => true,
-            ],
-            [
                 'title' => 'Warm Restaurant Ambiance',
                 'alt_text' => 'Warm restaurant lighting and ambiance',
                 'image' => 'warm-ambiance.webp',

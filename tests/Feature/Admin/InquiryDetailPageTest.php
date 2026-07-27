@@ -51,7 +51,7 @@ test('authorized admins can review branded inquiry detail pages', function () {
 });
 
 test('public and unauthorized users cannot view inquiry detail records', function () {
-    [$reservationRequest, $orderInquiry, $contactInquiry] = inquiryDetailRecords();
+    [$contactInquiry] = inquiryDetailRecords();
 
     foreach (
         [

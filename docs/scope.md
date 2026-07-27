@@ -84,7 +84,6 @@ Temporary development identity:
 - Advanced coupon targeting
 - Refund management inside Filament
 - Catering workflow
-- Banquet booking workflow
 - Native mobile applications
 
 ## Scope-change examples

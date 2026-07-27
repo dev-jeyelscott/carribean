@@ -42,7 +42,7 @@ test('gallery page presents visible images in a premium editorial layout', funct
 
     GalleryImage::query()->create([
         'title' => 'Private Celebration',
-        'alt_text' => 'Private banquet celebration setup',
+        'alt_text' => 'Private celebration setup',
         'image_path' => storeGalleryPageTestImage('private-celebration.jpg'),
         'category' => 'Celebrations',
         'sort_order' => 10,
@@ -251,7 +251,6 @@ test('gallery page keeps its empty state and scope safe continuation links', fun
     $this->get(route('gallery'))
         ->assertOk()
         ->assertSeeText('Our gallery is currently being curated. Please return soon for a glimpse of Le Jardin.')
-        ->assertSeeText('Explore Banquet Hall')
         ->assertSeeText('Contact Us')
         ->assertDontSeeText('Book Now')
         ->assertDontSeeText('Order Now');

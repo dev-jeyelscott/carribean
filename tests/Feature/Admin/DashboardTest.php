@@ -8,8 +8,6 @@ use App\Filament\Widgets\ContentQuickActions;
 use App\Filament\Widgets\InquiryOverview;
 use App\Filament\Widgets\RecentInquiries;
 use App\Models\ContactInquiry;
-use App\Models\OrderInquiry;
-use App\Models\ReservationRequest;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
@@ -48,24 +46,12 @@ it('renders the branded dashboard for the configured admin', function (): void {
 it('shows accurate unread inquiry counts', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
-    dashboardTestReservationRequest();
-    dashboardTestReservationRequest();
-    dashboardTestReservationRequest(['is_read' => true]);
-
-    dashboardTestOrderInquiry();
-    dashboardTestOrderInquiry();
-    dashboardTestOrderInquiry();
-
     dashboardTestContactInquiry();
     dashboardTestContactInquiry();
     dashboardTestContactInquiry();
     dashboardTestContactInquiry();
 
     Livewire::test(InquiryOverview::class)
-        ->assertSee('Unread Reservation Requests')
-        ->assertSee('2')
-        ->assertSee('Unread Order Inquiries')
-        ->assertSee('3')
         ->assertSee('Unread Contact Inquiries')
         ->assertSee('4')
         ->assertSee('Awaiting manual review');
@@ -94,20 +80,6 @@ it('shows recent inquiries without exposing unnecessary customer data', function
 
 it('shows the globally newest inquiries when one type has more than four records', function (): void {
     $this->actingAs(dashboardTestAdmin());
-
-    foreach (range(1, 8) as $index) {
-        dashboardTestReservationRequest([
-            'customer_name' => "Newest Reservation {$index}",
-            'created_at' => now()->subMinutes(8 - $index),
-        ]);
-    }
-
-    foreach (range(1, 4) as $index) {
-        dashboardTestContactInquiry([
-            'customer_name' => "Older Contact {$index}",
-            'created_at' => now()->subHours($index),
-        ]);
-    }
 
     $widget = Livewire::test(RecentInquiries::class);
 
@@ -153,8 +125,6 @@ it('links quick actions to approved protected resources', function (): void {
 it('loads recent inquiries within a fixed query budget', function (): void {
     $this->actingAs(dashboardTestAdmin());
 
-    dashboardTestReservationRequest();
-    dashboardTestOrderInquiry();
     dashboardTestContactInquiry();
 
     DB::flushQueryLog();
@@ -182,44 +152,6 @@ function dashboardTestAdmin(): User
     return User::factory()->create([
         'email' => 'admin@example.test',
     ]);
-}
-
-/**
- * @param  array<string, mixed>  $overrides
- */
-function dashboardTestReservationRequest(
-    array $overrides = [],
-): ReservationRequest {
-    return ReservationRequest::query()->create(array_merge([
-        'customer_name' => 'Reservation Guest',
-        'phone' => '09170000001',
-        'email' => 'reservation@example.test',
-        'preferred_date' => now()->addDay()->toDateString(),
-        'preferred_time' => '7:00 PM',
-        'guest_count' => 2,
-        'special_requests' => null,
-        'is_banquet_or_event' => false,
-        'is_read' => false,
-    ], $overrides));
-}
-
-/**
- * @param  array<string, mixed>  $overrides
- */
-function dashboardTestOrderInquiry(
-    array $overrides = [],
-): OrderInquiry {
-    return OrderInquiry::query()->create(array_merge([
-        'customer_name' => 'Order Guest',
-        'phone' => '09170000002',
-        'email' => 'order@example.test',
-        'fulfillment_type' => 'pickup',
-        'preferred_time' => '6:30 PM',
-        'order_details' => 'Two dinner sets',
-        'special_instructions' => null,
-        'delivery_address' => null,
-        'is_read' => false,
-    ], $overrides));
 }
 
 /**

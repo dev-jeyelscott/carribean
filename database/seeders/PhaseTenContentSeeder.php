@@ -17,7 +17,6 @@ class PhaseTenContentSeeder extends Seeder
         $this->seedDraftBlogPost();
         $this->seedFaqs();
         $this->seedDraftLegalPages();
-        $this->hideUnconfirmedLegacyPages();
     }
 
     /**
@@ -130,23 +129,5 @@ HTML,
                 ],
             );
         }
-    }
-
-    /**
-     * Keep unconfirmed services out of the public content surface.
-     */
-    private function hideUnconfirmedLegacyPages(): void
-    {
-        Page::query()
-            ->whereIn(
-                'slug',
-                [
-                    'order-inquiry',
-                    'banquet-hall',
-                ],
-            )
-            ->update([
-                'is_published' => false,
-            ]);
     }
 }

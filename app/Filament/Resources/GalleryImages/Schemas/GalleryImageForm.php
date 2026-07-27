@@ -4,7 +4,6 @@ namespace App\Filament\Resources\GalleryImages\Schemas;
 
 use App\Rules\SafeImageDimensions;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -39,17 +38,7 @@ class GalleryImageForm
 
                                         TextInput::make('alt_text')
                                             ->label('Alt text')
-                                            ->maxLength(255),
-
-                                        Select::make('category')
-                                            ->options([
-                                                'interior' => 'Interior',
-                                                'dish' => 'Dish',
-                                                'event' => 'Event',
-                                                'ambiance' => 'Ambiance',
-                                                'banquet' => 'Banquet',
-                                            ])
-                                            ->searchable()
+                                            ->maxLength(255)
                                             ->columnSpanFull(),
                                     ])
                                     ->columnSpanFull(),

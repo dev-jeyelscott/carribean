@@ -26,7 +26,7 @@ test('invalid payload fails validation', function () use ($contactFormUrl): void
     $response = $this
         ->from(route('contact.create'))
         ->post(route('contact-inquiries.store'), [
-            'subject' => 'Banquet inquiry',
+            'subject' => 'inquiry',
         ]);
 
     $response
@@ -36,7 +36,7 @@ test('invalid payload fails validation', function () use ($contactFormUrl): void
             'email',
             'message',
         ])
-        ->assertSessionHasInput('subject', 'Banquet inquiry');
+        ->assertSessionHasInput('subject', 'inquiry');
 
     $this->assertDatabaseCount('contact_inquiries', 0);
 

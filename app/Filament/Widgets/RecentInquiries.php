@@ -56,7 +56,7 @@ class RecentInquiries extends Widget
             $inquiries = collect()
                 ->concat($this->contactInquiries())
                 ->sortByDesc(
-                    fn(array $inquiry): int => $inquiry['created_at']->getTimestamp(),
+                    fn (array $inquiry): int => $inquiry['created_at']->getTimestamp(),
                 )
                 ->take(self::DISPLAY_LIMIT)
                 ->values();
@@ -95,7 +95,7 @@ class RecentInquiries extends Widget
             ->latestFirst()
             ->limit(self::DISPLAY_LIMIT)
             ->get()
-            ->map(fn(ContactInquiry $inquiry): array => $this->makeRecentInquiry(
+            ->map(fn (ContactInquiry $inquiry): array => $this->makeRecentInquiry(
                 type: 'Contact Inquiry',
                 customerName: $inquiry->customer_name,
                 summary: filled($inquiry->subject)

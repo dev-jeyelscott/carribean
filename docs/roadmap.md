@@ -43,7 +43,7 @@ The installed application stack already includes:
 
 The frontend already uses Tailwind CSS 4, Alpine.js 3, GSAP, and Vite 8. No JavaScript SPA or replacement framework is needed.
 
-The existing public application currently exposes brochure and inquiry routes for Home, Menu, Gallery, Banquet Hall, Reservation Request, Order Inquiry, and Contact.
+The existing public application currently exposes brochure and inquiry routes for Home, Menu, Gallery, and Contact.
 
 The existing catalogue should be extended rather than replaced:
 
@@ -283,7 +283,6 @@ Footer:
 
 Hidden:
 
-* Banquet Hall
 * Catering
 * Blog when there are no published articles
 

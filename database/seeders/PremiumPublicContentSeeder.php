@@ -63,10 +63,6 @@ class PremiumPublicContentSeeder extends Seeder
                 'title' => 'A Signature Composition',
                 'alt_text' => 'Seared scallops presented with refined plating',
             ],
-            'Banquet Setup' => [
-                'title' => 'A Private Occasion',
-                'alt_text' => 'Banquet hall arranged for a private celebration',
-            ],
             'Warm Restaurant Ambiance' => [
                 'title' => 'Evening Ambiance',
                 'alt_text' => 'Warm evening ambiance inside Le Jardin',

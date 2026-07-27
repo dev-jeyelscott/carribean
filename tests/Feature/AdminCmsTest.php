@@ -4,15 +4,12 @@ use App\Filament\Resources\ContactInquiries\Pages\ListContactInquiries;
 use App\Filament\Resources\GalleryImages\Pages\CreateGalleryImage;
 use App\Filament\Resources\MenuCategories\Pages\CreateMenuCategory;
 use App\Filament\Resources\MenuItems\Pages\CreateMenuItem;
-use App\Filament\Resources\OrderInquiries\Pages\ListOrderInquiries;
 use App\Filament\Resources\Pages\PageResource as FilamentPageResource;
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
 use App\Models\ContactInquiry;
 use App\Models\GalleryImage;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
-use App\Models\OrderInquiry;
-use App\Models\ReservationRequest;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
@@ -131,31 +128,6 @@ test('site settings and page content resources are accessible to admins', functi
 
 test('admin can view and mark inquiry records as reviewed without editing customer details', function () {
     $this->actingAs(phase2bAdminUser());
-
-    $reservationRequest = ReservationRequest::query()->create([
-        'customer_name' => 'Reservation Guest',
-        'phone' => '+63 900 000 0001',
-        'email' => 'reservation@example.com',
-        'preferred_date' => now()->addDay()->toDateString(),
-        'preferred_time' => '7:00 PM',
-        'guest_count' => 4,
-        'special_requests' => 'Window seat if available.',
-        'is_banquet_or_event' => false,
-        'is_read' => false,
-    ]);
-
-    $orderInquiry = OrderInquiry::query()->create([
-        'customer_name' => 'Order Guest',
-        'phone' => '+63 900 000 0002',
-        'email' => 'order@example.com',
-        'fulfillment_type' => 'pickup',
-        'preferred_time' => 'Tomorrow afternoon',
-        'order_details' => 'Two pasta trays.',
-        'quantity' => 2,
-        'special_instructions' => 'Please call before preparing.',
-        'is_read' => false,
-    ]);
-
     $contactInquiry = ContactInquiry::query()->create([
         'customer_name' => 'Contact Guest',
         'email' => 'contact@example.com',
@@ -190,7 +162,7 @@ test('inquiry admin tables do not expose destructive bulk actions', function () 
 
 test('admin routes remain within approved website cms and inquiry scope', function () {
     $routes = collect(Route::getRoutes())
-        ->map(fn($route): string => trim($route->uri() . ' ' . $route->getName()))
+        ->map(fn ($route): string => trim($route->uri().' '.$route->getName()))
         ->implode("\n");
 
     $normalizedRoutes = Str::lower($routes);

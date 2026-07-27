@@ -16,10 +16,7 @@ test('homepage renders the premium restaurant experience and approved calls to a
         ->assertSeeText('A taste of the house, at home')
         ->assertSeeText('A setting for life’s finest gatherings')
         ->assertSeeText('A glimpse of the experience')
-        ->assertSeeText('Request a Reservation')
-        ->assertSeeText('Submit Order Inquiry')
         ->assertSeeText('View Full Menu')
-        ->assertSeeText('Explore Banquet Hall')
         ->assertSeeText('Discover the Gallery');
 });
 

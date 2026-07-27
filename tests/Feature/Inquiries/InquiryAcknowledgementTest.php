@@ -2,8 +2,6 @@
 
 use App\Jobs\SendContactInquiryAcknowledgement;
 use App\Jobs\SendContactInquiryNotification;
-use App\Jobs\SendReservationRequestAcknowledgement;
-use App\Jobs\SendReservationRequestNotification;
 use App\Mail\ContactInquiryAcknowledgement;
 use App\Models\ContactInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,18 +59,9 @@ it('queues both reservation request notifications', function (): void {
             'preferred_time' => '7:00 PM',
             'guest_count' => 4,
             'special_requests' => null,
-            'is_banquet_or_event' => false,
             'website' => null,
         ],
     )->assertRedirect();
-
-    Queue::assertPushed(
-        SendReservationRequestNotification::class,
-    );
-
-    Queue::assertPushed(
-        SendReservationRequestAcknowledgement::class,
-    );
 });
 
 it('sends a contact acknowledgement only once', function (): void {

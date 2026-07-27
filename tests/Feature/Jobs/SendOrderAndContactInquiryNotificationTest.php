@@ -1,16 +1,12 @@
 <?php
 
 use App\Jobs\SendContactInquiryNotification;
-use App\Jobs\SendOrderInquiryNotification;
 use App\Mail\ContactInquirySubmitted;
-use App\Mail\OrderInquirySubmitted;
 use App\Models\ContactInquiry;
-use App\Models\OrderInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
-
 
 function createContactInquiryForNotificationJob(array $overrides = []): ContactInquiry
 {
@@ -29,7 +25,7 @@ test('contact inquiry notification job sends email and records delivery time', f
 
     (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle();
 
-    Mail::assertSent(ContactInquirySubmitted::class, fn(ContactInquirySubmitted $mail): bool => (
+    Mail::assertSent(ContactInquirySubmitted::class, fn (ContactInquirySubmitted $mail): bool => (
         $mail->contactInquiry->is($contactInquiry)
         && $mail->hasTo('restaurant@example.test')
     ));
@@ -54,7 +50,7 @@ test('contact inquiry notification failure leaves the inquiry stored', function 
         ->with('restaurant@example.test')
         ->andThrow(new RuntimeException('SMTP unavailable.'));
 
-    expect(fn() => (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle())
+    expect(fn () => (new SendContactInquiryNotification($contactInquiry->id, 'restaurant@example.test'))->handle())
         ->toThrow(RuntimeException::class, 'SMTP unavailable.');
 
     $this->assertModelExists($contactInquiry);

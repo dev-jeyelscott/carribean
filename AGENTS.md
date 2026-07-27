@@ -1,6 +1,6 @@
 ## Project Overview
 
-This project is a professional, responsive website for a fine-dining restaurant. The website should present the restaurant brand, menu, ambiance, banquet hall, gallery, contact information, and customer inquiry flows in a clean, modern, and family-friendly way.
+This project is a professional, responsive website for a fine-dining restaurant. The website should present the restaurant brand, menu, ambiance, gallery, contact information, and customer inquiry flows in a clean, modern, and family-friendly way.
 
 The project is intentionally scoped as a restaurant marketing website with admin-managed content and request/inquiry forms. It is not a full restaurant operations platform.
 
@@ -10,7 +10,7 @@ The core business goal is to help customers:
 
 - Learn about the restaurant.
 - Browse menu categories, item names, descriptions, and prices.
-- View restaurant interiors, dishes, events, and banquet hall photos.
+- View restaurant interiors, dishes, events.
 - Submit reservation requests.
 - Submit pickup or delivery order inquiries.
 - Contact the restaurant through form, phone, email, map, or social links.
@@ -26,10 +26,7 @@ Use the terms **Reservation Request** and **Order Inquiry** consistently. These 
 - Public pages:
     - Home
     - Menu
-    - Reservation Request
-    - Order Inquiry
     - Gallery
-    - Banquet Hall
     - Contact
 
 - Responsive desktop, tablet, and mobile layout.
@@ -38,10 +35,7 @@ Use the terms **Reservation Request** and **Order Inquiry** consistently. These 
 - Menu category and menu item management.
 - Gallery/image management.
 - Site settings and general page content management.
-- Reservation request form.
-- Order inquiry form.
 - Contact inquiry form.
-- Banquet inquiry path, either through a dedicated form or agreed contact/reservation path.
 - Server-side validation.
 - Database storage for inquiries.
 - Basic SMTP email notifications.

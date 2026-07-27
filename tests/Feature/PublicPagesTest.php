@@ -24,7 +24,6 @@ test('approved public page routes are registered with stable paths', function ()
         'home' => '/',
         'menu' => '/menu',
         'gallery' => '/gallery',
-        'banquet-hall' => '/banquet-hall',
         'reservation-request.create' => '/reservation-request',
         'order-inquiry.create' => '/order-inquiry',
         'contact.create' => '/contact',
@@ -71,9 +70,6 @@ test('approved public pages render successfully', function (string $routeName): 
     'home' => 'home',
     'menu' => 'menu',
     'gallery' => 'gallery',
-    'banquet hall' => 'banquet-hall',
-    'reservation request' => 'reservation-request.create',
-    'order inquiry' => 'order-inquiry.create',
     'contact' => 'contact.create',
 ]);
 
@@ -88,19 +84,18 @@ test('all public pages share the homepage navigation and hero contract', functio
     'home' => 'home',
     'menu' => 'menu',
     'gallery' => 'gallery',
-    'banquet hall' => 'banquet-hall',
-    'reservation request' => 'reservation-request.create',
-    'order inquiry' => 'order-inquiry.create',
     'contact' => 'contact.create',
 ]);
 
 test('representative public pages execute one site settings query on a cold cache', function (string $routeName): void {
-    foreach ([
-        'restaurant_name' => 'Shared Query Bistro',
-        'phone' => '+63 912 345 6789',
-        'email' => 'hello@example.com',
-        'address' => '123 Dining Avenue',
-    ] as $key => $value) {
+    foreach (
+        [
+            'restaurant_name' => 'Shared Query Bistro',
+            'phone' => '+63 912 345 6789',
+            'email' => 'hello@example.com',
+            'address' => '123 Dining Avenue',
+        ] as $key => $value
+    ) {
         SiteSetting::query()->create([
             'key' => $key,
             'value' => $value,
@@ -183,51 +178,8 @@ test('public navigation uses the approved workflow labels', function (): void {
         ->assertOk()
         ->assertSeeText('Home')
         ->assertSeeText('Menu')
-        ->assertSeeText('Reservation Request')
-        ->assertSeeText('Order Inquiry')
         ->assertSeeText('Gallery')
-        ->assertSeeText('Banquet Hall')
         ->assertSeeText('Contact');
-});
-
-test('reservation and order pages explain manual review boundaries', function (): void {
-    $this->get(route('reservation-request.create'))
-        ->assertOk()
-        ->assertSeeText('Reservation Request')
-        ->assertSeeText('not a confirmed reservation')
-        ->assertSeeText('manually review your request');
-
-    $this->get(route('order-inquiry.create'))
-        ->assertOk()
-        ->assertSeeText('Order Inquiry')
-        ->assertSeeText('Submitting this form begins an Order Inquiry')
-        ->assertSeeText('confirmed only after our team contacts you directly')
-        ->assertSee('data-home-motion', false)
-        ->assertSee('data-order-inquiry-motion', false)
-        ->assertSee('data-gsap="fulfillment-cards"', false)
-        ->assertSee('order-inquiry:fulfillment-change', false)
-        ->assertSee('x-bind:disabled="fulfillmentType !== \'delivery\'"', false)
-        ->assertSee('x-bind:aria-hidden="fulfillmentType !== \'delivery\'"', false);
-});
-
-test('contact page uses the reservation request design language while preserving inquiry actions', function (): void {
-    $this->get(route('contact.create'))
-        ->assertOk()
-        ->assertSee('data-contact-hero', false)
-        ->assertSee('data-contact-hero-fallback', false)
-        ->assertSee('data-home-motion', false)
-        ->assertSee('data-contact-motion', false)
-        ->assertSee('data-gsap="hero-content"', false)
-        ->assertSee('data-gsap="section"', false)
-        ->assertSee('data-gsap="panel"', false)
-        ->assertSee('data-gsap-reveal', false)
-        ->assertDontSee('/storage/gallery/', false)
-        ->assertSee('data-contact-form', false)
-        ->assertSeeText('A warm response, thoughtfully given')
-        ->assertSeeText('Send Inquiry')
-        ->assertSee(route('contact-inquiries.store'), false)
-        ->assertSee(route('reservation-request.create'), false)
-        ->assertSee(route('order-inquiry.create'), false);
 });
 
 test('contact hero uses managed responsive image derivatives', function (): void {
@@ -339,22 +291,21 @@ test('contact hero falls back to the first visible ordered image when no interio
 test('public pages do not expose out of scope ecommerce or live booking calls to action', function (string $routeName): void {
     $response = $this->get(route($routeName))->assertOk();
 
-    foreach ([
-        'Book Now',
-        'Order Now',
-        'Pay Online',
-        'Track Order',
-        'Confirmed Booking',
-        'Add to Cart',
-    ] as $outOfScopeLabel) {
+    foreach (
+        [
+            'Book Now',
+            'Order Now',
+            'Pay Online',
+            'Track Order',
+            'Confirmed Booking',
+            'Add to Cart',
+        ] as $outOfScopeLabel
+    ) {
         $response->assertDontSeeText($outOfScopeLabel);
     }
 })->with([
     'home' => 'home',
     'menu' => 'menu',
     'gallery' => 'gallery',
-    'banquet hall' => 'banquet-hall',
-    'reservation request' => 'reservation-request.create',
-    'order inquiry' => 'order-inquiry.create',
     'contact' => 'contact.create',
 ]);
