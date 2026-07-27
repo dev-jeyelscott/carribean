@@ -5,9 +5,14 @@ import {
 
 test(
     'administrator confirms an order and customer sees the update',
-    async ({ browser }) => {
+    async ({
+        browser,
+        baseURL,
+    }) => {
         const adminContext =
-            await browser.newContext();
+            await browser.newContext({
+                baseURL,
+            });
 
         const adminPage =
             await adminContext.newPage();
@@ -16,17 +21,28 @@ test(
             '/admin/login',
         );
 
-        await adminPage
-            .locator(
-                'input[name="email"]',
-            )
-            .fill(
-                'browser.admin@example.com',
+        const adminEmailInput =
+            adminPage.getByRole(
+                'textbox',
+                {
+                    name: /email/i,
+                },
             );
 
+        await expect(
+            adminEmailInput,
+        ).toBeVisible();
+
+        await adminEmailInput.fill(
+            'browser.admin@example.com',
+        );
+
         await adminPage
-            .locator(
-                'input[name="password"]',
+            .getByLabel(
+                'Password',
+                {
+                    exact: true,
+                },
             )
             .fill('password');
 
@@ -39,19 +55,37 @@ test(
             )
             .click();
 
+        await expect(
+            adminPage,
+        ).not.toHaveURL(
+            /\/admin\/login$/,
+        );
+
         await adminPage.goto(
             '/admin/orders',
+        );
+
+        await expect(
+            adminPage,
+        ).toHaveURL(
+            /\/admin\/orders$/,
         );
 
         await adminPage
             .getByText(
                 'CC-BROWSER-0001',
+                {
+                    exact: true,
+                },
             )
             .click();
 
         await expect(
             adminPage.getByText(
                 'Pending Confirmation',
+                {
+                    exact: true,
+                },
             ),
         ).toBeVisible();
 
@@ -64,14 +98,22 @@ test(
             )
             .click();
 
-        await adminPage
+        const confirmationDialog =
+            adminPage.getByRole(
+                'dialog',
+            );
+
+        await expect(
+            confirmationDialog,
+        ).toBeVisible();
+
+        await confirmationDialog
             .getByRole(
                 'button',
                 {
                     name: 'Confirm Order',
                 },
             )
-            .last()
             .click();
 
         await expect(
@@ -83,7 +125,9 @@ test(
         await adminContext.close();
 
         const customerContext =
-            await browser.newContext();
+            await browser.newContext({
+                baseURL,
+            });
 
         const customerPage =
             await customerContext.newPage();
@@ -93,13 +137,20 @@ test(
         );
 
         await customerPage
-            .getByLabel('Email address')
+            .getByLabel(
+                'Email address',
+            )
             .fill(
                 'browser.customer@example.com',
             );
 
         await customerPage
-            .getByLabel('Password')
+            .getByLabel(
+                'Password',
+                {
+                    exact: true,
+                },
+            )
             .fill('password');
 
         await customerPage
@@ -111,6 +162,12 @@ test(
             )
             .click();
 
+        await expect(
+            customerPage,
+        ).not.toHaveURL(
+            /\/login$/,
+        );
+
         await customerPage.goto(
             '/account/orders',
         );
@@ -118,6 +175,9 @@ test(
         await expect(
             customerPage.getByText(
                 'CC-BROWSER-0001',
+                {
+                    exact: true,
+                },
             ),
         ).toBeVisible();
 

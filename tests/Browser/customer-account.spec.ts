@@ -5,7 +5,22 @@ import {
 
 test(
     'customer can register and open order history',
-    async ({ page }) => {
+    async (
+        {
+            page,
+        },
+        testInfo,
+    ) => {
+        const uniqueEmail = [
+            'new.browser.customer',
+            testInfo.workerIndex,
+            Date.now(),
+            '@example.com',
+        ].join('.').replace(
+            '.@',
+            '@',
+        );
+
         await page.goto('/register');
 
         await page
@@ -14,9 +29,7 @@ test(
 
         await page
             .getByLabel('Email address')
-            .fill(
-                'new.browser.customer@example.com',
-            );
+            .fill(uniqueEmail);
 
         await page
             .getByLabel('Phone number')
@@ -32,7 +45,9 @@ test(
             .fill('password');
 
         await page
-            .getByLabel('Confirm password')
+            .getByLabel(
+                'Confirm password',
+            )
             .fill('password');
 
         await page
@@ -44,7 +59,9 @@ test(
             )
             .click();
 
-        await expect(page).not.toHaveURL(
+        await expect(
+            page,
+        ).not.toHaveURL(
             /\/register$/,
         );
 

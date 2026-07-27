@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
 class BrowserAcceptanceSeeder extends Seeder
 {
     /**
-     * Seed repeatable data used only by Playwright acceptance tests.
+     * Seed deterministic application data used by Playwright acceptance tests.
      */
     public function run(): void
     {
@@ -24,11 +25,43 @@ class BrowserAcceptanceSeeder extends Seeder
             DatabaseSeeder::class,
         );
 
+        $this->seedOrderingSettings();
+
         $customer = $this->seedCustomer();
 
         $this->seedPendingCustomerOrder(
             $customer,
         );
+    }
+
+    /**
+     * Enable the minimal ordering configuration required by browser tests.
+     */
+    private function seedOrderingSettings(): void
+    {
+        $settings = [
+            [
+                'key' => 'accepting_online_orders',
+                'value' => '1',
+                'group' => 'ordering',
+            ],
+            [
+                'key' => 'cash_at_pickup_enabled',
+                'value' => '1',
+                'group' => 'ordering',
+            ],
+        ];
+
+        foreach ($settings as $setting) {
+            SiteSetting::query()->updateOrCreate(
+                [
+                    'key' => $setting['key'],
+                ],
+                $setting,
+            );
+        }
+
+        SiteSetting::forgetCachedValues();
     }
 
     /**

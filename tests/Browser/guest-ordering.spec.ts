@@ -1,7 +1,53 @@
 import {
     expect,
     test,
+    type Page,
+    type Response,
 } from '@playwright/test';
+
+/**
+ * Determine whether the response belongs to a Livewire component update.
+ *
+ * Livewire 4 may fingerprint its update endpoint, producing URLs such as:
+ * /livewire-5882f8c6/update
+ */
+function isLivewireUpdateResponse(
+    response: Response,
+): boolean {
+    const url = new URL(
+        response.url(),
+    );
+
+    return response
+        .request()
+        .method() === 'POST'
+        && /^\/livewire(?:-[^/]+)?\/update$/.test(
+            url.pathname,
+        );
+}
+
+/**
+ * Execute a UI action and wait for its Livewire request to complete.
+ */
+async function runLivewireAction(
+    page: Page,
+    action: () => Promise<void>,
+): Promise<Response> {
+    const [
+        response,
+    ] = await Promise.all([
+        page.waitForResponse(
+            isLivewireUpdateResponse,
+        ),
+        action(),
+    ]);
+
+    expect(
+        response.ok(),
+    ).toBeTruthy();
+
+    return response;
+}
 
 test(
     'guest can configure an item and place a pickup cash order',
@@ -27,14 +73,19 @@ test(
             .getByLabel('Rice and Peas')
             .check();
 
-        await page
-            .getByRole(
-                'button',
-                {
-                    name: 'Add to Cart',
-                },
-            )
-            .click();
+        await runLivewireAction(
+            page,
+            async (): Promise<void> => {
+                await page
+                    .getByRole(
+                        'button',
+                        {
+                            name: 'Add to Cart',
+                        },
+                    )
+                    .click();
+            },
+        );
 
         await page.goto('/cart');
 
@@ -50,6 +101,9 @@ test(
         await expect(
             page.getByText(
                 'Island Jerk Chicken',
+                {
+                    exact: true,
+                },
             ),
         ).toBeVisible();
 
@@ -57,14 +111,19 @@ test(
             .getByLabel('Fulfillment')
             .selectOption('pickup');
 
-        await page
-            .getByRole(
-                'button',
-                {
-                    name: 'Update Fulfillment',
-                },
-            )
-            .click();
+        await runLivewireAction(
+            page,
+            async (): Promise<void> => {
+                await page
+                    .getByRole(
+                        'button',
+                        {
+                            name: 'Update Fulfillment',
+                        },
+                    )
+                    .click();
+            },
+        );
 
         await page
             .getByRole(
@@ -74,6 +133,12 @@ test(
                 },
             )
             .click();
+
+        await expect(
+            page,
+        ).toHaveURL(
+            /\/checkout$/,
+        );
 
         await page
             .getByLabel('Full name')
@@ -93,18 +158,20 @@ test(
             .getByLabel('Cash at pickup')
             .check();
 
-        await page
-            .getByRole(
-                'button',
-                {
-                    name: 'Place Order',
-                },
-            )
-            .click();
+        await Promise.all([
+            page.waitForURL(
+                /\/checkout\/success\//,
+            ),
 
-        await expect(page).toHaveURL(
-            /\/checkout\/success\//,
-        );
+            page
+                .getByRole(
+                    'button',
+                    {
+                        name: 'Place Order',
+                    },
+                )
+                .click(),
+        ]);
 
         await expect(
             page.getByRole(
@@ -118,6 +185,9 @@ test(
         await expect(
             page.getByText(
                 'Pending Confirmation',
+                {
+                    exact: true,
+                },
             ),
         ).toBeVisible();
 
