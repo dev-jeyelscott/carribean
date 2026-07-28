@@ -132,35 +132,17 @@
 }
 
 /*
- * Remove the previous negative overlap and give the restaurant highlight
- * cards clear breathing room beneath the full-height hero.
+ * Give the restaurant-highlight cards clear breathing room beneath the
+ * full-height homepage hero.
  *
  * This unlayered selector intentionally outranks the existing Tailwind
  * negative-margin utility in the homepage template.
  */
-html.home-scroll-snap
-    [data-home-motion]
+[data-home-motion]
     > section[aria-label="Restaurant highlights"] {
     margin-top: 0;
     padding-top: clamp(2.5rem, 5vw, 4.5rem);
     padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-/*
- * Use native desktop scroll snapping instead of intercepting wheel or touch
- * events. Proximity snapping preserves access to sections that become taller
- * than the viewport because of content or responsive wrapping.
- */
-@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
-    html.home-scroll-snap {
-        scroll-padding-top: 5.5rem;
-        scroll-snap-type: y proximity;
-    }
-
-    html.home-scroll-snap [data-home-motion] > section {
-        scroll-snap-align: start;
-        scroll-snap-stop: always;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -20,12 +20,31 @@ if (document.querySelector("[data-reveal]")) {
         });
 }
 
-if (document.querySelector("[data-home-motion]")) {
+const publicMotionRoot = document.querySelector("[data-home-motion]");
+
+if (publicMotionRoot) {
     import("./public-animations")
         .then(({ initPublicAnimations }) => {
-            initPublicAnimations();
+            initPublicAnimations(publicMotionRoot);
         })
         .catch((error) => {
             console.error("Unable to initialize public animations.", error);
+        });
+}
+
+if (
+    publicMotionRoot?.querySelector(
+        'section[aria-label="Restaurant highlights"]',
+    )
+) {
+    import("./homepage-scroll-advance")
+        .then(({ initHomepageScrollAdvance }) => {
+            initHomepageScrollAdvance(publicMotionRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize homepage scroll advance.",
+                error,
+            );
         });
 }

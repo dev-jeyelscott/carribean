@@ -46,8 +46,6 @@ test("homepage hero fills the usable viewport", async ({ page }) => {
             heroHeight: heroRect.height,
             highlightSpacing:
                 highlightPanelRect.top - heroRect.bottom,
-            scrollSnapStop:
-                window.getComputedStyle(heroSection).scrollSnapStop,
             scrollSnapType:
                 window.getComputedStyle(document.documentElement)
                     .scrollSnapType,
@@ -59,27 +57,102 @@ test("homepage hero fills the usable viewport", async ({ page }) => {
     ).toBeLessThanOrEqual(2);
 
     expect(metrics.highlightSpacing).toBeGreaterThanOrEqual(32);
-    expect(metrics.scrollSnapType).toContain("y");
-    expect(metrics.scrollSnapStop).toBe("always");
+    expect(metrics.scrollSnapType).toBe("none");
 });
 
 /**
- * Verify that users requesting reduced motion receive normal page scrolling
- * without homepage section snapping.
+ * Verify that a small desktop wheel gesture advances from the homepage hero
+ * to the restaurant-highlight section beneath the sticky header.
  */
-test("homepage disables section snapping for reduced motion", async ({
-    page,
-}) => {
+test("slight hero scroll advances to the next section", async ({ page }) => {
+    await page.goto("/");
+
+    const hero = page.locator("[data-public-hero]");
+    const highlights = page.locator(
+        '[aria-label="Restaurant highlights"]',
+    );
+
+    await expect(hero).toBeVisible();
+    await expect(highlights).toBeVisible();
+
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, 40);
+
+    await expect
+        .poll(async () => {
+            return highlights.evaluate((element) => {
+                const header = document.querySelector("header");
+
+                if (!(header instanceof HTMLElement)) {
+                    throw new Error("Sticky header was not found.");
+                }
+
+                return Math.abs(
+                    element.getBoundingClientRect().top
+                    - header.getBoundingClientRect().height,
+                );
+            });
+        })
+        .toBeLessThanOrEqual(6);
+
+    const sectionScrollPosition = await page.evaluate(() => window.scrollY);
+
+    /*
+     * The observer listens only on the hero, so scrolling from the highlights
+     * must return to ordinary browser behavior instead of snapping again.
+     */
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, 240);
+
+    await expect
+        .poll(async () => {
+            return page.evaluate(() => window.scrollY);
+        })
+        .toBeGreaterThan(sectionScrollPosition + 100);
+});
+
+/**
+ * Verify that users requesting reduced motion retain ordinary page scrolling
+ * without an automatic hero-to-section transition.
+ */
+test("reduced motion keeps native homepage scrolling", async ({ page }) => {
     await page.emulateMedia({
         reducedMotion: "reduce",
     });
 
     await page.goto("/");
 
-    const scrollSnapType = await page.evaluate(() => {
-        return window.getComputedStyle(document.documentElement)
-            .scrollSnapType;
+    const highlights = page.locator(
+        '[aria-label="Restaurant highlights"]',
+    );
+
+    await expect(highlights).toBeVisible();
+
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, 40);
+
+    await expect
+        .poll(async () => {
+            return page.evaluate(() => window.scrollY);
+        })
+        .toBeGreaterThan(0);
+
+    const distanceFromHeader = await highlights.evaluate((element) => {
+        const header = document.querySelector("header");
+
+        if (!(header instanceof HTMLElement)) {
+            throw new Error("Sticky header was not found.");
+        }
+
+        return Math.abs(
+            element.getBoundingClientRect().top
+            - header.getBoundingClientRect().height,
+        );
     });
 
-    expect(scrollSnapType).toBe("none");
+    /*
+     * A small native wheel movement must not move the entire viewport directly
+     * to the next homepage section.
+     */
+    expect(distanceFromHeader).toBeGreaterThan(200);
 });

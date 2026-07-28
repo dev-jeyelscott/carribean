@@ -5,7 +5,7 @@ it('renders the island restaurant mockup sections', function (): void {
 
     $response
         ->assertOk()
-        ->assertSee('class="home-scroll-snap"', escape: false)
+        ->assertSee('data-home-motion', escape: false)
         ->assertSee('data-public-hero', escape: false)
         ->assertSee(
             'aria-label="Restaurant highlights"',
