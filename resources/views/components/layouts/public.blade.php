@@ -9,7 +9,12 @@
 ])
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    @class([
+        'home-scroll-snap' => request()->routeIs('home'),
+    ])
+>
 
 <head>
     <x-public.seo-meta

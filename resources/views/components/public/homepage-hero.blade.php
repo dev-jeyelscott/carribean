@@ -26,10 +26,9 @@
 
 <section
     data-public-hero
-    class="relative isolate min-h-[42rem] overflow-hidden bg-canvas
-        sm:min-h-[46rem] lg:min-h-[48rem]"
+    class="public-hero-viewport relative isolate overflow-hidden bg-canvas"
 >
-    {{-- 
+    {{--
         The hero artwork is loaded eagerly because it is the primary
         above-the-fold visual and likely Largest Contentful Paint candidate.
     --}}
@@ -87,10 +86,10 @@
     ></div>
 
     <div
-        class="public-container flex min-h-[42rem] items-center
+        class="public-hero-viewport public-container flex items-center
             pb-24 pt-16
-            sm:min-h-[46rem] sm:pb-28 sm:pt-20
-            lg:min-h-[48rem] lg:pb-28 lg:pt-24"
+            sm:pb-28 sm:pt-20
+            lg:pb-28 lg:pt-24"
     >
         <div
             data-gsap="hero-content"
@@ -172,7 +171,8 @@
     </div>
 
     <div
-        class="public-torn-edge"
+        class="public-torn-edge pointer-events-none absolute
+            inset-x-0 bottom-0"
         aria-hidden="true"
     ></div>
 </section>

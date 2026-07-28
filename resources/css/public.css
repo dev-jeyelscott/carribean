@@ -36,9 +36,15 @@
             text-brand-coral-dark;
     }
 
+    /*
+     * Fill the visible viewport beneath the fixed-size sticky public header.
+     *
+     * The vh fallback supports older browsers, while svh prevents mobile
+     * browser chrome from causing the hero to jump during initial rendering.
+     */
     .public-hero-viewport {
-        min-height: 100vh;
-        min-height: 100svh;
+        min-height: calc(100vh - 5.5rem);
+        min-height: calc(100svh - 5.5rem);
     }
 
     .public-island-pattern {
@@ -122,6 +128,38 @@
     [data-reveal].is-reveal-ready.is-visible {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/*
+ * Remove the previous negative overlap and give the restaurant highlight
+ * cards clear breathing room beneath the full-height hero.
+ *
+ * This unlayered selector intentionally outranks the existing Tailwind
+ * negative-margin utility in the homepage template.
+ */
+html.home-scroll-snap
+    [data-home-motion]
+    > section[aria-label="Restaurant highlights"] {
+    margin-top: 0;
+    padding-top: clamp(2.5rem, 5vw, 4.5rem);
+    padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/*
+ * Use native desktop scroll snapping instead of intercepting wheel or touch
+ * events. Proximity snapping preserves access to sections that become taller
+ * than the viewport because of content or responsive wrapping.
+ */
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    html.home-scroll-snap {
+        scroll-padding-top: 5.5rem;
+        scroll-snap-type: y proximity;
+    }
+
+    html.home-scroll-snap [data-home-motion] > section {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
 }
 
