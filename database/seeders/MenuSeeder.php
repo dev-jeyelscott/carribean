@@ -27,18 +27,23 @@ class MenuSeeder extends Seeder
     private const IMAGE_STORAGE_DIRECTORY = 'menu-items';
 
     /**
-     * Map generic demo assets to their intended featured menu items.
+     * Demo images reused across the complete menu catalogue.
      *
-     * @var array<string, string>
+     * @var list<string>
      */
-    private const DEMO_IMAGE_FILENAMES_BY_ITEM_SLUG = [
-        'island-jerk-chicken' => 'product-image-01.png',
-        'oxtail-braised-in-red-wine' => 'product-image-02.png',
-        'escovitch-red-snapper' => 'product-image-03.png',
-        'caribbean-seafood-curry' => 'product-image-04.png',
-        'ital-coconut-curry' => 'product-image-05.png',
-        'mango-passionfruit-cheesecake' => 'product-image-06.png',
+    private const DEMO_IMAGE_FILENAMES = [
+        'product-image-01.png',
+        'product-image-02.png',
+        'product-image-03.png',
+        'product-image-04.png',
+        'product-image-05.png',
+        'product-image-06.png',
     ];
+
+    /**
+     * Track the next demo image assigned during the current seeder run.
+     */
+    private int $nextDemoImageIndex = 0;
 
     private const MAX_IMAGE_SIZE_IN_BYTES = 2 * 1024 * 1024;
 
@@ -59,6 +64,9 @@ class MenuSeeder extends Seeder
         $disk = Storage::disk('public');
 
         $disk->makeDirectory(self::IMAGE_STORAGE_DIRECTORY);
+
+        // Reset the image sequence so repeated seeding remains deterministic.
+        $this->nextDemoImageIndex = 0;
 
         foreach ($this->categories() as $categoryData) {
             $this->seedCategory($disk, $categoryData);
@@ -502,8 +510,8 @@ class MenuSeeder extends Seeder
     /**
      * Create or update one menu item and seed its configured option groups.
      *
-     * Demo images use an explicit filename mapping because generated assets
-     * do not necessarily share the menu item's slug.
+     * Demo images are assigned in round-robin order and may be shared by
+     * multiple menu items while retaining content-hashed storage paths.
      *
      * @param  MenuItemData  $itemData
      */
@@ -517,28 +525,34 @@ class MenuSeeder extends Seeder
         unset($itemData['option_groups']);
 
         $itemSlug = Str::slug($itemData['name']);
-
-        $sourceFilename = self::DEMO_IMAGE_FILENAMES_BY_ITEM_SLUG[$itemSlug]
-            ?? $itemSlug.'.webp';
+        $sourceFilename = $this->nextDemoImageFilename();
 
         $imagePath = $this->storeSeedImageIfAvailable(
             disk: $disk,
             sourceFilename: $sourceFilename,
         );
 
+        if ($imagePath === null) {
+            throw new RuntimeException(
+                sprintf(
+                    'Required menu seed image does not exist: %s',
+                    database_path(
+                        self::IMAGE_SOURCE_DIRECTORY.'/'.$sourceFilename,
+                    ),
+                ),
+            );
+        }
+
         $attributes = [
             ...$itemData,
             'menu_category_id' => $category->id,
             'slug' => $itemSlug,
+            'image_path' => $imagePath,
             'image_alt_text' => $itemData['name'].' plated at Coast & Cay.',
             'is_visible' => true,
             'is_available' => true,
             'is_purchasable' => true,
         ];
-
-        if ($imagePath !== null) {
-            $attributes['image_path'] = $imagePath;
-        }
 
         $menuItem = MenuItem::updateOrCreate(
             [
@@ -551,6 +565,28 @@ class MenuSeeder extends Seeder
         foreach ($optionGroups as $optionGroupData) {
             $this->seedOptionGroup($menuItem, $optionGroupData);
         }
+    }
+
+    /**
+     * Return the next demo image using deterministic round-robin assignment.
+     */
+    private function nextDemoImageFilename(): string
+    {
+        $imageCount = count(self::DEMO_IMAGE_FILENAMES);
+
+        if ($imageCount === 0) {
+            throw new RuntimeException(
+                'At least one demo menu image must be configured.',
+            );
+        }
+
+        $filename = self::DEMO_IMAGE_FILENAMES[
+            $this->nextDemoImageIndex % $imageCount
+        ];
+
+        $this->nextDemoImageIndex++;
+
+        return $filename;
     }
 
     /**
