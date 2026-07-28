@@ -26,6 +26,20 @@ class MenuSeeder extends Seeder
 
     private const IMAGE_STORAGE_DIRECTORY = 'menu-items';
 
+    /**
+     * Map generic demo assets to their intended featured menu items.
+     *
+     * @var array<string, string>
+     */
+    private const DEMO_IMAGE_FILENAMES_BY_ITEM_SLUG = [
+        'island-jerk-chicken' => 'product-image-01.png',
+        'oxtail-braised-in-red-wine' => 'product-image-02.png',
+        'escovitch-red-snapper' => 'product-image-03.png',
+        'caribbean-seafood-curry' => 'product-image-04.png',
+        'ital-coconut-curry' => 'product-image-05.png',
+        'mango-passionfruit-cheesecake' => 'product-image-06.png',
+    ];
+
     private const MAX_IMAGE_SIZE_IN_BYTES = 2 * 1024 * 1024;
 
     /**
@@ -488,6 +502,9 @@ class MenuSeeder extends Seeder
     /**
      * Create or update one menu item and seed its configured option groups.
      *
+     * Demo images use an explicit filename mapping because generated assets
+     * do not necessarily share the menu item's slug.
+     *
      * @param  MenuItemData  $itemData
      */
     private function seedMenuItem(
@@ -500,9 +517,13 @@ class MenuSeeder extends Seeder
         unset($itemData['option_groups']);
 
         $itemSlug = Str::slug($itemData['name']);
+
+        $sourceFilename = self::DEMO_IMAGE_FILENAMES_BY_ITEM_SLUG[$itemSlug]
+            ?? $itemSlug.'.webp';
+
         $imagePath = $this->storeSeedImageIfAvailable(
             disk: $disk,
-            sourceFilename: $itemSlug.'.webp',
+            sourceFilename: $sourceFilename,
         );
 
         $attributes = [

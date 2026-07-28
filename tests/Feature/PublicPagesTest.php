@@ -112,7 +112,7 @@ test('representative public pages execute one site settings query on a cold cach
         ->assertSeeText('Shared Query Bistro');
 
     $siteSettingQueries = collect(DB::getQueryLog())
-        ->filter(fn(array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
+        ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
 
     DB::disableQueryLog();
 
