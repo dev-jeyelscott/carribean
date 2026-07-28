@@ -44,6 +44,64 @@
     }
 }
 
+@layer components {
+    /*
+     * Reusable translucent panel for category navigation and compact
+     * editorial content. The fallback remains opaque enough when backdrop
+     * filtering is unsupported.
+     */
+    .menu-glass-panel {
+        border: 1px solid rgb(22 83 68 / 12%);
+        background: rgb(255 253 249 / 94%);
+        box-shadow:
+            0 24px 70px rgb(12 52 43 / 11%),
+            0 4px 16px rgb(12 52 43 / 6%);
+    }
+
+    @supports (backdrop-filter: blur(1rem)) {
+        .menu-glass-panel {
+            background: rgb(255 253 249 / 76%);
+            backdrop-filter: blur(1.1rem) saturate(1.08);
+        }
+    }
+
+    /*
+     * Category links use aria-current as their single source of truth.
+     * Both desktop and mobile navigation therefore receive the same state.
+     */
+    .menu-category-link[aria-current="true"] {
+        border-color: rgb(22 83 68 / 10%);
+        background: var(--color-primary);
+        color: var(--color-canvas);
+        box-shadow:
+            0 12px 30px rgb(12 52 43 / 16%),
+            0 2px 8px rgb(12 52 43 / 8%);
+    }
+
+    .menu-category-link[aria-current="true"]
+        .menu-category-dot {
+        background: var(--color-coral);
+        box-shadow: 0 0 0 3px rgb(230 110 80 / 15%);
+    }
+
+    /*
+     * Newly appended cards receive one subtle entrance. Existing cards
+     * remain visible throughout Livewire requests and failures.
+     */
+    [data-menu-card] {
+        transition:
+            opacity 360ms var(--ease-island),
+            transform 360ms var(--ease-island),
+            border-color 300ms var(--ease-island),
+            box-shadow 300ms var(--ease-island);
+    }
+
+    [data-menu-card].is-menu-card-entering {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+}
+
 [x-cloak] {
     display: none !important;
 }
@@ -56,5 +114,11 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    [data-menu-card],
+    [data-menu-card].is-menu-card-entering {
+        opacity: 1;
+        transform: none;
     }
 }

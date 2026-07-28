@@ -33,11 +33,16 @@ if (document.querySelector("[data-reveal]")) {
             initPublicReveals();
         })
         .catch((error) => {
-            console.error("Unable to initialize public reveals.", error);
+            console.error(
+                "Unable to initialize public reveals.",
+                error,
+            );
         });
 }
 
-const publicMotionRoot = document.querySelector("[data-home-motion]");
+const publicMotionRoot = document.querySelector(
+    "[data-home-motion]",
+);
 
 if (publicMotionRoot) {
     import("./public-animations")
@@ -45,7 +50,10 @@ if (publicMotionRoot) {
             initPublicAnimations(publicMotionRoot);
         })
         .catch((error) => {
-            console.error("Unable to initialize public animations.", error);
+            console.error(
+                "Unable to initialize public animations.",
+                error,
+            );
         });
 }
 
@@ -56,11 +64,30 @@ const homepagePagerRoot = document.querySelector(
 if (homepagePagerRoot) {
     import("./homepage-section-navigation")
         .then(({ initHomepageSectionNavigation }) => {
-            initHomepageSectionNavigation(homepagePagerRoot);
+            initHomepageSectionNavigation(
+                homepagePagerRoot,
+            );
         })
         .catch((error) => {
             console.error(
                 "Unable to initialize homepage section navigation.",
+                error,
+            );
+        });
+}
+
+const menuPageRoot = document.querySelector(
+    "[data-menu-page]",
+);
+
+if (menuPageRoot) {
+    import("./menu-page")
+        .then(({ initMenuPage }) => {
+            initMenuPage(menuPageRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize menu-page interactions.",
                 error,
             );
         });

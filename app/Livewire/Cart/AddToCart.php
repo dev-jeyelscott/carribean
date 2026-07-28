@@ -22,19 +22,27 @@ final class AddToCart extends Component
     public array $selections = [];
 
     /**
-     * Initialize the component with stable option-group state.
+     * Initialize the component with stable option and quantity state.
      */
     public function mount(MenuItem $menuItem): void
     {
         $this->menuItem = $menuItem;
+
+        $this->quantity = max(
+            1,
+            min(
+                SessionCart::MAX_QUANTITY,
+                request()->integer('quantity', 1),
+            ),
+        );
 
         $freshMenuItem = $this->loadMenuItem();
 
         foreach ($freshMenuItem->optionGroups as $group) {
             $this->selections[$group->id] =
                 $group->maximum_selections === 1
-                ? null
-                : [];
+                    ? null
+                    : [];
         }
     }
 
