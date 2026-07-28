@@ -5,9 +5,10 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:browser": "playwright test",
-        "test:browser:headed": "playwright test --headed",
-        "test:browser:ui": "playwright test --ui",
+        "test:browser:prepare": "php artisan migrate:fresh --env=browser --force && php artisan db:seed --env=browser --class='Database\\Seeders\\BrowserAcceptanceSeeder' --force",
+        "test:browser": "npm run test:browser:prepare && playwright test",
+        "test:browser:headed": "npm run test:browser:prepare && playwright test --headed",
+        "test:browser:ui": "npm run test:browser:prepare && playwright test --ui",
         "test:browser:report": "playwright show-report"
     },
     "dependencies": {

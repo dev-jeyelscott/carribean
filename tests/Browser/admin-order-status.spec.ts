@@ -49,32 +49,38 @@ test("administrator confirms an order and customer sees the update", async ({
     await expect(adminPage).toHaveURL(/\/admin\/orders\/[^/]+$/);
 
     /*
-     * Assert against the user-visible status instead of Filament's generated
-     * section ID. Filament may change wrapper IDs without changing the
-     * administrator-facing behavior.
+     * Scope status assertions to the authoritative order-overview section.
      *
-     * The status may also appear in the order history, so select the first
-     * visible exact match instead of requiring a unique generated wrapper.
+     * The status-history section intentionally retains previous status labels,
+     * so an unrestricted text locator could report a false positive.
      */
+    const orderOverview = adminPage.locator(
+        '[id="infolist.order-overview::section"]',
+    );
+
+    await expect(orderOverview).toBeVisible();
+
     await expect(
-        adminPage
-            .getByText("Pending Confirmation", {
-                exact: true,
-            })
-            .first(),
+        orderOverview.getByText("Pending Confirmation", {
+            exact: true,
+        }),
     ).toBeVisible();
 
-    await adminPage
-        .getByRole("button", {
-            name: "Confirm Order",
-            exact: true,
-        })
-        .click();
+    /*
+     * The action is available only while the order can transition from
+     * Pending Confirmation to Confirmed.
+     */
+    const confirmOrderAction = adminPage.getByRole("button", {
+        name: "Confirm Order",
+        exact: true,
+    });
+
+    await expect(confirmOrderAction).toBeVisible();
+
+    await confirmOrderAction.click();
 
     /*
-     * Target the mounted Filament action modal through its stable action key.
-     * The outer role="dialog" wrapper does not expose a reliable accessible
-     * name or visibility box in this Filament render.
+     * Target the mounted Filament action modal by its application action key.
      */
     const confirmationModal = adminPage.locator(
         '[wire\\:key$="actions.transitionToConfirmed.modal"]',
@@ -95,17 +101,10 @@ test("administrator confirms an order and customer sees the update", async ({
         }),
     ).toBeVisible();
 
-    /*
-     * Filament re-renders both the overview and status-history sections after
-     * the action. Either exact visible status confirms the page received the
-     * updated server state.
-     */
     await expect(
-        adminPage
-            .getByText("Confirmed", {
-                exact: true,
-            })
-            .first(),
+        orderOverview.getByText("Confirmed", {
+            exact: true,
+        }),
     ).toBeVisible();
 
     await adminContext.close();
