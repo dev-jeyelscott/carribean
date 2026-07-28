@@ -1,0 +1,152 @@
+/*
+ * Homepage header state transitions.
+ *
+ * The expanded state continues using the existing homepage header design from
+ * public.css. This file only introduces the transition and compact state.
+ */
+body[data-page="home"] header {
+    transition:
+        background-color 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        backdrop-filter 220ms ease;
+}
+
+body[data-page="home"] header > .public-container {
+    transition: min-height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:first-child {
+    transition:
+        width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+        height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:last-child
+    > span:first-child {
+    transition: font-size 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:last-child
+    > span:last-child {
+    max-height: 1rem;
+    overflow: hidden;
+    transition:
+        max-height 180ms ease,
+        margin-top 180ms ease,
+        opacity 150ms ease,
+        transform 180ms ease;
+}
+
+/*
+ * Use a stronger surface after leaving the hero so navigation remains readable
+ * over every full-screen homepage section.
+ */
+body[data-page="home"] header.public-header-compact {
+    border-color: rgb(255 255 255 / 12%);
+    background-color: rgb(3 19 16 / 92%);
+    box-shadow: 0 10px 32px rgb(3 19 16 / 20%);
+    backdrop-filter: blur(18px);
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container {
+    min-height: 5rem;
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:first-child {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:last-child
+    > span:first-child {
+    font-size: 1.35rem;
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container
+    > a[aria-label$=" home"]
+    > span:last-child
+    > span:last-child {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container
+    nav[aria-label="Primary navigation"] {
+    column-gap: 1.25rem;
+}
+
+body[data-page="home"]
+    header.public-header-compact
+    > .public-container
+    a[class*="bg-coral"] {
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+}
+
+/*
+ * Keep the compact mobile header and its dropdown viewport calculation aligned.
+ */
+@media (max-width: 1023px) {
+    body[data-page="home"]
+        header.public-header-compact
+        > .public-container {
+        min-height: 4.75rem;
+    }
+
+    body[data-page="home"]
+        header.public-header-compact
+        #mobile-navigation {
+        max-height: calc(100dvh - 4.75rem);
+    }
+}
+
+/*
+ * Preserve the same state change without animated movement for visitors who
+ * request reduced motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+    body[data-page="home"] header,
+    body[data-page="home"] header > .public-container,
+    body[data-page="home"]
+        header
+        > .public-container
+        > a[aria-label$=" home"]
+        > span,
+    body[data-page="home"]
+        header
+        > .public-container
+        > a[aria-label$=" home"]
+        > span
+        > span {
+        transition: none;
+    }
+}

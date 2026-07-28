@@ -10,6 +10,23 @@ Alpine.data("contactForm", contactForm);
 
 Livewire.start();
 
+const homepageHeader = document.querySelector(
+    'body[data-page="home"] header',
+);
+
+if (homepageHeader) {
+    import("./public-header")
+        .then(({ initPublicHeader }) => {
+            initPublicHeader(homepageHeader);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize the public homepage header.",
+                error,
+            );
+        });
+}
+
 if (document.querySelector("[data-reveal]")) {
     import("./public-reveals")
         .then(({ initPublicReveals }) => {
