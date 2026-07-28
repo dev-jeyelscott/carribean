@@ -8,6 +8,15 @@
     'structuredData' => null,
 ])
 
+@php
+    /*
+     * Expose a stable page identifier for page-specific public styling.
+     *
+     * The shared layout remains unchanged for every non-homepage route.
+     */
+    $isHomepage = request()->routeIs('home');
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -39,6 +48,7 @@
 </head>
 
 <body
+    data-page="{{ $isHomepage ? 'home' : 'default' }}"
     class="min-h-screen overflow-x-hidden bg-brand-cream
         font-sans text-brand-forest antialiased">
     <a

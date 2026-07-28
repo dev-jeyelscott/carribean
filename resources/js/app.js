@@ -32,18 +32,18 @@ if (publicMotionRoot) {
         });
 }
 
-if (
-    publicMotionRoot?.querySelector(
-        'section[aria-label="Restaurant highlights"]',
-    )
-) {
-    import("./homepage-scroll-advance")
-        .then(({ initHomepageScrollAdvance }) => {
-            initHomepageScrollAdvance(publicMotionRoot);
+const homepagePagerRoot = document.querySelector(
+    "[data-home-section-pager]",
+);
+
+if (homepagePagerRoot) {
+    import("./homepage-section-navigation")
+        .then(({ initHomepageSectionNavigation }) => {
+            initHomepageSectionNavigation(homepagePagerRoot);
         })
         .catch((error) => {
             console.error(
-                "Unable to initialize homepage scroll advance.",
+                "Unable to initialize homepage section navigation.",
                 error,
             );
         });

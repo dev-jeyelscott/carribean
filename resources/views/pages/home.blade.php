@@ -2,36 +2,56 @@
     :title="$page?->meta_title ?: ($settings['meta_title'] ?? 'Home')"
     :description="$page?->meta_description ?: ($settings['meta_description'] ?? 'Caribbean food, warm hospitality, and California ease.')">
     @php
-    $restaurantName = $settings['restaurant_name']
-        ?? config('app.name');
+        /*
+         * Resolve editable restaurant content and safe development fallbacks.
+         */
+        $restaurantName = $settings['restaurant_name']
+            ?? config('app.name');
 
-    $storyCopy = filled($page?->content)
-        ? str($page->content)->stripTags()->squish()
-        : 'Coast & Cay brings the heart of the Caribbean to the California coast through vibrant flavors, thoughtful ingredients, and genuine hospitality.';
+        $storyCopy = filled($page?->content)
+            ? str($page->content)->stripTags()->squish()
+            : 'Coast & Cay brings the heart of the Caribbean to the California coast through vibrant flavors, thoughtful ingredients, and genuine hospitality.';
 
-    $secondaryStoryImage = $galleryImages->first()
-        ?? $heroImage;
+        $phone = $settings['phone'] ?? null;
+        $address = $settings['address'] ?? null;
+        $openingHours = $settings['opening_hours'] ?? null;
+        $mapLink = $settings['map_link'] ?? null;
 
-    $ctaImage = $galleryImages->last()
-        ?? $storyImage
-        ?? $heroImage;
+        $galleryPrimary = $galleryImages->get(0)
+            ?? $storyImage
+            ?? $heroImage;
 
-    $categoryTones = [
-        'coral',
-        'ocean',
-        'sun',
-        'primary',
-        'coral',
-        'ocean',
-    ];
+        $gallerySecondary = $galleryImages->get(1)
+            ?? $heroImage
+            ?? $storyImage;
+
+        $galleryTertiary = $galleryImages->get(2)
+            ?? $storyImage
+            ?? $heroImage;
+
+        $menuBackdrop = $galleryImages->last()
+            ?? $heroImage
+            ?? $storyImage;
+
+        $categoryTones = [
+            'coral',
+            'ocean',
+            'sun',
+            'primary',
+            'coral',
+            'ocean',
+        ];
     @endphp
 
-    <div data-home-motion>
+    <div
+        data-home-motion
+        data-home-section-pager
+        class="home-section-pager relative">
         <x-public.homepage-hero
             eyebrow="Bold flavors. Warm hospitality."
             title="Taste the Caribbean."
             accent-title="Feel the Islands."
-            :description="$page?->excerpt ?: 'From our kitchen to your table, enjoy vibrant Caribbean dishes made with fresh ingredients, bold spices, and island soul.'"
+            :description="$page?->excerpt ?: 'A warm gathering place for vibrant Caribbean dishes, thoughtful drinks, and relaxed hospitality.'"
             :image="$heroImage"
             :image-alt="$heroImage?->alt_text ?: $heroImage?->title ?: 'Colorful Caribbean meal prepared by Coast and Cay'"
             primary-label="Explore Menu"
@@ -39,184 +59,105 @@
             secondary-label="Order Online"
             :secondary-url="route('menu')" />
 
-        {{-- Compact restaurant-value strip --}}
+        {{-- Featured dishes and restaurant benefits --}}
         <section
-            class="relative z-10 -mt-10 px-5 sm:px-6 lg:px-10"
-            aria-label="Restaurant highlights">
-            <div
-                class="mx-auto grid w-full max-w-6xl overflow-hidden
-                    rounded-panel border border-line bg-surface shadow-panel
-                    sm:grid-cols-2 lg:grid-cols-4">
-                <article
-                    class="flex items-center gap-4 border-b border-line
-                        px-6 py-6 sm:border-r lg:border-b-0">
-                    <span
-                        class="flex size-11 shrink-0 items-center
-                            justify-center rounded-full bg-primary/10
-                            text-primary">
-                        <svg
-                            class="size-6"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            aria-hidden="true">
-                            <path
-                                stroke-linecap="round"
-                                d="M12 20c4-3 6-7 6-11-4 0-8 2-10 6-1 2 0 4 4 5Zm0 0c-1-5 0-9 4-13" />
-                        </svg>
-                    </span>
-
-                    <div>
-                        <h2 class="font-display text-lg text-ink">
+            id="featured"
+            data-home-panel
+            data-home-label="Featured dishes"
+            aria-labelledby="featured-dishes-heading"
+            class="home-panel overflow-hidden bg-canvas">
+            <div class="public-container py-24 lg:py-28">
+                <div
+                    data-home-reveal
+                    class="grid overflow-hidden border-y border-line
+                        bg-primary-deep text-white sm:grid-cols-2
+                        lg:grid-cols-4">
+                    <article class="px-6 py-5 text-center lg:py-6">
+                        <p class="font-display text-lg">
                             Freshly Prepared
-                        </h2>
+                        </p>
 
-                        <p class="mt-1 text-xs leading-5 text-muted">
+                        <p class="mt-1 text-xs leading-5 text-white/65">
                             Made with care for every order.
                         </p>
-                    </div>
-                </article>
+                    </article>
 
-                <article
-                    class="flex items-center gap-4 border-b border-line
-                        px-6 py-6 lg:border-b-0 lg:border-r">
-                    <span
-                        class="flex size-11 shrink-0 items-center
-                            justify-center rounded-full bg-coral/10 text-coral">
-                        <svg
-                            class="size-6"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            aria-hidden="true">
-                            <path
-                                stroke-linecap="round"
-                                d="M12 21V9m0 0c-1-4-5-6-9-4 4 1 6 2 8 6m1-2c2-4 6-5 9-3-4 0-7 2-9 6" />
-                        </svg>
-                    </span>
-
-                    <div>
-                        <h2 class="font-display text-lg text-ink">
+                    <article
+                        class="border-t border-white/10 px-6 py-5 text-center
+                            sm:border-l sm:border-t-0 lg:py-6">
+                        <p class="font-display text-lg">
                             Caribbean Inspired
-                        </h2>
-
-                        <p class="mt-1 text-xs leading-5 text-muted">
-                            Bold, layered island flavor.
                         </p>
-                    </div>
-                </article>
 
-                <article
-                    class="flex items-center gap-4 border-b border-line
-                        px-6 py-6 sm:border-b-0 sm:border-r">
-                    <span
-                        class="flex size-11 shrink-0 items-center
-                            justify-center rounded-full bg-ocean/10 text-ocean">
-                        <svg
-                            class="size-6"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            aria-hidden="true">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3 7h11v9H3V7Zm11 3h3l3 3v3h-6v-6ZM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-                        </svg>
-                    </span>
+                        <p class="mt-1 text-xs leading-5 text-white/65">
+                            Bold, layered island flavors.
+                        </p>
+                    </article>
 
-                    <div>
-                        <h2 class="font-display text-lg text-ink">
+                    <article
+                        class="border-t border-white/10 px-6 py-5 text-center
+                            lg:border-l lg:border-t-0 lg:py-6">
+                        <p class="font-display text-lg">
                             Pickup &amp; Delivery
-                        </h2>
+                        </p>
 
-                        <p class="mt-1 text-xs leading-5 text-muted">
+                        <p class="mt-1 text-xs leading-5 text-white/65">
                             Flexible local ordering.
                         </p>
-                    </div>
-                </article>
+                    </article>
 
-                <article class="flex items-center gap-4 px-6 py-6">
-                    <span
-                        class="flex size-11 shrink-0 items-center
-                            justify-center rounded-full bg-sun/20
-                            text-coral-deep">
-                        <svg
-                            class="size-6"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.7"
-                            aria-hidden="true">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 10V7a6 6 0 0 1 12 0v3M5 10h14l-1 10H6L5 10Z" />
-                        </svg>
-                    </span>
-
-                    <div>
-                        <h2 class="font-display text-lg text-ink">
+                    <article
+                        class="border-t border-white/10 px-6 py-5 text-center
+                            sm:border-l lg:border-t-0 lg:py-6">
+                        <p class="font-display text-lg">
                             Easy Online Ordering
-                        </h2>
+                        </p>
 
-                        <p class="mt-1 text-xs leading-5 text-muted">
+                        <p class="mt-1 text-xs leading-5 text-white/65">
                             Secure, server-verified checkout.
                         </p>
-                    </div>
-                </article>
-            </div>
-        </section>
+                    </article>
+                </div>
 
-        {{-- Featured dishes --}}
-        <section class="bg-canvas py-16 sm:py-20 lg:py-24">
-            <div class="public-container">
                 <div
-                    data-reveal
-                    class="flex flex-col gap-5 sm:flex-row
-                        sm:items-end sm:justify-between">
-                    <div>
+                    class="mt-10 grid items-start gap-8
+                        xl:grid-cols-[0.82fr_repeat(4,minmax(0,1fr))]">
+                    <div data-home-reveal class="max-w-sm xl:pr-3">
                         <p class="public-eyebrow">
                             Chef's Favorites
                         </p>
 
                         <h2
-                            class="mt-3 font-display text-4xl leading-tight
-                                text-ink sm:text-5xl">
-                            Featured Dishes
+                            id="featured-dishes-heading"
+                            class="mt-3 font-display text-4xl leading-[1.02]
+                                text-ink lg:text-5xl">
+                            Featured<br>
+                            Dishes
                         </h2>
 
                         <div
-                            class="mt-3 h-1 w-24 -rotate-2 rounded-full
-                                bg-ocean"
-                            aria-hidden="true"></div>
+                            class="mt-5 h-px w-28 bg-coral"
+                            aria-hidden="true">
+                        </div>
+
+                        <p class="mt-6 text-sm leading-7 text-muted">
+                            Curated plates that bring the warmth, spice, and
+                            heart of the Caribbean to your table.
+                        </p>
+
+                        <a
+                            href="{{ route('menu') }}"
+                            class="public-button-primary mt-7">
+                            View Full Menu
+                        </a>
                     </div>
 
-                    <a
-                        href="{{ route('menu') }}"
-                        class="inline-flex items-center gap-2 text-sm
-                            font-semibold text-primary transition
-                            hover:text-coral">
-                        View Full Menu
-
-                        <span class="text-coral" aria-hidden="true">
-                            &rarr;
-                        </span>
-                    </a>
-                </div>
-
-                <div
-                    class="mt-10 grid gap-5 sm:grid-cols-2
-                        xl:grid-cols-4">
                     @forelse ($featuredMenuItems as $item)
                         <x-public.home-menu-card :item="$item" />
                     @empty
                         <x-public.alert
                             type="warning"
-                            class="sm:col-span-2 xl:col-span-4">
+                            class="xl:col-span-4">
                             Our chef's selections are being prepared.
                         </x-public.alert>
                     @endforelse
@@ -224,127 +165,157 @@
             </div>
         </section>
 
-        {{-- Restaurant story and integrated gallery preview --}}
+        {{-- Restaurant story --}}
         <section
-            class="public-paper-texture relative isolate overflow-hidden
-                border-y border-line py-16 sm:py-20 lg:py-24">
-            <div
-                class="pointer-events-none absolute left-[38%] top-20 -z-10
-                    size-48 rounded-full border border-primary/10"
-                aria-hidden="true"></div>
+            id="story"
+            data-home-panel
+            data-home-label="Our story"
+            aria-labelledby="home-story-heading"
+            class="home-panel overflow-hidden bg-primary-deep text-white">
+            <div class="grid min-h-[100svh] w-full lg:grid-cols-[44%_56%]">
+                <div
+                    class="flex items-center px-5 py-24 sm:px-8
+                        lg:px-12 xl:px-[max(4rem,calc((100vw-86rem)/2+2.5rem))]">
+                    <div data-home-reveal class="max-w-xl">
+                        <p
+                            class="text-xs font-semibold uppercase
+                                tracking-[0.22em] text-coral">
+                            Our Story
+                        </p>
 
-            <div
-                class="public-container grid items-center gap-12
-                    lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-                <div data-reveal class="max-w-xl">
-                    <p class="public-eyebrow">
-                        Our Story
-                    </p>
+                        <h2
+                            id="home-story-heading"
+                            class="mt-5 font-display text-4xl leading-[1.05]
+                                text-white sm:text-5xl lg:text-6xl">
+                            Rooted in Tradition.<br>
+                            Made for Today.
+                        </h2>
 
-                    <h2
-                        class="mt-4 font-display text-4xl leading-[1.05]
-                            text-ink sm:text-5xl">
-                        Rooted in Tradition.<br>
-                        Made for Today.
-                    </h2>
+                        <div
+                            class="mt-5 h-px w-32 bg-sun"
+                            aria-hidden="true">
+                        </div>
 
-                    <div
-                        class="mt-4 h-1 w-32 -rotate-2 rounded-full
-                            bg-ocean"
-                        aria-hidden="true"></div>
+                        <p class="mt-7 text-base leading-8 text-white/72">
+                            {{ $storyCopy }}
+                        </p>
 
-                    <p class="mt-7 text-base leading-8 text-muted">
-                        {{ $storyCopy }}
-                    </p>
+                        <div class="mt-8 grid gap-5 sm:grid-cols-3">
+                            <div>
+                                <p class="font-display text-xl text-sun">
+                                    Good food.
+                                </p>
 
-                    <p class="mt-5 text-sm font-medium leading-7 text-primary">
-                        Good food. Good people. Good vibes. That is island
-                        life.
-                    </p>
+                                <p class="mt-2 text-xs leading-5 text-white/60">
+                                    Flavor with character and care.
+                                </p>
+                            </div>
 
-                    <div class="mt-8 flex flex-wrap gap-3">
-                        <a
-                            href="{{ route('about') }}"
-                            class="public-button-primary">
-                            Learn Our Story
-                        </a>
+                            <div>
+                                <p class="font-display text-xl text-sun">
+                                    Good people.
+                                </p>
 
-                        <a
-                            href="{{ route('gallery') }}"
-                            class="public-button-secondary text-primary">
-                            View Gallery
-                        </a>
+                                <p class="mt-2 text-xs leading-5 text-white/60">
+                                    Hospitality that feels genuine.
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="font-display text-xl text-sun">
+                                    Good vibes.
+                                </p>
+
+                                <p class="mt-2 text-xs leading-5 text-white/60">
+                                    Relaxed California coastal energy.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-9 flex flex-wrap gap-3">
+                            <a
+                                href="{{ route('about') }}"
+                                class="public-button-primary">
+                                Learn Our Story
+                            </a>
+
+                            <a
+                                href="{{ route('gallery') }}"
+                                class="inline-flex min-h-12 items-center
+                                    justify-center rounded-xl border
+                                    border-white/45 px-6 text-xs font-semibold
+                                    uppercase tracking-[0.14em] text-white
+                                    transition hover:bg-white
+                                    hover:text-primary-deep">
+                                View Gallery
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <div
-                    data-reveal
-                    class="relative mx-auto min-h-[31rem] w-full
-                        max-w-3xl sm:min-h-[37rem]">
-                    <div
-                        class="absolute left-0 top-8 w-[58%] -rotate-3
-                            bg-white p-3 shadow-panel">
-                        <div
-                            class="relative aspect-[4/3] overflow-hidden
-                                bg-surface-soft">
-                            @if ($secondaryStoryImage?->image_url)
-                                <x-public.responsive-image
-                                    :image="$secondaryStoryImage"
-                                    :alt="$secondaryStoryImage->alt_text ?: $secondaryStoryImage->title ?: 'Coast and Cay food and hospitality'"
-                                    variant="large"
-                                    sizes="(min-width: 1024px) 35vw, 58vw"
-                                    width="900"
-                                    height="675"
-                                    img-class="h-full w-full object-cover" />
-                            @endif
-                        </div>
-                    </div>
+                <div class="relative min-h-[55svh] lg:min-h-[100svh]">
+                    @if ($storyImage?->image_url)
+                        <x-public.responsive-image
+                            :image="$storyImage"
+                            :alt="$storyImage->alt_text ?: $storyImage->title ?: 'Warm Coast and Cay restaurant atmosphere'"
+                            variant="hero"
+                            sizes="(min-width: 1024px) 56vw, 100vw"
+                            width="1900"
+                            height="1500"
+                            img-class="absolute inset-0 size-full object-cover" />
+                    @endif
 
                     <div
-                        class="absolute right-0 top-0 w-[55%] rotate-3
-                            bg-white p-3 shadow-panel">
-                        <div
-                            class="relative aspect-[4/5] overflow-hidden
-                                bg-surface-soft">
-                            @if ($storyImage?->image_url)
-                                <x-public.responsive-image
-                                    :image="$storyImage"
-                                    :alt="$storyImage->alt_text ?: $storyImage->title ?: 'Warm Coast and Cay restaurant atmosphere'"
-                                    variant="large"
-                                    sizes="(min-width: 1024px) 34vw, 55vw"
-                                    width="850"
-                                    height="1060"
-                                    img-class="h-full w-full object-cover" />
-                            @endif
-                        </div>
-                    </div>
-
-                    <div
-                        class="absolute bottom-3 right-7 max-w-52 -rotate-3
-                            bg-[#fffdf7] px-5 py-4 font-display text-lg
-                            italic leading-6 text-primary shadow-card">
-                        Made with island soul and a warm welcome.
+                        class="absolute inset-0 bg-gradient-to-r
+                            from-primary-deep/35 via-transparent to-transparent"
+                        aria-hidden="true">
                     </div>
                 </div>
             </div>
         </section>
 
-        {{-- Menu category pills --}}
-        <section class="bg-canvas py-12 sm:py-14">
-            <div class="public-container">
-                <div data-reveal class="text-center">
+        {{-- Menu exploration and brand promises --}}
+        <section
+            id="menu-explorer"
+            data-home-panel
+            data-home-label="Explore menu"
+            aria-labelledby="menu-explorer-heading"
+            class="home-panel relative isolate overflow-hidden">
+            @if ($menuBackdrop?->image_url)
+                <div class="absolute inset-0 -z-30">
+                    <x-public.responsive-image
+                        :image="$menuBackdrop"
+                        :alt="$menuBackdrop->alt_text ?: $menuBackdrop->title ?: 'Caribbean coast and island atmosphere'"
+                        variant="hero"
+                        sizes="100vw"
+                        width="2000"
+                        height="1400"
+                        img-class="size-full object-cover" />
+                </div>
+            @endif
+
+            <div
+                class="absolute inset-0 -z-20 bg-canvas/82
+                    backdrop-blur-[2px]"
+                aria-hidden="true">
+            </div>
+
+            <div class="public-container py-24 lg:py-28">
+                <div data-home-reveal class="mx-auto max-w-3xl text-center">
                     <p class="public-eyebrow">
-                        Explore by Category
+                        Explore Our Menu
                     </p>
 
                     <h2
-                        class="mt-3 font-display text-3xl text-ink
-                            sm:text-4xl">
+                        id="menu-explorer-heading"
+                        class="mt-4 font-display text-4xl leading-tight
+                            text-ink sm:text-5xl lg:text-6xl">
                         Find your next favorite
                     </h2>
                 </div>
 
                 <div
+                    data-home-reveal
                     class="mt-8 flex flex-wrap justify-center gap-3">
                     @forelse ($featuredCategories as $category)
                         <x-public.home-category-pill
@@ -358,38 +329,16 @@
                         </x-public.alert>
                     @endforelse
                 </div>
-            </div>
-        </section>
 
-        {{-- Truthful experience cards instead of fabricated testimonials --}}
-        <section
-            class="public-island-pattern bg-surface py-16 sm:py-20
-                lg:py-24">
-            <div class="public-container">
-                <div data-reveal class="text-center">
-                    <p class="public-eyebrow">
-                        The {{ $restaurantName }} Experience
-                    </p>
-
-                    <h2
-                        class="mt-3 font-display text-4xl leading-tight
-                            text-ink sm:text-5xl">
-                        Made for Good Company
-                    </h2>
-
-                    <div
-                        class="mx-auto mt-4 h-1 w-32 -rotate-2
-                            rounded-full bg-ocean"
-                        aria-hidden="true"></div>
-                </div>
-
-                <div class="mt-10 grid gap-5 lg:grid-cols-3">
-                    <article
-                        data-reveal
-                        class="rounded-card border border-line bg-surface
-                            p-7 shadow-card">
-                        <p class="text-2xl text-coral" aria-hidden="true">
-                            ✦
+                <div
+                    data-home-reveal
+                    class="mt-14 grid overflow-hidden border border-line
+                        bg-surface/90 shadow-panel backdrop-blur-md
+                        lg:grid-cols-3">
+                    <article class="p-8 lg:p-10">
+                        <p class="text-xs font-semibold uppercase
+                            tracking-[0.18em] text-coral">
+                            Flavor
                         </p>
 
                         <h3 class="mt-4 font-display text-2xl text-ink">
@@ -397,37 +346,35 @@
                         </h3>
 
                         <p class="mt-4 text-sm leading-7 text-muted">
-                            Caribbean-inspired dishes built around layered
-                            seasoning, satisfying textures, and generous
-                            portions.
+                            Layered seasoning, satisfying textures, and
+                            generous portions inspired by Caribbean kitchens.
                         </p>
                     </article>
 
                     <article
-                        data-reveal
-                        class="rounded-card border border-line bg-surface
-                            p-7 shadow-card">
-                        <p class="text-2xl text-ocean" aria-hidden="true">
-                            ✦
+                        class="border-t border-line p-8
+                            lg:border-l lg:border-t-0 lg:p-10">
+                        <p class="text-xs font-semibold uppercase
+                            tracking-[0.18em] text-ocean">
+                            Hospitality
                         </p>
 
                         <h3 class="mt-4 font-display text-2xl text-ink">
-                            Warm Hospitality
+                            A Warm Welcome
                         </h3>
 
                         <p class="mt-4 text-sm leading-7 text-muted">
-                            A relaxed, welcoming experience designed for
-                            everyday meals, celebrations, and time shared
-                            together.
+                            A relaxed dining experience made for everyday
+                            meals, celebrations, and time shared together.
                         </p>
                     </article>
 
                     <article
-                        data-reveal
-                        class="rounded-card border border-line bg-surface
-                            p-7 shadow-card">
-                        <p class="text-2xl text-primary" aria-hidden="true">
-                            ✦
+                        class="border-t border-line p-8
+                            lg:border-l lg:border-t-0 lg:p-10">
+                        <p class="text-xs font-semibold uppercase
+                            tracking-[0.18em] text-primary">
+                            Ordering
                         </p>
 
                         <h3 class="mt-4 font-display text-2xl text-ink">
@@ -435,87 +382,240 @@
                         </h3>
 
                         <p class="mt-4 text-sm leading-7 text-muted">
-                            Browse the menu, customize your dish, and choose
-                            pickup or eligible local delivery from one simple
-                            ordering flow.
+                            Browse the menu, customize your dish, and select
+                            pickup or eligible local delivery.
                         </p>
                     </article>
                 </div>
             </div>
         </section>
 
-        {{-- Conditional blog content remains part of the active scope. --}}
-        <x-public.blog-preview />
-
-        {{-- Homepage closing CTA --}}
-        <section class="bg-canvas px-5 py-12 sm:px-6 lg:px-10">
+        {{-- Gallery and restaurant atmosphere --}}
+        <section
+            id="gallery-preview"
+            data-home-panel
+            data-home-label="Gallery"
+            aria-labelledby="gallery-preview-heading"
+            class="home-panel overflow-hidden bg-surface-soft">
             <div
-                data-reveal
-                class="relative isolate mx-auto grid min-h-64 w-full
-                    max-w-[86rem] items-center overflow-hidden rounded-panel
-                    bg-ocean px-7 py-12 text-white shadow-panel sm:px-10
-                    lg:grid-cols-[1fr_auto] lg:px-16">
-                @if ($ctaImage?->image_url)
-                    <div class="absolute inset-0 -z-20">
-                        <x-public.responsive-image
-                            :image="$ctaImage"
-                            :alt="$ctaImage->alt_text ?: $ctaImage->title ?: 'Coast and Cay dining atmosphere'"
-                            variant="hero"
-                            sizes="100vw"
-                            width="1600"
-                            height="600"
-                            img-class="h-full w-full object-cover" />
-                    </div>
-                @endif
+                class="public-container grid items-center gap-10 py-24
+                    lg:grid-cols-[0.72fr_1.28fr] lg:py-28">
+                <div data-home-reveal class="max-w-md">
+                    <p class="public-eyebrow">
+                        The Coast &amp; Cay Experience
+                    </p>
 
-                <div
-                    class="absolute inset-0 -z-10
-                        bg-[linear-gradient(90deg,rgba(7,101,112,0.98)_0%,rgba(7,101,112,0.92)_48%,rgba(7,45,37,0.55)_100%)]">
+                    <h2
+                        id="gallery-preview-heading"
+                        class="mt-4 font-display text-4xl leading-[1.05]
+                            text-ink sm:text-5xl lg:text-6xl">
+                        Food, warmth, and coastal evenings.
+                    </h2>
+
+                    <p class="mt-6 text-base leading-8 text-muted">
+                        Discover the colors, plates, spaces, and relaxed
+                        hospitality that shape every Coast &amp; Cay visit.
+                    </p>
+
+                    <a
+                        href="{{ route('gallery') }}"
+                        class="public-button-primary mt-8">
+                        View Gallery
+                    </a>
                 </div>
 
-                <div class="max-w-2xl">
+                <div
+                    data-home-reveal
+                    class="grid min-h-[32rem] grid-cols-2 gap-4
+                        sm:grid-cols-[1.15fr_0.85fr]">
+                    <div class="relative overflow-hidden">
+                        @if ($galleryPrimary?->image_url)
+                            <x-public.responsive-image
+                                :image="$galleryPrimary"
+                                :alt="$galleryPrimary->alt_text ?: $galleryPrimary->title ?: 'Caribbean dining experience'"
+                                variant="large"
+                                sizes="(min-width: 1024px) 38vw, 55vw"
+                                width="1100"
+                                height="1400"
+                                img-class="absolute inset-0 size-full object-cover" />
+                        @endif
+                    </div>
+
+                    <div class="grid gap-4">
+                        <div class="relative overflow-hidden">
+                            @if ($gallerySecondary?->image_url)
+                                <x-public.responsive-image
+                                    :image="$gallerySecondary"
+                                    :alt="$gallerySecondary->alt_text ?: $gallerySecondary->title ?: 'Caribbean cuisine presentation'"
+                                    variant="large"
+                                    sizes="(min-width: 1024px) 25vw, 45vw"
+                                    width="850"
+                                    height="650"
+                                    img-class="absolute inset-0 size-full object-cover" />
+                            @endif
+                        </div>
+
+                        <div class="relative overflow-hidden">
+                            @if ($galleryTertiary?->image_url)
+                                <x-public.responsive-image
+                                    :image="$galleryTertiary"
+                                    :alt="$galleryTertiary->alt_text ?: $galleryTertiary->title ?: 'Warm restaurant hospitality'"
+                                    variant="large"
+                                    sizes="(min-width: 1024px) 25vw, 45vw"
+                                    width="850"
+                                    height="650"
+                                    img-class="absolute inset-0 size-full object-cover" />
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{-- Render only when published journal content exists. --}}
+        <x-public.blog-preview />
+
+        {{-- Final ordering and visit panel --}}
+        <section
+            id="visit"
+            data-home-panel
+            data-home-label="Visit"
+            aria-labelledby="home-visit-heading"
+            class="home-panel relative isolate overflow-hidden
+                bg-primary-deep text-white">
+            @if ($heroImage?->image_url)
+                <div class="absolute inset-0 -z-30">
+                    <x-public.responsive-image
+                        :image="$heroImage"
+                        :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Caribbean food and coastal atmosphere'"
+                        variant="hero"
+                        sizes="100vw"
+                        width="2000"
+                        height="1300"
+                        img-class="size-full object-cover" />
+                </div>
+            @endif
+
+            <div
+                class="absolute inset-0 -z-20
+                    bg-[linear-gradient(90deg,rgba(4,38,34,0.97)_0%,rgba(4,38,34,0.92)_48%,rgba(4,38,34,0.70)_100%)]"
+                aria-hidden="true">
+            </div>
+
+            <div
+                class="public-container grid items-center gap-12 py-24
+                    lg:grid-cols-[1.25fr_0.75fr] lg:py-28">
+                <div data-home-reveal class="max-w-3xl">
                     <p
                         class="text-xs font-semibold uppercase
-                            tracking-[0.22em] text-sun">
+                            tracking-[0.22em] text-coral">
                         Come Hungry. Leave Happy.
                     </p>
 
                     <h2
-                        class="mt-4 font-display text-4xl leading-tight
-                            sm:text-5xl">
-                        Ready for Good Food and Island Vibes?
+                        id="home-visit-heading"
+                        class="mt-5 font-display text-5xl leading-[1.02]
+                            text-white sm:text-6xl">
+                        Ready for good food and island vibes?
                     </h2>
 
-                    <p class="mt-4 max-w-xl text-sm leading-7 text-white/80">
-                        Explore the current menu and enjoy Coast &amp; Cay
-                        through pickup or eligible local delivery.
+                    <p class="mt-6 max-w-2xl text-base leading-8 text-white/72">
+                        Explore the current menu and enjoy
+                        {{ $restaurantName }} through pickup or eligible local
+                        delivery.
                     </p>
+
+                    <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+                        <a
+                            href="{{ route('menu') }}"
+                            class="public-button-primary">
+                            Explore Menu
+                        </a>
+
+                        <a
+                            href="{{ route('menu') }}"
+                            class="inline-flex min-h-12 items-center
+                                justify-center rounded-xl border border-white/50
+                                px-6 text-xs font-semibold uppercase
+                                tracking-[0.14em] text-white transition
+                                hover:bg-white hover:text-primary-deep">
+                            Order Online
+                        </a>
+
+                        <a
+                            href="{{ route('contact.create') }}"
+                            class="inline-flex min-h-12 items-center
+                                justify-center px-5 text-xs font-semibold
+                                uppercase tracking-[0.14em] text-white/80
+                                transition hover:text-white">
+                            Contact Us
+                        </a>
+                    </div>
                 </div>
 
-                <div
-                    class="mt-8 flex flex-col gap-3 sm:flex-row
-                        lg:mt-0 lg:pl-10">
-                    <a
-                        href="{{ route('menu') }}"
-                        class="inline-flex min-h-12 items-center
-                            justify-center rounded-xl bg-white px-6
-                            text-xs font-semibold uppercase tracking-[0.14em]
-                            text-ocean transition hover:-translate-y-0.5
-                            hover:shadow-panel motion-reduce:transform-none">
-                        Explore Menu
-                    </a>
+                <aside
+                    data-home-reveal
+                    class="border border-white/15 bg-black/15 p-7
+                        backdrop-blur-md sm:p-9"
+                    aria-label="Restaurant visit information">
+                    <h3 class="font-display text-3xl text-white">
+                        Plan Your Visit
+                    </h3>
 
-                    <a
-                        href="{{ route('menu') }}"
-                        class="inline-flex min-h-12 items-center
-                            justify-center rounded-xl border border-white/55
-                            bg-primary-deep/65 px-6 text-xs font-semibold
-                            uppercase tracking-[0.14em] text-white transition
-                            hover:-translate-y-0.5 hover:bg-primary-deep
-                            motion-reduce:transform-none">
-                        Order Online
-                    </a>
-                </div>
+                    @if ($address)
+                        <div class="mt-7">
+                            <p
+                                class="text-xs font-semibold uppercase
+                                    tracking-[0.18em] text-sun">
+                                Location
+                            </p>
+
+                            <p class="mt-2 text-sm leading-7 text-white/72">
+                                {{ $address }}
+                            </p>
+
+                            @if ($mapLink)
+                                <a
+                                    href="{{ $mapLink }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="mt-2 inline-flex text-sm
+                                        font-semibold text-coral transition
+                                        hover:text-white">
+                                    Get directions &rarr;
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="mt-7">
+                        <p
+                            class="text-xs font-semibold uppercase
+                                tracking-[0.18em] text-sun">
+                            Opening Hours
+                        </p>
+
+                        <p
+                            class="mt-2 whitespace-pre-line text-sm
+                                leading-7 text-white/72">
+                            {{ $openingHours ?: 'Opening hours will be published soon.' }}
+                        </p>
+                    </div>
+
+                    @if ($phone)
+                        <div class="mt-7">
+                            <p
+                                class="text-xs font-semibold uppercase
+                                    tracking-[0.18em] text-sun">
+                                Call Us
+                            </p>
+
+                            <p class="mt-2 text-sm text-white/72">
+                                {{ $phone }}
+                            </p>
+                        </div>
+                    @endif
+                </aside>
             </div>
         </section>
     </div>

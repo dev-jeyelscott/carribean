@@ -152,3 +152,136 @@
         transform: none;
     }
 }
+
+/*
+ * Homepage full-screen section experience
+ *
+ * Content remains normal document content. GSAP enhances desktop scrolling
+ * without hiding or removing server-rendered sections.
+ */
+.home-section-pager {
+    width: 100%;
+}
+
+.home-panel {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    align-items: center;
+    scroll-margin-top: 0;
+}
+
+.home-hero {
+    min-height: 100vh;
+    min-height: 100svh;
+}
+
+/*
+ * The homepage navigation overlays the hero like the approved reference.
+ *
+ * Non-homepage routes continue using the original sticky canvas header.
+ */
+body[data-page="home"] header {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    border-color: transparent;
+    background:
+        linear-gradient(
+            to bottom,
+            rgb(3 19 16 / 76%),
+            rgb(3 19 16 / 28%),
+            transparent
+        );
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+body[data-page="home"] header > .public-container {
+    min-height: 6.5rem;
+    max-width: 92rem;
+}
+
+body[data-page="home"] header > .public-container a,
+body[data-page="home"] header > .public-container button,
+body[data-page="home"] header > .public-container .text-primary,
+body[data-page="home"] header > .public-container .text-ink,
+body[data-page="home"] header > .public-container .text-ink\/80,
+body[data-page="home"] header > .public-container .text-muted {
+    color: white;
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    nav[aria-label="Primary navigation"]
+    a[aria-current="page"] {
+    color: var(--color-sun);
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    [class*="bg-surface"] {
+    background-color: rgb(255 255 255 / 10%);
+}
+
+body[data-page="home"]
+    header
+    > .public-container
+    [class*="border-primary"] {
+    border-color: rgb(255 255 255 / 28%);
+}
+
+/*
+ * ScrollTrigger controls the desktop snapping tween, so native smooth
+ * scrolling is temporarily disabled while the enhancement is active.
+ */
+html.home-section-snap-active {
+    scroll-behavior: auto;
+}
+
+[data-home-panel][data-home-active="true"] {
+    z-index: 1;
+}
+
+/*
+ * Sections are exactly one viewport on desktop so each directional snap
+ * resolves cleanly to one panel.
+ */
+@media (min-width: 1024px) and (pointer: fine) {
+    .home-panel {
+        height: 100vh;
+        height: 100svh;
+        min-height: 100vh;
+        min-height: 100svh;
+    }
+}
+
+/*
+ * Mobile and short-height displays use natural content height where needed.
+ * The GSAP snapping enhancement is disabled for these layouts.
+ */
+@media (max-width: 1023px), (max-height: 719px) {
+    .home-panel {
+        height: auto;
+        min-height: 100svh;
+    }
+
+    body[data-page="home"] header > .public-container {
+        min-height: 5.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.home-section-snap-active {
+        scroll-behavior: auto;
+    }
+
+    [data-home-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

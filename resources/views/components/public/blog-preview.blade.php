@@ -1,9 +1,13 @@
 <section
-    data-gsap="section"
-    class="public-island-pattern border-t border-brand-palm/10
-        bg-brand-sand-soft py-20 lg:py-28">
-    <div class="public-container">
+    id="journal"
+    data-home-panel
+    data-home-label="Journal"
+    aria-labelledby="homepage-journal-heading"
+    class="home-panel public-island-pattern overflow-hidden
+        border-t border-brand-palm/10 bg-brand-sand-soft">
+    <div class="public-container py-24 lg:py-28">
         <div
+            data-home-reveal
             class="flex flex-col gap-6 lg:flex-row
                 lg:items-end lg:justify-between">
             <div class="max-w-2xl">
@@ -12,6 +16,7 @@
                 </p>
 
                 <h2
+                    id="homepage-journal-heading"
                     class="mt-4 font-display text-4xl leading-tight
                         text-brand-palm-dark sm:text-5xl">
                     Stories from our kitchen and table.
@@ -25,7 +30,9 @@
             </a>
         </div>
 
-        <div class="mt-12 grid gap-7 lg:grid-cols-3">
+        <div
+            data-home-reveal
+            class="mt-10 grid gap-6 lg:grid-cols-3">
             @foreach ($posts as $post)
                 <article
                     class="group overflow-hidden rounded-island
@@ -43,7 +50,7 @@
                                 alt="{{ $post->image_alt_text
                                     ?: $post->title }}"
                                 loading="lazy"
-                                class="aspect-[16/10] w-full object-cover
+                                class="aspect-[16/8] w-full object-cover
                                     transition duration-500 ease-island
                                     group-hover:scale-[1.03]
                                     motion-reduce:transform-none
@@ -51,7 +58,7 @@
                         </a>
                     @endif
 
-                    <div class="p-7">
+                    <div class="p-6">
                         @if ($post->published_at)
                             <time
                                 datetime="{{ $post->published_at->toDateString() }}"
@@ -62,7 +69,7 @@
                         @endif
 
                         <h3
-                            class="mt-4 font-display text-2xl
+                            class="mt-3 font-display text-2xl
                                 leading-tight text-brand-palm-dark">
                             <a
                                 href="{{ route('blog.show', $post) }}"
@@ -73,8 +80,8 @@
 
                         @if ($post->excerpt)
                             <p
-                                class="mt-4 line-clamp-3 text-sm
-                                    leading-7 text-brand-muted">
+                                class="mt-3 line-clamp-2 text-sm
+                                    leading-6 text-brand-muted">
                                 {{ $post->excerpt }}
                             </p>
                         @endif

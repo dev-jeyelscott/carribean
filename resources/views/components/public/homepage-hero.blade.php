@@ -14,10 +14,10 @@
 
 @php
     /*
-     * Resolve the approved static homepage artwork first.
+     * Use the approved responsive homepage artwork.
      *
-     * The image remains a decorative marketing background while all meaningful
-     * headline, description, and action content stays as accessible HTML.
+     * Meaningful marketing copy remains accessible HTML rather than being
+     * baked into the image.
      */
     $heroAvifUrl = asset('images/heroes/coast-cay-home-hero.avif');
     $heroWebpUrl = asset('images/heroes/coast-cay-home-hero.webp');
@@ -25,23 +25,21 @@
 @endphp
 
 <section
+    id="home"
     data-public-hero
-    class="public-hero-viewport relative isolate overflow-hidden bg-canvas"
->
-    {{--
-        The hero artwork is loaded eagerly because it is the primary
-        above-the-fold visual and likely Largest Contentful Paint candidate.
-    --}}
-    <picture class="absolute inset-0 -z-20 block size-full">
+    data-home-panel
+    data-home-label="Home"
+    aria-labelledby="homepage-hero-title"
+    class="home-panel home-hero relative isolate overflow-hidden
+        bg-primary-deep text-white">
+    <picture class="absolute inset-0 -z-30 block size-full">
         <source
             srcset="{{ $heroAvifUrl }}"
-            type="image/avif"
-        >
+            type="image/avif">
 
         <source
             srcset="{{ $heroWebpUrl }}"
-            type="image/webp"
-        >
+            type="image/webp">
 
         <img
             src="{{ $heroFallbackUrl }}"
@@ -52,104 +50,66 @@
             fetchpriority="high"
             decoding="async"
             aria-hidden="true"
-            class="size-full object-cover
-                object-[72%_center]
-                sm:object-[70%_center]
-                lg:object-center"
-        >
+            class="size-full object-cover object-[72%_center]
+                sm:object-[70%_center] lg:object-center">
     </picture>
 
-    {{--
-        Preserve strong text contrast without obscuring the food presentation.
-        The gradient becomes lighter toward the right side of the composition.
-    --}}
     <div
-        class="pointer-events-none absolute inset-0 -z-10
-            bg-gradient-to-r
-            from-canvas
-            via-canvas/95
-            to-canvas/10
-            sm:via-canvas/85
-            lg:via-canvas/60
-            lg:to-transparent"
-        aria-hidden="true"
-    ></div>
-
-    {{--
-        Mobile receives a subtle lower wash so the CTAs remain readable when
-        the responsive crop brings food closer to the content.
-    --}}
-    <div
-        class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-48
-            bg-gradient-to-t from-canvas/75 to-transparent lg:hidden"
-        aria-hidden="true"
-    ></div>
+        class="pointer-events-none absolute inset-0 -z-20
+            bg-[linear-gradient(90deg,rgba(4,21,17,0.94)_0%,rgba(5,27,22,0.84)_38%,rgba(5,27,22,0.34)_68%,rgba(5,27,22,0.16)_100%)]"
+        aria-hidden="true">
+    </div>
 
     <div
-        class="public-hero-viewport public-container flex items-center
-            pb-24 pt-16
-            sm:pb-28 sm:pt-20
-            lg:pb-28 lg:pt-24"
-    >
-        <div
-            data-gsap="hero-content"
-            class="relative z-10 max-w-xl"
-        >
+        class="pointer-events-none absolute inset-x-0 bottom-0 -z-20 h-56
+            bg-gradient-to-t from-primary-deep/75 to-transparent"
+        aria-hidden="true">
+    </div>
+
+    <div
+        class="public-container flex min-h-[100svh] items-center
+            pb-24 pt-36 sm:pt-40 lg:pb-28 lg:pt-36">
+        <div class="relative z-10 max-w-2xl">
             @if ($eyebrow)
                 <p
-                    data-gsap-reveal
-                    class="public-eyebrow"
-                >
+                    data-home-reveal
+                    class="text-xs font-semibold uppercase tracking-[0.24em]
+                        text-white/80">
                     {{ $eyebrow }}
                 </p>
             @endif
 
             <h1
-                data-gsap-reveal
-                class="mt-5 max-w-[12ch] font-display text-5xl font-semibold
-                    leading-[0.96] tracking-[-0.025em] text-ink
-                    sm:text-6xl
-                    lg:text-7xl
-                    xl:text-[5.25rem]"
-            >
+                id="homepage-hero-title"
+                data-home-reveal
+                class="mt-5 max-w-[11ch] font-display text-5xl font-semibold
+                    leading-[0.95] tracking-[-0.025em] text-white
+                    sm:text-6xl lg:text-7xl xl:text-[5.6rem]">
                 {{ $title }}
 
                 @if ($accentTitle)
-                    <span
-                        class="relative mt-3 block font-normal italic
-                            text-coral"
-                    >
+                    <span class="mt-3 block font-normal italic text-coral">
                         {{ $accentTitle }}
-
-                        <span
-                            class="absolute -bottom-3 left-1 h-1 w-52
-                                -rotate-2 rounded-full bg-ocean
-                                sm:w-64"
-                            aria-hidden="true"
-                        ></span>
                     </span>
                 @endif
             </h1>
 
             @if ($description)
                 <p
-                    data-gsap-reveal
-                    class="mt-9 max-w-lg text-base leading-8 text-muted
-                        sm:text-lg"
-                >
+                    data-home-reveal
+                    class="mt-8 max-w-xl text-base leading-8 text-white/80
+                        sm:text-lg">
                     {{ $description }}
                 </p>
             @endif
 
             <div
-                data-gsap-reveal
-                class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
-            >
+                data-home-reveal
+                class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 @if ($primaryLabel && $primaryUrl)
                     <a
                         href="{{ $primaryUrl }}"
-                        class="public-button-primary"
-                    >
+                        class="public-button-primary">
                         {{ $primaryLabel }}
 
                         <span class="ml-2" aria-hidden="true">
@@ -161,8 +121,14 @@
                 @if ($secondaryLabel && $secondaryUrl)
                     <a
                         href="{{ $secondaryUrl }}"
-                        class="public-button-secondary text-primary"
-                    >
+                        class="inline-flex min-h-12 items-center justify-center
+                            rounded-xl border border-white/55 bg-black/15
+                            px-6 py-3 text-center text-xs font-semibold
+                            uppercase tracking-[0.14em] text-white
+                            backdrop-blur-sm transition duration-300
+                            hover:-translate-y-0.5 hover:border-white
+                            hover:bg-white hover:text-primary-deep
+                            motion-reduce:transform-none">
                         {{ $secondaryLabel }}
                     </a>
                 @endif
@@ -170,9 +136,19 @@
         </div>
     </div>
 
-    <div
-        class="public-torn-edge pointer-events-none absolute
-            inset-x-0 bottom-0"
-        aria-hidden="true"
-    ></div>
+    <a
+        href="#featured"
+        data-home-scroll-link
+        class="absolute bottom-7 left-5 z-10 inline-flex items-center gap-3
+            text-[0.68rem] font-semibold uppercase tracking-[0.18em]
+            text-white/80 transition hover:text-white sm:left-6 lg:left-10">
+        <span
+            class="flex h-10 w-6 items-start justify-center rounded-full
+                border border-white/45 pt-2"
+            aria-hidden="true">
+            <span class="block size-1.5 rounded-full bg-coral"></span>
+        </span>
+
+        Scroll
+    </a>
 </section>
