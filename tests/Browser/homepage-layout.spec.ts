@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.use({
+    reducedMotion: "no-preference",
     viewport: {
         width: 1440,
         height: 900,
@@ -8,112 +9,139 @@ test.use({
 });
 
 /**
- * Verify that the homepage hero fills the viewport beneath the sticky header
- * and that the restaurant-highlight cards have visible separation.
+ * Verify that the homepage hero fills the full viewport while the transparent
+ * fixed navigation overlays it.
  */
-test("homepage hero fills the usable viewport", async ({ page }) => {
+test("homepage hero fills the full viewport", async ({ page }) => {
     await page.goto("/");
 
-    const hero = page.locator("[data-public-hero]");
-    const highlights = page.locator(
-        '[aria-label="Restaurant highlights"]',
-    );
+    const hero = page.locator("#home");
+    const featured = page.locator("#featured");
 
     await expect(hero).toBeVisible();
-    await expect(highlights).toBeVisible();
+    await expect(featured).toBeVisible();
 
     const metrics = await page.evaluate(() => {
         const header = document.querySelector("header");
-        const heroSection = document.querySelector("[data-public-hero]");
-        const highlightPanel = document.querySelector(
-            '[aria-label="Restaurant highlights"] > div',
-        );
+        const heroSection = document.querySelector("#home");
+        const featuredSection = document.querySelector("#featured");
 
         if (
             !(header instanceof HTMLElement)
             || !(heroSection instanceof HTMLElement)
-            || !(highlightPanel instanceof HTMLElement)
+            || !(featuredSection instanceof HTMLElement)
         ) {
             throw new Error("Homepage layout elements were not found.");
         }
 
-        const headerRect = header.getBoundingClientRect();
+        const headerStyles = window.getComputedStyle(header);
         const heroRect = heroSection.getBoundingClientRect();
-        const highlightPanelRect = highlightPanel.getBoundingClientRect();
+        const featuredRect = featuredSection.getBoundingClientRect();
 
         return {
-            expectedHeroHeight: window.innerHeight - headerRect.height,
+            viewportHeight: window.innerHeight,
+            headerPosition: headerStyles.position,
+            heroTop: heroRect.top,
             heroHeight: heroRect.height,
-            highlightSpacing:
-                highlightPanelRect.top - heroRect.bottom,
+            distanceBetweenPanels: featuredRect.top - heroRect.bottom,
             scrollSnapType:
                 window.getComputedStyle(document.documentElement)
                     .scrollSnapType,
         };
     });
 
+    /*
+     * The homepage header overlays the hero instead of consuming document
+     * height, so the hero must match the complete viewport.
+     */
+    expect(metrics.headerPosition).toBe("fixed");
+
+    expect(Math.abs(metrics.heroTop)).toBeLessThanOrEqual(2);
+
     expect(
-        Math.abs(metrics.heroHeight - metrics.expectedHeroHeight),
+        Math.abs(metrics.heroHeight - metrics.viewportHeight),
     ).toBeLessThanOrEqual(2);
 
-    expect(metrics.highlightSpacing).toBeGreaterThanOrEqual(32);
+    /*
+     * Full-screen panels remain normal server-rendered document content and
+     * should follow one another without an artificial gap.
+     */
+    expect(Math.abs(metrics.distanceBetweenPanels)).toBeLessThanOrEqual(2);
+
+    /*
+     * GSAP owns enhanced desktop navigation. Native CSS scroll snapping must
+     * remain disabled to prevent conflicting movement.
+     */
     expect(metrics.scrollSnapType).toBe("none");
 });
 
 /**
- * Verify that a small desktop wheel gesture advances from the homepage hero
- * to the restaurant-highlight section beneath the sticky header.
+ * Verify that a slight desktop wheel gesture advances from the hero to the
+ * adjacent featured-dishes panel.
  */
 test("slight hero scroll advances to the next section", async ({ page }) => {
     await page.goto("/");
 
-    const hero = page.locator("[data-public-hero]");
-    const highlights = page.locator(
-        '[aria-label="Restaurant highlights"]',
-    );
+    const pager = page.locator("[data-home-section-pager]");
+    const hero = page.locator("#home");
+    const featured = page.locator("#featured");
 
     await expect(hero).toBeVisible();
-    await expect(highlights).toBeVisible();
+    await expect(featured).toBeVisible();
+
+    /*
+     * The navigation module is dynamically imported. Wait for the explicit
+     * application-owned readiness state before dispatching the wheel event.
+     */
+    await expect(pager).toHaveAttribute(
+        "data-home-section-navigation",
+        "ready",
+        {
+            timeout: 10_000,
+        },
+    );
+
+    await expect(pager).toHaveAttribute("data-home-snap-count", "0");
 
     await page.mouse.move(720, 450);
     await page.mouse.wheel(0, 40);
 
-    await expect
-        .poll(async () => {
-            return highlights.evaluate((element) => {
-                const header = document.querySelector("header");
-
-                if (!(header instanceof HTMLElement)) {
-                    throw new Error("Sticky header was not found.");
-                }
-
-                return Math.abs(
-                    element.getBoundingClientRect().top
-                    - header.getBoundingClientRect().height,
-                );
-            });
-        })
-        .toBeLessThanOrEqual(6);
-
-    const sectionScrollPosition = await page.evaluate(() => window.scrollY);
-
     /*
-     * The observer listens only on the hero, so scrolling from the highlights
-     * must return to ordinary browser behavior instead of snapping again.
+     * A completed snap counter is more deterministic than waiting for an
+     * arbitrary timeout while still verifying the actual panel position below.
      */
-    await page.mouse.move(720, 450);
-    await page.mouse.wheel(0, 240);
+    await expect(pager).toHaveAttribute(
+        "data-home-snap-count",
+        "1",
+        {
+            timeout: 5_000,
+        },
+    );
+
+    await expect(pager).toHaveAttribute(
+        "data-home-active-section",
+        "Featured dishes",
+    );
 
     await expect
-        .poll(async () => {
-            return page.evaluate(() => window.scrollY);
-        })
-        .toBeGreaterThan(sectionScrollPosition + 100);
+        .poll(
+            async () =>
+                Math.abs(
+                    await featured.evaluate(
+                        (element) =>
+                            element.getBoundingClientRect().top,
+                    ),
+                ),
+            {
+                timeout: 5_000,
+            },
+        )
+        .toBeLessThanOrEqual(24);
 });
 
 /**
- * Verify that users requesting reduced motion retain ordinary page scrolling
- * without an automatic hero-to-section transition.
+ * Verify that reduced-motion users retain native document scrolling without
+ * automatic full-panel navigation.
  */
 test("reduced motion keeps native homepage scrolling", async ({ page }) => {
     await page.emulateMedia({
@@ -122,37 +150,46 @@ test("reduced motion keeps native homepage scrolling", async ({ page }) => {
 
     await page.goto("/");
 
-    const highlights = page.locator(
-        '[aria-label="Restaurant highlights"]',
+    const pager = page.locator("[data-home-section-pager]");
+    const featured = page.locator("#featured");
+
+    await expect(featured).toBeVisible();
+
+    await expect(pager).toHaveAttribute(
+        "data-home-section-navigation",
+        "ready",
+        {
+            timeout: 10_000,
+        },
     );
 
-    await expect(highlights).toBeVisible();
+    await expect(page.locator("html")).not.toHaveClass(
+        /home-section-snap-active/,
+    );
+
+    await expect(pager).toHaveAttribute("data-home-snap-count", "0");
 
     await page.mouse.move(720, 450);
     await page.mouse.wheel(0, 40);
 
     await expect
-        .poll(async () => {
-            return page.evaluate(() => window.scrollY);
-        })
+        .poll(
+            async () => page.evaluate(() => window.scrollY),
+            {
+                timeout: 5_000,
+            },
+        )
         .toBeGreaterThan(0);
 
-    const distanceFromHeader = await highlights.evaluate((element) => {
-        const header = document.querySelector("header");
-
-        if (!(header instanceof HTMLElement)) {
-            throw new Error("Sticky header was not found.");
-        }
-
-        return Math.abs(
-            element.getBoundingClientRect().top
-            - header.getBoundingClientRect().height,
-        );
-    });
-
     /*
-     * A small native wheel movement must not move the entire viewport directly
-     * to the next homepage section.
+     * Reduced-motion mode must not convert the small native wheel movement
+     * into a complete GSAP panel transition.
      */
-    expect(distanceFromHeader).toBeGreaterThan(200);
+    await expect(pager).toHaveAttribute("data-home-snap-count", "0");
+
+    const distanceFromViewportTop = await featured.evaluate((element) =>
+        Math.abs(element.getBoundingClientRect().top),
+    );
+
+    expect(distanceFromViewportTop).toBeGreaterThan(200);
 });

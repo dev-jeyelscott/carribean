@@ -48,14 +48,20 @@ test("administrator confirms an order and customer sees the update", async ({
 
     await expect(adminPage).toHaveURL(/\/admin\/orders\/[^/]+$/);
 
-    const orderOverview = adminPage.locator(
-        '[id="infolist.order-overview::section"]',
-    );
-
+    /*
+     * Assert against the user-visible status instead of Filament's generated
+     * section ID. Filament may change wrapper IDs without changing the
+     * administrator-facing behavior.
+     *
+     * The status may also appear in the order history, so select the first
+     * visible exact match instead of requiring a unique generated wrapper.
+     */
     await expect(
-        orderOverview.getByText("Pending Confirmation", {
-            exact: true,
-        }),
+        adminPage
+            .getByText("Pending Confirmation", {
+                exact: true,
+            })
+            .first(),
     ).toBeVisible();
 
     await adminPage
@@ -74,13 +80,10 @@ test("administrator confirms an order and customer sees the update", async ({
         '[wire\\:key$="actions.transitionToConfirmed.modal"]',
     );
 
-    const confirmationButton = confirmationModal.getByRole(
-        "button",
-        {
-            name: "Confirm Order",
-            exact: true,
-        },
-    );
+    const confirmationButton = confirmationModal.getByRole("button", {
+        name: "Confirm Order",
+        exact: true,
+    });
 
     await expect(confirmationButton).toBeVisible();
 
@@ -92,10 +95,17 @@ test("administrator confirms an order and customer sees the update", async ({
         }),
     ).toBeVisible();
 
+    /*
+     * Filament re-renders both the overview and status-history sections after
+     * the action. Either exact visible status confirms the page received the
+     * updated server state.
+     */
     await expect(
-        orderOverview.getByText("Confirmed", {
-            exact: true,
-        }),
+        adminPage
+            .getByText("Confirmed", {
+                exact: true,
+            })
+            .first(),
     ).toBeVisible();
 
     await adminContext.close();
