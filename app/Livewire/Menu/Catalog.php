@@ -5,6 +5,7 @@ namespace App\Livewire\Menu;
 use App\Models\MenuCategory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Livewire\Component;
 
 final class Catalog extends Component
@@ -20,17 +21,23 @@ final class Catalog extends Component
         $categories = MenuCategory::query()
             ->visible()
             ->withCount([
-                'menuItems as visible_menu_items_count' => fn (
+                'menuItems as visible_menu_items_count' => function (
                     Builder $query,
-                ) => $query->visible(),
+                ): void {
+                    $query->where('menu_items.is_visible', true);
+                },
             ])
             ->with([
-                'menuItems' => fn (Builder $query) => $query
-                    ->reorder()
-                    ->visible()
-                    ->ordered()
-                    ->withCount('optionGroups')
-                    ->with('menuCategory'),
+                'menuItems' => function (HasMany $relation): void {
+                    $relation
+                        ->getQuery()
+                        ->reorder()
+                        ->where('menu_items.is_visible', true)
+                        ->orderBy('menu_items.sort_order')
+                        ->orderBy('menu_items.name')
+                        ->withCount('optionGroups')
+                        ->with('menuCategory');
+                },
             ])
             ->ordered()
             ->get();
