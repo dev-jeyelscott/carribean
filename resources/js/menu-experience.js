@@ -1069,17 +1069,38 @@ export function initMenuExperience(
         return () => {};
     }
 
+    root.dataset.menuExperience = "loading";
+
     const media = gsap.matchMedia();
+
+    let refreshFrame = null;
+
+    /**
+     * Recalculate ScrollTrigger positions after layout-affecting resources
+     * finish loading or the active motion preference changes.
+     */
+    const refresh = () => {
+        if (refreshFrame !== null) {
+            window.cancelAnimationFrame(refreshFrame);
+        }
+
+        refreshFrame = window.requestAnimationFrame(() => {
+            refreshFrame = null;
+
+            ScrollTrigger.refresh(true);
+        });
+    };
 
     media.add(
         {
+            motionAllowed:
+                "(prefers-reduced-motion: no-preference)",
             reducedMotion:
                 "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-            const {
-                reducedMotion = false,
-            } = context.conditions;
+            const reducedMotion =
+                context.conditions?.reducedMotion === true;
 
             const cleanup = [
                 initializeCategoryNavigation(
@@ -1100,34 +1121,54 @@ export function initMenuExperience(
                 ),
             ];
 
+            root.dataset.menuExperience = "ready";
+
+            refresh();
+
             return () => {
-                cleanup.forEach(
-                    (callback) => callback(),
-                );
+                cleanup
+                    .reverse()
+                    .forEach((callback) => callback());
+
+                root.dataset.menuExperience = "loading";
             };
         },
     );
 
-    const refresh = () => {
-        ScrollTrigger.refresh();
-    };
+    if (document.readyState === "complete") {
+        refresh();
+    } else {
+        window.addEventListener(
+            "load",
+            refresh,
+            {
+                once: true,
+            },
+        );
+    }
 
-    window.addEventListener(
-        "load",
-        refresh,
-        {
-            once: true,
-        },
-    );
+    if (document.fonts) {
+        document.fonts.ready
+            .then(refresh)
+            .catch(() => {});
+    }
 
-    document.fonts?.ready
-        .then(refresh)
-        .catch(() => {});
-
-    root.dataset.menuExperience = "ready";
-
+    /**
+     * Remove menu-owned listeners, animations, and ScrollTriggers.
+     */
     const cleanup = () => {
+        window.removeEventListener(
+            "load",
+            refresh,
+        );
+
+        if (refreshFrame !== null) {
+            window.cancelAnimationFrame(refreshFrame);
+            refreshFrame = null;
+        }
+
         media.revert();
+
         ScrollTrigger.getAll().forEach((trigger) => {
             if (
                 root.contains(trigger.trigger)

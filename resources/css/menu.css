@@ -290,3 +290,26 @@
         animation: none;
     }
 }
+
+/*
+ * Keep desktop category navigation pinned throughout the complete menu grid.
+ *
+ * The outer aside is the grid item whose containing block spans the menu
+ * catalogue. Applying sticky positioning to it avoids constraining the sticky
+ * range to the height of the inner glass panel.
+ */
+@media (min-width: 1024px) {
+    [data-menu-sidebar] {
+        position: sticky;
+        top: 7rem;
+        align-self: start;
+        height: fit-content;
+        max-height: calc(100svh - 8rem);
+    }
+
+    [data-menu-sidebar] > .menu-glass-panel {
+        position: static;
+        top: auto;
+        max-height: inherit;
+    }
+}
