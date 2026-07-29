@@ -5,7 +5,7 @@ namespace App\Livewire\Menu;
 use App\Models\MenuCategory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Livewire\Component;
 
 final class Catalog extends Component
@@ -13,8 +13,8 @@ final class Catalog extends Component
     /**
      * Render every visible category and its complete visible item collection.
      *
-     * Product configuration and cart mutations are intentionally delegated to
-     * the reusable product modal so the catalogue remains presentation-focused.
+     * Product configuration and cart mutations are delegated to the reusable
+     * product modal so this component remains presentation-focused.
      */
     public function render(): View
     {
@@ -28,7 +28,7 @@ final class Catalog extends Component
                 },
             ])
             ->with([
-                'menuItems' => function (HasMany $relation): void {
+                'menuItems' => function (Relation $relation): void {
                     $relation
                         ->getQuery()
                         ->reorder()

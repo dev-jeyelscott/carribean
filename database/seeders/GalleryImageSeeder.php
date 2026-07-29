@@ -19,10 +19,13 @@ class GalleryImageSeeder extends Seeder
     private const MAX_IMAGE_SIZE_IN_BYTES = 2 * 1024 * 1024;
 
     /**
+     * Map supported development image MIME types to safe extensions.
+     *
      * @var array<string, string>
      */
     private const IMAGE_EXTENSIONS_BY_MIME_TYPE = [
         'image/jpeg' => 'jpg',
+        'image/png' => 'png',
         'image/webp' => 'webp',
     ];
 
@@ -36,47 +39,49 @@ class GalleryImageSeeder extends Seeder
         $disk->makeDirectory(self::IMAGE_STORAGE_DIRECTORY);
 
         $images = [
-            // [
-            //     'title' => 'Coastal Dining Room',
-            //     'alt_text' => 'Warm Coast & Cay dining room with relaxed island-inspired details',
-            //     'image' => '',
-            //     'category' => 'interior',
-            //     'sort_order' => 1,
-            //     'is_visible' => true,
-            // ],
-            // [
-            //     'title' => 'Island-Inspired Signature Plate',
-            //     'alt_text' => 'Colorful Caribbean-inspired dish prepared at Coast & Cay',
-            //     'image' => 'Seared-Hokkaido-Scallops.webp',
-            //     'category' => 'dish',
-            //     'sort_order' => 2,
-            //     'is_visible' => true,
-            // ],
-            // [
-            //     'title' => 'Warm Coast & Cay Ambiance',
-            //     'alt_text' => 'Warm evening ambiance inside Coast & Cay',
-            //     'image' => 'warm-ambiance.webp',
-            //     'category' => 'ambiance',
-            //     'sort_order' => 3,
-            //     'is_visible' => true,
-            // ],
+            [
+                'title' => 'Coast & Cay Signature Dish',
+                'alt_text' => 'A colorful Caribbean-inspired signature dish plated at Coast & Cay',
+                'image' => 'product-image-01.png',
+                'category' => 'dish',
+                'sort_order' => 1,
+                'is_visible' => true,
+            ],
+            [
+                'title' => 'Island Flavor Collection',
+                'alt_text' => 'A vibrant selection of Caribbean-inspired food prepared at Coast & Cay',
+                'image' => 'product-image-02.png',
+                'category' => 'dish',
+                'sort_order' => 2,
+                'is_visible' => true,
+            ],
+            [
+                'title' => 'Caribbean Dining Experience',
+                'alt_text' => 'An inviting Coast & Cay dish presented with warm island-inspired styling',
+                'image' => 'product-image-03.png',
+                'category' => 'ambiance',
+                'sort_order' => 3,
+                'is_visible' => true,
+            ],
         ];
 
         foreach ($images as $imageData) {
-            $sourceFilename = $imageData['image'];
-
-            unset($imageData['image']);
-
             $imagePath = $this->storeSeedImage(
                 disk: $disk,
-                sourceFilename: $sourceFilename,
+                sourceFilename: $imageData['image'],
             );
 
-            GalleryImage::updateOrCreate(
-                ['image_path' => $imagePath],
+            GalleryImage::query()->updateOrCreate(
                 [
-                    ...$imageData,
                     'image_path' => $imagePath,
+                ],
+                [
+                    'title' => $imageData['title'],
+                    'alt_text' => $imageData['alt_text'],
+                    'image_path' => $imagePath,
+                    'category' => $imageData['category'],
+                    'sort_order' => $imageData['sort_order'],
+                    'is_visible' => $imageData['is_visible'],
                 ],
             );
         }
@@ -143,8 +148,13 @@ class GalleryImageSeeder extends Seeder
             );
         }
 
-        $destinationFilename = $contentHash.'.'.self::IMAGE_EXTENSIONS_BY_MIME_TYPE[$mimeType];
-        $destinationPath = self::IMAGE_STORAGE_DIRECTORY.'/'.$destinationFilename;
+        $destinationFilename = $contentHash
+            .'.'
+            .self::IMAGE_EXTENSIONS_BY_MIME_TYPE[$mimeType];
+
+        $destinationPath = self::IMAGE_STORAGE_DIRECTORY
+            .'/'
+            .$destinationFilename;
 
         if ($disk->exists($destinationPath)) {
             return $destinationPath;
@@ -154,7 +164,9 @@ class GalleryImageSeeder extends Seeder
             self::IMAGE_STORAGE_DIRECTORY,
             new HttpFile($sourcePath),
             $destinationFilename,
-            ['visibility' => 'public'],
+            [
+                'visibility' => 'public',
+            ],
         );
 
         if ($storedPath === false) {

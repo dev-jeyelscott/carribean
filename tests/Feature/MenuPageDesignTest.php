@@ -28,16 +28,16 @@ beforeEach(function (): void {
 test('menu page presents visible orderable items in the Coast and Cay layout', function (): void {
     $this->get(route('menu'))
         ->assertOk()
-        ->assertSee('id="menu-selections"', false)
+        ->assertSee('data-menu-page', false)
+        ->assertSee('data-menu-hero', false)
+        ->assertSee('id="menu-catalog"', false)
         ->assertSee('aria-label="Menu categories"', false)
         ->assertSee('href="#category-island-favorites"', false)
         ->assertSee('id="category-island-favorites"', false)
-        ->assertSeeTextInOrder([
-            'The Coast & Cay Menu',
-            'Island Favorites',
-            'Island Jerk Chicken',
-            'Order Online',
-        ])
+        ->assertSeeText('Island Favorites, Made to Gather Around')
+        ->assertSeeText('Island Favorites')
+        ->assertSeeText('Island Jerk Chicken')
+        ->assertSeeText('Customize order')
         ->assertDontSeeText('Submit Order Inquiry')
         ->assertDontSeeText('Request a table');
 });
@@ -45,10 +45,15 @@ test('menu page presents visible orderable items in the Coast and Cay layout', f
 test('menu page preserves progressive motion and native content', function (): void {
     $this->get(route('menu'))
         ->assertOk()
-        ->assertSee('data-home-motion data-public-motion="menu"', false)
-        ->assertSee('data-menu-motion="hero"', false)
-        ->assertSee('data-menu-motion="category-nav"', false)
+        ->assertSee('data-menu-page', false)
+        ->assertSee('data-menu-hero-item', false)
         ->assertSee('data-menu-category-link', false)
-        ->assertSee('data-menu-motion="closing-cta"', false)
-        ->assertSeeText('Order online for pickup or local delivery');
+        ->assertSee('data-menu-section', false)
+        ->assertSee('data-menu-section-heading', false)
+        ->assertSee('data-menu-section-rule', false)
+        ->assertSee('data-menu-carousel', false)
+        ->assertSee('data-menu-carousel-track', false)
+        ->assertSee('data-menu-closing', false)
+        ->assertSeeText('Explore the selections')
+        ->assertSeeText('Review Your Cart');
 });

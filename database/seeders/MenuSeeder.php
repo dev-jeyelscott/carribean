@@ -29,7 +29,7 @@ class MenuSeeder extends Seeder
     /**
      * Demo images reused across the complete menu catalogue.
      *
-     * @var list<string>
+     * @var non-empty-list<string>
      */
     private const DEMO_IMAGE_FILENAMES = [
         'product-image-01.png',
@@ -574,15 +574,7 @@ class MenuSeeder extends Seeder
     {
         $imageCount = count(self::DEMO_IMAGE_FILENAMES);
 
-        if ($imageCount === 0) {
-            throw new RuntimeException(
-                'At least one demo menu image must be configured.',
-            );
-        }
-
-        $filename = self::DEMO_IMAGE_FILENAMES[
-            $this->nextDemoImageIndex % $imageCount
-        ];
+        $filename = self::DEMO_IMAGE_FILENAMES[$this->nextDemoImageIndex % $imageCount];
 
         $this->nextDemoImageIndex++;
 

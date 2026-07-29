@@ -71,14 +71,14 @@ test('approved public pages render successfully', function (string $routeName): 
     'contact' => 'contact.create',
 ]);
 
-test('all public pages share sticky navigation and an accessible hero contract', function (string $routeName): void {
+test('all public pages share sticky accessible navigation', function (
+    string $routeName,
+): void {
     $this->get(route($routeName))
         ->assertOk()
         ->assertSee('class="sticky inset-x-0 top-0 z-50', false)
         ->assertSee('aria-label="Primary navigation"', false)
         ->assertSee('aria-label="Mobile navigation"', false)
-        ->assertSee('data-public-hero', false)
-        ->assertSee('data-gsap="hero-content"', false)
         ->assertDontSee('min-h-[44rem]', false);
 })->with([
     'home' => 'home',
@@ -86,6 +86,27 @@ test('all public pages share sticky navigation and an accessible hero contract',
     'gallery' => 'gallery',
     'contact' => 'contact.create',
 ]);
+
+test('standard public pages share the public hero contract', function (
+    string $routeName,
+): void {
+    $this->get(route($routeName))
+        ->assertOk()
+        ->assertSee('data-public-hero', false)
+        ->assertSee('data-gsap="hero-content"', false);
+})->with([
+    'home' => 'home',
+    'gallery' => 'gallery',
+    'contact' => 'contact.create',
+]);
+
+test('menu page uses its dedicated progressive hero contract', function (): void {
+    $this->get(route('menu'))
+        ->assertOk()
+        ->assertSee('data-menu-page', false)
+        ->assertSee('data-menu-hero', false)
+        ->assertSee('data-menu-hero-item', false);
+});
 
 test('representative public pages execute one site settings query on a cold cache', function (string $routeName): void {
     foreach (

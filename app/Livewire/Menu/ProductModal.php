@@ -8,6 +8,7 @@ use App\Support\Money;
 use App\Support\Orders\OrderPriceCalculator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -19,12 +20,12 @@ final class ProductModal extends Component
     public int|string $quantity = 1;
 
     /**
-     * Selected values indexed by option-group ID.
+     * Selected user-controlled values indexed by option-group ID.
      *
-     * Single-choice groups contain one ID or null. Multiple-choice groups
-     * contain an array of IDs.
+     * The nested values remain mixed until normalized and validated because
+     * Livewire state may contain malformed or stale browser input.
      *
-     * @var array<int, int|string|array<int, int|string>|null>
+     * @var array<int, mixed>
      */
     public array $selections = [];
 
@@ -55,8 +56,8 @@ final class ProductModal extends Component
         foreach ($menuItem->optionGroups as $optionGroup) {
             $this->selections[$optionGroup->id] =
                 $optionGroup->maximum_selections === 1
-                    ? null
-                    : [];
+                ? null
+                : [];
         }
 
         $this->dispatch(
@@ -236,15 +237,34 @@ final class ProductModal extends Component
             )
             ->with([
                 'menuCategory',
-                'optionGroups' => fn (Builder $query) => $query
-                    ->ordered()
-                    ->with([
-                        'options' => fn (
-                            Builder $optionQuery,
-                        ) => $optionQuery
-                            ->available()
-                            ->ordered(),
-                    ]),
+                'optionGroups' => function (
+                    Relation $relation,
+                ): void {
+                    $relation
+                        ->getQuery()
+                        ->reorder()
+                        ->orderBy('menu_item_option_groups.sort_order')
+                        ->orderBy('menu_item_option_groups.name')
+                        ->with([
+                            'options' => function (
+                                Relation $optionRelation,
+                            ): void {
+                                $optionRelation
+                                    ->getQuery()
+                                    ->reorder()
+                                    ->where(
+                                        'menu_item_options.is_available',
+                                        true,
+                                    )
+                                    ->orderBy(
+                                        'menu_item_options.sort_order',
+                                    )
+                                    ->orderBy(
+                                        'menu_item_options.name',
+                                    );
+                            },
+                        ]);
+                },
             ])
             ->first();
     }
@@ -367,13 +387,17 @@ final class ProductModal extends Component
     {
         $quantity = $this->quantity;
 
-        if (
-            ! is_int($quantity)
-            && ! (
-                is_string($quantity)
-                && ctype_digit($quantity)
-            )
-        ) {
+        if (is_int($quantity)) {
+            return max(
+                1,
+                min(
+                    SessionCart::MAX_QUANTITY,
+                    $quantity,
+                ),
+            );
+        }
+
+        if (! ctype_digit($quantity)) {
             return 1;
         }
 
@@ -396,10 +420,6 @@ final class ProductModal extends Component
 
         foreach ($exception->errors() as $key => $messages) {
             foreach ($messages as $message) {
-                if (! is_string($message)) {
-                    continue;
-                }
-
                 if (! $this->getErrorBag()->has($key)) {
                     $this->addError($key, $message);
                 }
