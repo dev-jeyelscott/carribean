@@ -36,30 +36,30 @@ class GalleryImageSeeder extends Seeder
         $disk->makeDirectory(self::IMAGE_STORAGE_DIRECTORY);
 
         $images = [
-            [
-                'title' => 'Coastal Dining Room',
-                'alt_text' => 'Warm Coast & Cay dining room with relaxed island-inspired details',
-                'image' => 'dining-room.webp',
-                'category' => 'interior',
-                'sort_order' => 1,
-                'is_visible' => true,
-            ],
-            [
-                'title' => 'Island-Inspired Signature Plate',
-                'alt_text' => 'Colorful Caribbean-inspired dish prepared at Coast & Cay',
-                'image' => 'Seared-Hokkaido-Scallops.webp',
-                'category' => 'dish',
-                'sort_order' => 2,
-                'is_visible' => true,
-            ],
-            [
-                'title' => 'Warm Coast & Cay Ambiance',
-                'alt_text' => 'Warm evening ambiance inside Coast & Cay',
-                'image' => 'warm-ambiance.webp',
-                'category' => 'ambiance',
-                'sort_order' => 3,
-                'is_visible' => true,
-            ],
+            // [
+            //     'title' => 'Coastal Dining Room',
+            //     'alt_text' => 'Warm Coast & Cay dining room with relaxed island-inspired details',
+            //     'image' => '',
+            //     'category' => 'interior',
+            //     'sort_order' => 1,
+            //     'is_visible' => true,
+            // ],
+            // [
+            //     'title' => 'Island-Inspired Signature Plate',
+            //     'alt_text' => 'Colorful Caribbean-inspired dish prepared at Coast & Cay',
+            //     'image' => 'Seared-Hokkaido-Scallops.webp',
+            //     'category' => 'dish',
+            //     'sort_order' => 2,
+            //     'is_visible' => true,
+            // ],
+            // [
+            //     'title' => 'Warm Coast & Cay Ambiance',
+            //     'alt_text' => 'Warm evening ambiance inside Coast & Cay',
+            //     'image' => 'warm-ambiance.webp',
+            //     'category' => 'ambiance',
+            //     'sort_order' => 3,
+            //     'is_visible' => true,
+            // ],
         ];
 
         foreach ($images as $imageData) {
