@@ -7,7 +7,8 @@
 
 @php
     /*
-     * Resolve presentation state without changing the product's ordering state.
+     * Resolve all presentation state without changing the product's ordering
+     * or availability state.
      */
     $formattedPrice = $item->formattedPrice();
     $imageAlt = $item->image_alt_text ?: $item->name;
@@ -25,17 +26,23 @@
 
 <a
     href="{{ $itemUrl }}"
-    wire:click.prevent="$dispatch('open-product-modal', { menuItemId: {{ $item->id }} })"
+    wire:click.prevent="$dispatchTo(
+        'menu.product-modal',
+        'open-product-modal',
+        { menuItemId: {{ $item->id }} }
+    )"
     data-menu-card
+    data-menu-card-link
     data-menu-item-id="{{ $item->id }}"
     data-product-modal-trigger
     aria-label="View details and customize {{ $item->name }}"
-    class="group block h-full rounded-card focus-visible:outline-none
-        focus-visible:ring-2 focus-visible:ring-primary
-        focus-visible:ring-offset-4 focus-visible:ring-offset-canvas">
+    class="group block h-full w-full min-w-0 rounded-card
+        focus-visible:outline-none focus-visible:ring-2
+        focus-visible:ring-primary focus-visible:ring-offset-4
+        focus-visible:ring-offset-canvas">
     <article
         @class([
-            'menu-card flex h-full min-w-0 flex-col overflow-hidden',
+            'menu-card flex h-full w-full min-w-0 flex-col overflow-hidden',
             'rounded-card border border-primary/10 bg-surface shadow-card',
             'transition duration-300 hover:-translate-y-1',
             'hover:border-primary/20 hover:shadow-panel',
@@ -43,7 +50,8 @@
             'opacity-70' => ! $item->is_available,
         ])>
         <div
-            class="relative aspect-[4/3] overflow-hidden bg-surface-soft"
+            class="relative aspect-[4/3] w-full shrink-0 overflow-hidden
+                bg-surface-soft"
             data-menu-card-image>
             @if ($item->image_url)
                 <x-public.responsive-image
@@ -61,7 +69,8 @@
                         motion-reduce:transition-none" />
             @else
                 <div
-                    class="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgb(242_199_107_/_30%),transparent_34%),linear-gradient(145deg,#206f7c,#0c342b)]"
+                    class="absolute inset-0
+                        bg-[radial-gradient(circle_at_28%_22%,rgb(242_199_107_/_30%),transparent_34%),linear-gradient(145deg,#206f7c,#0c342b)]"
                     aria-hidden="true">
                 </div>
 
@@ -91,11 +100,12 @@
             @endif
         </div>
 
-        <div class="flex min-h-48 flex-1 flex-col p-5">
+        <div class="flex min-h-52 min-w-0 flex-1 flex-col p-5">
             @if ($showCategory && $menuCategory)
                 <p
-                    class="text-[0.64rem] font-semibold uppercase
-                        tracking-[0.18em] text-coral">
+                    class="truncate text-[0.64rem] font-semibold uppercase
+                        tracking-[0.18em] text-coral"
+                    title="{{ $menuCategory->name }}">
                     {{ $menuCategory->name }}
                 </p>
             @endif
@@ -116,8 +126,8 @@
             </div>
 
             <p
-                class="mt-3 line-clamp-2 min-h-12 text-sm leading-6
-                    text-muted">
+                class="mt-3 line-clamp-2 min-h-12 overflow-hidden text-sm
+                    leading-6 text-muted">
                 {{ $item->description
                     ?: 'Discover this Caribbean-inspired Coast & Cay favorite.' }}
             </p>
@@ -126,7 +136,7 @@
                 class="mt-auto flex items-center justify-between border-t
                     border-line/80 pt-4">
                 <span
-                    class="text-[0.65rem] font-semibold uppercase
+                    class="truncate pr-3 text-[0.65rem] font-semibold uppercase
                         tracking-[0.14em] text-muted">
                     {{ $canOrder ? 'Customize order' : 'View details' }}
                 </span>
