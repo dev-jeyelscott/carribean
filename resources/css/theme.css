@@ -70,18 +70,26 @@
      * active-state source of truth.
      */
     .menu-category-link[aria-current="true"] {
-        border-color: rgb(22 83 68 / 10%);
+        border-color: rgb(255 255 255 / 18%);
         background: var(--color-primary);
-        color: var(--color-canvas);
+        color: rgb(255 255 255);
         box-shadow:
             0 12px 30px rgb(12 52 43 / 16%),
             0 2px 8px rgb(12 52 43 / 8%);
     }
 
-    .menu-category-link[aria-current="true"]
-        .menu-category-dot {
+    .menu-category-link[aria-current="true"] .menu-category-label {
+        color: rgb(255 255 255);
+    }
+
+    .menu-category-link[aria-current="true"] .menu-category-index {
+        background: rgb(255 255 255 / 16%);
+        color: rgb(255 255 255);
+    }
+
+    .menu-category-link[aria-current="true"] .menu-category-dot {
         background: var(--color-coral);
-        box-shadow: 0 0 0 3px rgb(230 110 80 / 15%);
+        box-shadow: 0 0 0 3px rgb(255 255 255 / 15%);
     }
 
     /*

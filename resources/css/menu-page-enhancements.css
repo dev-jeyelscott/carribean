@@ -36,9 +36,8 @@ html.menu-category-snap-active {
     }
 
     [data-menu-catalog] > .public-container.grid {
-        grid-template-columns:
-            14rem minmax(0, 1fr);
-        gap: 2rem;
+        grid-template-columns: 18rem minmax(0, 1fr);
+        gap: clamp(2rem, 2.5vw, 2.75rem);
     }
 
     [data-menu-sidebar] {
@@ -63,9 +62,13 @@ html.menu-category-snap-active {
 
 @media (min-width: 1280px) {
     [data-menu-catalog] > .public-container.grid {
-        grid-template-columns:
-            15rem minmax(0, 1fr);
-        gap: clamp(2rem, 2.5vw, 2.75rem);
+        grid-template-columns: 20rem minmax(0, 1fr);
+    }
+}
+
+@media (min-width: 1536px) {
+    [data-menu-catalog] > .public-container.grid {
+        grid-template-columns: 21rem minmax(0, 1fr);
     }
 }
 

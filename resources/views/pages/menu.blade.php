@@ -9,21 +9,24 @@
             class="menu-hero public-paper-texture relative isolate
                 overflow-hidden border-b border-primary/10">
             <div
+                data-menu-hero-depth
                 class="absolute -right-28 -top-36 -z-10 size-[30rem]
-                    rounded-full bg-ocean/10 blur-3xl"
+        rounded-full bg-ocean/10 blur-3xl"
                 aria-hidden="true">
             </div>
 
             <div
+                data-menu-hero-depth
                 class="absolute -left-36 bottom-[-15rem] -z-10 size-[26rem]
-                    rounded-full bg-coral/10 blur-3xl"
+        rounded-full bg-coral/10 blur-3xl"
                 aria-hidden="true">
             </div>
 
             <div
+                data-menu-hero-depth
                 class="absolute right-0 top-0 -z-10 hidden h-full w-[42%]
-                    bg-[linear-gradient(145deg,transparent_12%,rgb(32_111_124_/_7%),rgb(242_199_107_/_12%))]
-                    lg:block"
+        bg-[linear-gradient(145deg,transparent_12%,rgb(32_111_124_/_7%),rgb(242_199_107_/_12%))]
+        lg:block"
                 aria-hidden="true">
             </div>
 

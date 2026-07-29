@@ -81,10 +81,9 @@
                         font-medium text-ink transition
                         duration-200">
                         <span
-                            class="flex size-8 shrink-0 items-center
-                                        justify-center rounded-full
-                                        bg-primary/8 text-xs font-semibold
-                                        text-primary">
+                            class="menu-category-index flex size-8 shrink-0 items-center
+        justify-center rounded-full bg-primary/8 text-xs
+        font-semibold text-primary">
                             {{ str_pad(
                                         (string) $loop->iteration,
                                         2,
@@ -93,7 +92,9 @@
                                     ) }}
                         </span>
 
-                        <span class="min-w-0 flex-1 truncate">
+                        <span
+                            class="menu-category-label min-w-0 flex-1
+        whitespace-normal break-words leading-5">
                             {{ $category->name }}
                         </span>
 
