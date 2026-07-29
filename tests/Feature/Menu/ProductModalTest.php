@@ -321,3 +321,21 @@ it('enforces the maximum product quantity', function () {
     expect(app(SessionCart::class)->items())
         ->toBe([]);
 });
+
+it('increments and decrements the modal quantity', function () {
+    $category = createProductModalCategory();
+    $menuItem = createProductModalItem($category);
+
+    Livewire::test(ProductModal::class)
+        ->dispatch(
+            'open-product-modal',
+            menuItemId: $menuItem->id,
+        )
+        ->assertSet('quantity', 1)
+        ->call('incrementQuantity')
+        ->assertSet('quantity', 2)
+        ->assertSee('$48.00')
+        ->call('decrementQuantity')
+        ->assertSet('quantity', 1)
+        ->assertSee('$24.00');
+});

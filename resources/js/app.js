@@ -91,4 +91,15 @@ if (menuPageRoot) {
                 error,
             );
         });
+
+    import("./menu-category-scroll")
+        .then(({ initMenuCategoryScroll }) => {
+            initMenuCategoryScroll(menuPageRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize menu category navigation.",
+                error,
+            );
+        });
 }

@@ -2,6 +2,7 @@
     data-product-modal-root
     wire:key="product-modal-root">
     <dialog
+        wire:ignore.self
         data-product-modal
         class="menu-product-dialog"
         aria-labelledby="product-modal-title"

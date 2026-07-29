@@ -2,6 +2,7 @@
     'quantity',
     'decrementAction',
     'incrementAction',
+    'model' => 'quantity',
     'minimum' => 1,
     'maximum' => 20,
     'label' => 'Quantity',
@@ -17,6 +18,8 @@
         type="button"
         wire:click="{{ $decrementAction }}"
         wire:loading.attr="disabled"
+        wire:target="{{ $decrementAction }}"
+        data-product-quantity-decrement
         @disabled((int) $quantity <= $minimum)
         class="inline-flex size-12 items-center justify-center
             text-primary transition hover:bg-surface-soft
@@ -35,17 +38,27 @@
         </svg>
     </button>
 
-    <span
-        class="min-w-10 text-center text-sm font-semibold
-            tabular-nums text-ink"
-        aria-live="polite">
-        {{ $quantity }}
-    </span>
+    <input
+        type="number"
+        min="{{ $minimum }}"
+        max="{{ $maximum }}"
+        step="1"
+        inputmode="numeric"
+        wire:model.live.debounce.250ms="{{ $model }}"
+        data-product-quantity-input
+        class="h-12 w-14 border-0 bg-transparent p-0 text-center
+            text-sm font-semibold tabular-nums text-ink outline-none
+            [appearance:textfield]
+            [&::-webkit-inner-spin-button]:appearance-none
+            [&::-webkit-outer-spin-button]:appearance-none"
+        aria-label="{{ $label }}">
 
     <button
         type="button"
         wire:click="{{ $incrementAction }}"
         wire:loading.attr="disabled"
+        wire:target="{{ $incrementAction }}"
+        data-product-quantity-increment
         @disabled((int) $quantity >= $maximum)
         class="inline-flex size-12 items-center justify-center
             text-primary transition hover:bg-surface-soft

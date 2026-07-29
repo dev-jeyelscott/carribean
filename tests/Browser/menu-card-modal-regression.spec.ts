@@ -334,3 +334,253 @@ test("reduced motion retains modal and carousel functionality", async ({
         timeout: 10_000,
     });
 });
+
+/**
+ * Verify the menu uses the requested desktop width and exposes its category
+ * navigation.
+ */
+test("menu catalogue occupies the desktop viewport and shows categories", async ({
+    page,
+}) => {
+    await page.setViewportSize({
+        width: 1600,
+        height: 1000,
+    });
+
+    await loadMenu(page);
+
+    const catalogue = page.locator(
+        "[data-menu-catalog] > .public-container.grid",
+    );
+
+    const sidebar = page.locator(
+        "[data-menu-sidebar]",
+    );
+
+    await expect(catalogue).toBeVisible();
+    await expect(sidebar).toBeVisible();
+
+    const bounds = await catalogue.boundingBox();
+    const viewport = page.viewportSize();
+
+    expect(bounds).not.toBeNull();
+    expect(viewport).not.toBeNull();
+
+    const widthRatio =
+        (bounds?.width ?? 0)
+        / (viewport?.width ?? 1);
+
+    expect(widthRatio).toBeGreaterThanOrEqual(0.9);
+    expect(widthRatio).toBeLessThanOrEqual(0.96);
+});
+
+/**
+ * Verify one vertical desktop wheel gesture advances exactly one category.
+ */
+test("desktop wheel navigation advances exactly one menu category", async ({
+    page,
+}) => {
+    await page.setViewportSize({
+        width: 1600,
+        height: 1000,
+    });
+
+    await loadMenu(page);
+
+    const menuPage = page.locator(
+        "[data-menu-page]",
+    );
+
+    await expect(menuPage).toHaveAttribute(
+        "data-menu-category-navigation",
+        "ready",
+    );
+
+    const sections = page.locator(
+        "[data-menu-section]",
+    );
+
+    const firstSection = sections.nth(0);
+    const secondSection = sections.nth(1);
+
+    await firstSection.evaluate((element) => {
+        const header = document.querySelector(
+            "[data-public-header-shell] > header",
+        );
+
+        const headerHeight =
+            header instanceof HTMLElement
+                ? header.getBoundingClientRect().height
+                : 88;
+
+        window.scrollTo({
+            behavior: "auto",
+            top:
+                element.getBoundingClientRect().top
+                + window.scrollY
+                - headerHeight
+                - 16,
+        });
+    });
+
+    await page.mouse.move(1200, 500);
+
+    const initialSnapCount = Number(
+        await menuPage.getAttribute(
+            "data-menu-category-snap-count",
+        ) ?? "0",
+    );
+
+    await page.mouse.wheel(0, 120);
+
+    await expect
+        .poll(async () => {
+            return Number(
+                await menuPage.getAttribute(
+                    "data-menu-category-snap-count",
+                ) ?? "0",
+            );
+        })
+        .toBe(initialSnapCount + 1);
+
+    const alignment =
+        await secondSection.evaluate((element) => {
+            const header = document.querySelector(
+                "[data-public-header-shell] > header",
+            );
+
+            return {
+                headerHeight:
+                    header instanceof HTMLElement
+                        ? header.getBoundingClientRect().height
+                        : 88,
+                sectionTop:
+                    element.getBoundingClientRect().top,
+            };
+        });
+
+    expect(
+        Math.abs(
+            alignment.sectionTop
+            - alignment.headerHeight
+            - 16,
+        ),
+    ).toBeLessThanOrEqual(12);
+});
+
+/**
+ * Verify Livewire quantity updates preserve the native dialog and that closing
+ * restores normal menu scrolling.
+ */
+test("quantity controls preserve the modal and closing restores menu scrolling", async ({
+    page,
+}) => {
+    await page.setViewportSize({
+        width: 1440,
+        height: 950,
+    });
+
+    await loadMenu(page);
+
+    const firstSection = page.locator(
+        "[data-menu-section]",
+    ).first();
+
+    await firstSection.evaluate((element) => {
+        const header = document.querySelector(
+            "[data-public-header-shell] > header",
+        );
+
+        const headerHeight =
+            header instanceof HTMLElement
+                ? header.getBoundingClientRect().height
+                : 88;
+
+        window.scrollTo({
+            behavior: "auto",
+            top:
+                element.getBoundingClientRect().top
+                + window.scrollY
+                - headerHeight
+                - 16,
+        });
+    });
+
+    const originalScrollPosition =
+        await page.evaluate(() => window.scrollY);
+
+    await firstSection.locator(
+        "[data-product-modal-trigger]",
+    ).first().click();
+
+    const dialog = page.locator(
+        "[data-product-modal]",
+    );
+
+    const quantityInput = dialog.locator(
+        "[data-product-quantity-input]",
+    );
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("open", "");
+    await expect(quantityInput).toHaveValue("1");
+
+    await dialog.locator(
+        "[data-product-quantity-increment]",
+    ).click();
+
+    await expect(quantityInput).toHaveValue("2");
+    await expect(dialog).toHaveAttribute("open", "");
+
+    await dialog.locator(
+        "[data-product-quantity-decrement]",
+    ).click();
+
+    await expect(quantityInput).toHaveValue("1");
+    await expect(dialog).toHaveAttribute("open", "");
+
+    await dialog.locator(
+        "[data-product-modal-close-action]",
+    ).click();
+
+    await expect(dialog).toBeHidden();
+
+    await expect(
+        page.locator("html"),
+    ).not.toHaveClass(/menu-modal-open/);
+
+    await expect
+        .poll(async () => {
+            return page.evaluate(() => window.scrollY);
+        })
+        .toBeGreaterThanOrEqual(
+            originalScrollPosition - 2,
+        );
+
+    await expect(
+        page.locator("[data-menu-sidebar]"),
+    ).toBeVisible();
+
+    const menuPage = page.locator(
+        "[data-menu-page]",
+    );
+
+    const initialSnapCount = Number(
+        await menuPage.getAttribute(
+            "data-menu-category-snap-count",
+        ) ?? "0",
+    );
+
+    await page.mouse.move(1100, 500);
+    await page.mouse.wheel(0, 120);
+
+    await expect
+        .poll(async () => {
+            return Number(
+                await menuPage.getAttribute(
+                    "data-menu-category-snap-count",
+                ) ?? "0",
+            );
+        })
+        .toBe(initialSnapCount + 1);
+});
