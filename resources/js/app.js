@@ -81,13 +81,13 @@ const menuPageRoot = document.querySelector(
 );
 
 if (menuPageRoot) {
-    import("./menu-page")
-        .then(({ initMenuPage }) => {
-            initMenuPage(menuPageRoot);
+    import("./menu-experience")
+        .then(({ initMenuExperience }) => {
+            initMenuExperience(menuPageRoot);
         })
         .catch((error) => {
             console.error(
-                "Unable to initialize menu-page interactions.",
+                "Unable to initialize the menu experience.",
                 error,
             );
         });

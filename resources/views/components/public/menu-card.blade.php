@@ -1,180 +1,163 @@
 @props([
-'item',
-'variant' => 'default',
+    'item',
+    'eager' => false,
+    'priority' => false,
+    'showCategory' => true,
 ])
 
 @php
-$menuCategory = $item->relationLoaded('menuCategory')
-? $item->menuCategory
-: null;
+    /*
+     * Resolve presentation state without changing the product's ordering state.
+     */
+    $formattedPrice = $item->formattedPrice();
+    $imageAlt = $item->image_alt_text ?: $item->name;
 
-$itemUrl = route('menu-items.show', $item);
-$formattedPrice = $item->formattedPrice();
-$imageAlt = $item->image_alt_text ?: $item->name;
+    $menuCategory = $item->relationLoaded('menuCategory')
+        ? $item->menuCategory
+        : null;
+
+    $itemUrl = route('menu-items.show', $item);
+
+    $canOrder = $item->is_available
+        && $item->is_purchasable
+        && $item->price_cents !== null;
 @endphp
 
-@if ($variant === 'luxury')
-<article
-    data-gsap="card"
-    data-menu-motion="card"
-    class="group">
-    <a
-        href="{{ $itemUrl }}"
-        class="block rounded-island focus-visible:outline-none
-                focus-visible:ring-2 focus-visible:ring-brand-sun
-                focus-visible:ring-offset-4 focus-visible:ring-offset-brand-palm-dark">
+<a
+    href="{{ $itemUrl }}"
+    wire:click.prevent="$dispatch('open-product-modal', { menuItemId: {{ $item->id }} })"
+    data-menu-card
+    data-menu-item-id="{{ $item->id }}"
+    data-product-modal-trigger
+    aria-label="View details and customize {{ $item->name }}"
+    class="group block h-full rounded-card focus-visible:outline-none
+        focus-visible:ring-2 focus-visible:ring-primary
+        focus-visible:ring-offset-4 focus-visible:ring-offset-canvas">
+    <article
+        @class([
+            'menu-card flex h-full min-w-0 flex-col overflow-hidden',
+            'rounded-card border border-primary/10 bg-surface shadow-card',
+            'transition duration-300 hover:-translate-y-1',
+            'hover:border-primary/20 hover:shadow-panel',
+            'motion-reduce:transform-none motion-reduce:transition-none',
+            'opacity-70' => ! $item->is_available,
+        ])>
         <div
-            data-menu-motion="card-image"
-            class="relative aspect-[4/5] overflow-hidden rounded-island
-                    bg-brand-palm shadow-island-dark">
+            class="relative aspect-[4/3] overflow-hidden bg-surface-soft"
+            data-menu-card-image>
             @if ($item->image_url)
-            <x-public.responsive-image
-                :image="$item"
-                :alt="$imageAlt"
-                variant="card"
-                sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
-                width="720"
-                height="900"
-                img-class="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                <x-public.responsive-image
+                    :image="$item"
+                    :alt="$imageAlt"
+                    variant="card"
+                    sizes="(min-width: 1280px) 19vw, (min-width: 1024px) 27vw, (min-width: 640px) 46vw, 84vw"
+                    width="720"
+                    height="540"
+                    :loading="$eager ? 'eager' : 'lazy'"
+                    :fetchpriority="$priority ? 'high' : null"
+                    img-class="h-full w-full object-cover transition
+                        duration-500 ease-island group-hover:scale-[1.045]
+                        motion-reduce:transform-none
+                        motion-reduce:transition-none" />
             @else
-            <div
-                class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(242,199,107,0.25),transparent_32%),linear-gradient(145deg,#206f7c,#0c342b)]"></div>
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgb(242_199_107_/_30%),transparent_34%),linear-gradient(145deg,#206f7c,#0c342b)]"
+                    aria-hidden="true">
+                </div>
 
-            <div
-                class="absolute inset-x-6 bottom-6 border-t border-white/20
-                            pt-4 text-xs uppercase tracking-[0.22em] text-white/65">
-                Image coming soon
-            </div>
+                <span
+                    class="absolute inset-x-5 bottom-5 text-xs font-semibold
+                        uppercase tracking-[0.16em] text-white/75">
+                    Image coming soon
+                </span>
             @endif
 
-            <div
-                class="absolute inset-0 bg-gradient-to-t
-                        from-brand-palm-dark/55 via-transparent to-transparent
-                        transition duration-500 group-hover:from-brand-palm-dark/30"></div>
-
-            <div class="absolute left-4 top-4 flex flex-wrap gap-2">
-                @unless ($item->is_available)
+            @unless ($item->is_available)
                 <span
-                    class="rounded-full bg-brand-cream px-3 py-1
-                                text-[0.65rem] font-semibold uppercase
-                                tracking-[0.15em] text-brand-forest">
+                    class="absolute left-3 top-3 rounded-full bg-canvas/95 px-3
+                        py-1 text-[0.62rem] font-semibold uppercase
+                        tracking-[0.12em] text-ink shadow-card backdrop-blur">
                     Unavailable
                 </span>
-                @endunless
-
-                @if ($item->is_available && ! $item->is_purchasable)
-                <span
-                    class="rounded-full bg-brand-sand-soft px-3 py-1
-                                text-[0.65rem] font-semibold uppercase
-                                tracking-[0.15em] text-brand-forest">
-                    Dine-in only
-                </span>
-                @endif
-            </div>
-        </div>
-
-        <div data-menu-motion="card-copy" class="pt-6">
-            @if ($menuCategory)
-            <p
-                class="text-[0.68rem] font-semibold uppercase
-                            tracking-[0.22em] text-brand-coral">
-                {{ $menuCategory->name }}
-            </p>
-            @endif
-
-            <div class="mt-3 flex items-start justify-between gap-5">
-                <h3
-                    class="font-display text-2xl leading-tight
-                            text-brand-cream transition
-                            group-hover:text-brand-sun">
-                    {{ $item->name }}
-                </h3>
-
-                @if ($formattedPrice)
-                <p class="shrink-0 text-sm font-semibold text-brand-sun">
-                    {{ $formattedPrice }}
-                </p>
-                @endif
-            </div>
-
-            @if ($item->description)
-            <p class="mt-3 text-sm leading-7 text-brand-cream/65">
-                {{ $item->description }}
-            </p>
-            @endif
-
-            <p
-                class="mt-5 text-xs font-semibold uppercase
-                        tracking-[0.18em] text-brand-sun">
-                View details
-            </p>
-        </div>
-    </a>
-</article>
-@else
-<article
-    class="rounded-island border border-brand-palm/10
-            bg-white p-5 shadow-island">
-    <a
-        href="{{ $itemUrl }}"
-        class="block rounded-[1.1rem] focus-visible:outline-none
-                focus-visible:ring-2 focus-visible:ring-brand-palm">
-        @if ($item->image_url)
-        <x-public.responsive-image
-            :image="$item"
-            :alt="$imageAlt"
-            variant="card"
-            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
-            width="720"
-            height="480"
-            img-class="mb-5 h-48 w-full rounded-[1.1rem] object-cover" />
-        @endif
-
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <h3 class="font-display text-xl text-brand-forest">
-                    {{ $item->name }}
-                </h3>
-
-                @if ($menuCategory)
-                <p
-                    class="mt-1 text-xs font-semibold uppercase
-                                tracking-[0.18em] text-brand-coral-dark">
-                    {{ $menuCategory->name }}
-                </p>
-                @endif
-            </div>
-
-            @if ($formattedPrice)
-            <p class="shrink-0 font-semibold text-brand-palm">
-                {{ $formattedPrice }}
-            </p>
-            @endif
-        </div>
-
-        @if ($item->description)
-        <p class="mt-3 text-sm leading-6 text-brand-muted">
-            {{ $item->description }}
-        </p>
-        @endif
-
-        <div class="mt-5 flex flex-wrap items-center gap-2">
-            @unless ($item->is_available)
-            <span
-                class="rounded-full bg-brand-sand-soft px-3 py-1
-                            text-xs font-semibold text-brand-forest">
-                Currently unavailable
-            </span>
             @endunless
 
             @if ($item->is_available && ! $item->is_purchasable)
-            <span
-                class="rounded-full bg-brand-cream px-3 py-1
-                            text-xs font-semibold text-brand-forest">
-                Display only
-            </span>
+                <span
+                    class="absolute left-3 top-3 rounded-full bg-canvas/95 px-3
+                        py-1 text-[0.62rem] font-semibold uppercase
+                        tracking-[0.12em] text-ink shadow-card backdrop-blur">
+                    Dine-in menu
+                </span>
             @endif
         </div>
-    </a>
-</article>
-@endif
+
+        <div class="flex min-h-48 flex-1 flex-col p-5">
+            @if ($showCategory && $menuCategory)
+                <p
+                    class="text-[0.64rem] font-semibold uppercase
+                        tracking-[0.18em] text-coral">
+                    {{ $menuCategory->name }}
+                </p>
+            @endif
+
+            <div class="mt-2 flex min-w-0 items-start justify-between gap-4">
+                <h3
+                    class="min-w-0 flex-1 truncate font-display text-xl
+                        leading-tight text-ink"
+                    title="{{ $item->name }}">
+                    {{ $item->name }}
+                </h3>
+
+                <p
+                    class="shrink-0 text-sm font-semibold tabular-nums
+                        text-primary">
+                    {{ $formattedPrice ?? 'Price pending' }}
+                </p>
+            </div>
+
+            <p
+                class="mt-3 line-clamp-2 min-h-12 text-sm leading-6
+                    text-muted">
+                {{ $item->description
+                    ?: 'Discover this Caribbean-inspired Coast & Cay favorite.' }}
+            </p>
+
+            <div
+                class="mt-auto flex items-center justify-between border-t
+                    border-line/80 pt-4">
+                <span
+                    class="text-[0.65rem] font-semibold uppercase
+                        tracking-[0.14em] text-muted">
+                    {{ $canOrder ? 'Customize order' : 'View details' }}
+                </span>
+
+                <span
+                    class="inline-flex size-11 shrink-0 items-center
+                        justify-center rounded-full bg-primary text-canvas
+                        shadow-card transition duration-200
+                        group-hover:-translate-y-0.5
+                        group-hover:bg-primary-deep
+                        group-hover:shadow-panel
+                        group-active:translate-y-0 group-active:scale-95
+                        motion-reduce:transform-none"
+                    aria-hidden="true">
+                    <svg
+                        class="size-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.75">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5.5 8.5h13l-1 11h-11l-1-11Z" />
+
+                        <path
+                            stroke-linecap="round"
+                            d="M9 9V6.75a3 3 0 0 1 6 0V9" />
+                    </svg>
+                </span>
+            </div>
+        </div>
+    </article>
+</a>

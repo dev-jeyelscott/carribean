@@ -1,0 +1,292 @@
+@source "../views/livewire/menu/**/*.blade.php";
+@source "../views/components/public/menu-card.blade.php";
+@source "../views/components/public/menu-option-group.blade.php";
+@source "../views/components/public/quantity-control.blade.php";
+
+@layer components {
+    /*
+     * Hero and category sections retain natural document flow while using the
+     * visible viewport as their preferred presentation height.
+     */
+    .menu-hero {
+        display: flex;
+        min-height: calc(100vh - 5.5rem);
+        min-height: calc(100svh - 5.5rem);
+        align-items: center;
+    }
+
+    .menu-section {
+        position: relative;
+        display: flex;
+        min-height: calc(100vh - 5.5rem);
+        min-height: calc(100svh - 5.5rem);
+        align-items: center;
+        padding-block: clamp(4rem, 9vh, 7rem);
+        scroll-margin-top: 6.5rem;
+    }
+
+    .menu-section + .menu-section {
+        border-top: 1px solid rgb(22 83 68 / 8%);
+    }
+
+    .menu-section:nth-of-type(even)::before {
+        position: absolute;
+        inset: 8% -4rem;
+        z-index: -1;
+        border-radius: 3rem;
+        background:
+            radial-gradient(
+                circle at 90% 15%,
+                rgb(32 111 124 / 7%),
+                transparent 32%
+            ),
+            radial-gradient(
+                circle at 12% 88%,
+                rgb(230 110 80 / 6%),
+                transparent 30%
+            );
+        content: "";
+        pointer-events: none;
+    }
+
+    /*
+     * Native horizontal overflow is the interaction baseline. GSAP enhances
+     * previous/next navigation without replacing touch or trackpad scrolling.
+     */
+    .menu-carousel {
+        position: relative;
+        min-width: 0;
+    }
+
+    .menu-carousel-track {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding: 0.5rem 0.25rem 1.5rem;
+        scroll-behavior: smooth;
+        scroll-snap-type: x proximity;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+    }
+
+    .menu-carousel-track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .menu-carousel-track:focus-visible {
+        border-radius: var(--radius-card);
+        outline: 3px solid var(--color-ocean);
+        outline-offset: 4px;
+    }
+
+    .menu-carousel-item {
+        display: flex;
+        flex: 0 0 min(84vw, 21rem);
+        min-width: 0;
+        scroll-snap-align: start;
+    }
+
+    .menu-card {
+        width: 100%;
+        min-height: 24rem;
+    }
+
+    /*
+     * Product choices use one consistent interactive surface for radios and
+     * checkboxes so option groups remain easy to scan and tap.
+     */
+    .menu-option-choice {
+        display: flex;
+        min-height: 3.25rem;
+        cursor: pointer;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border: 1px solid rgb(22 83 68 / 11%);
+        border-radius: 1rem;
+        background: var(--color-surface);
+        padding: 0.8rem 1rem;
+        transition:
+            border-color 200ms var(--ease-island),
+            background-color 200ms var(--ease-island),
+            transform 200ms var(--ease-island),
+            box-shadow 200ms var(--ease-island);
+    }
+
+    .menu-option-choice:hover {
+        border-color: rgb(22 83 68 / 28%);
+        background: var(--color-surface-soft);
+        box-shadow: 0 8px 24px rgb(12 52 43 / 7%);
+        transform: translateY(-1px);
+    }
+
+    .menu-option-choice:has(input:checked) {
+        border-color: rgb(22 83 68 / 34%);
+        background:
+            linear-gradient(
+                135deg,
+                rgb(22 83 68 / 8%),
+                rgb(32 111 124 / 5%)
+            ),
+            var(--color-surface);
+        box-shadow: 0 10px 28px rgb(12 52 43 / 9%);
+    }
+
+    /*
+     * Native dialog is placed in the browser top layer. The panel itself owns
+     * the visual sizing and scrolling behavior.
+     */
+    .menu-product-dialog {
+        width: min(72rem, calc(100vw - 2rem));
+        max-width: none;
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100svh - 2rem);
+        margin: auto;
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        color: var(--color-ink);
+    }
+
+    .menu-product-dialog[open] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .menu-product-dialog::backdrop {
+        background: rgb(5 29 24 / 62%);
+        backdrop-filter: blur(0.65rem);
+    }
+
+    .menu-product-modal-panel {
+        width: 100%;
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100svh - 2rem);
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 18%);
+        border-radius: var(--radius-panel);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-elevated);
+    }
+
+    .menu-product-modal-scroll {
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100svh - 2rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--color-surface);
+    }
+
+    .menu-product-modal-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        border-top: 1px solid var(--color-line);
+        background: rgb(255 253 249 / 94%);
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 -16px 38px rgb(12 52 43 / 7%);
+        backdrop-filter: blur(1rem);
+    }
+
+    html.menu-modal-open {
+        overflow: hidden;
+    }
+
+    /*
+     * Reusable public notification motion. The error treatment intentionally
+     * remains restrained and runs only once per displayed notification.
+     */
+    .public-notification[data-type="error"] {
+        animation: menu-alert-shake 320ms ease-out both;
+    }
+}
+
+@keyframes menu-alert-shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-0.35rem);
+    }
+
+    50% {
+        transform: translateX(0.3rem);
+    }
+
+    75% {
+        transform: translateX(-0.15rem);
+    }
+}
+
+@media (min-width: 640px) {
+    .menu-carousel-item {
+        flex-basis: calc((100% - 1rem) / 2);
+    }
+
+    .menu-product-modal-footer {
+        padding-inline: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .menu-carousel-item {
+        flex-basis: calc((100% - 2rem) / 3);
+    }
+}
+
+@media (min-width: 1280px) {
+    /*
+     * Four cards plus three equal gaps consume exactly the available track
+     * width, preventing a partial fifth card on desktop.
+     */
+    .menu-carousel-item {
+        flex-basis: calc((100% - 3rem) / 4);
+    }
+}
+
+@media (max-width: 1023px), (max-height: 719px) {
+    .menu-section {
+        min-height: auto;
+        padding-block: 4rem;
+    }
+
+    .menu-product-modal-panel {
+        max-height: calc(100svh - 1rem);
+        border-radius: 1.4rem;
+    }
+
+    .menu-product-modal-scroll {
+        max-height: calc(100svh - 1rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-carousel-track {
+        scroll-behavior: auto;
+    }
+
+    .menu-option-choice,
+    .menu-option-choice:hover,
+    [data-menu-section-heading],
+    [data-menu-section-rule],
+    [data-menu-carousel-item],
+    [data-menu-carousel-controls],
+    [data-menu-hero-item],
+    [data-product-modal-panel],
+    [data-product-modal-image],
+    [data-product-modal-copy],
+    [data-product-modal-options],
+    [data-product-modal-footer] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .public-notification[data-type="error"] {
+        animation: none;
+    }
+}

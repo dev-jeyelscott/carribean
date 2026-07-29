@@ -1,15 +1,15 @@
 <div
     id="menu-catalog"
     data-menu-catalog
-    class="relative">
+    class="menu-catalog-shell relative">
     @if ($categories->isNotEmpty())
         <div
             class="sticky top-[5.5rem] z-40 border-y border-primary/10
-                bg-canvas/82 backdrop-blur-xl lg:hidden"
+                bg-canvas/88 backdrop-blur-xl lg:hidden"
             data-menu-mobile-categories>
             <nav
-                class="mx-auto flex max-w-full gap-2 overflow-x-auto
-                    px-5 py-3 [scrollbar-width:none]
+                class="mx-auto flex max-w-full gap-2 overflow-x-auto px-5
+                    py-3 [scrollbar-width:none]
                     [&::-webkit-scrollbar]:hidden"
                 aria-label="Menu categories"
                 data-menu-category-scroller>
@@ -19,15 +19,16 @@
                         data-menu-category-link
                         data-menu-navigation-position="mobile"
                         @if ($loop->first) aria-current="true" @endif
-                        class="menu-category-link inline-flex min-h-11 shrink-0
-                            items-center gap-2 rounded-full border
-                            border-primary/10 bg-surface/75 px-4
-                            text-xs font-semibold text-primary shadow-sm
+                        class="menu-category-link inline-flex min-h-11
+                            shrink-0 items-center gap-2 rounded-full border
+                            border-primary/10 bg-surface/80 px-4 text-xs
+                            font-semibold text-primary shadow-sm
                             transition duration-200">
                         <span
                             class="menu-category-dot size-1.5 rounded-full
                                 bg-primary/30"
-                            aria-hidden="true"></span>
+                            aria-hidden="true">
+                        </span>
 
                         {{ $category->name }}
                     </a>
@@ -43,15 +44,15 @@
             class="rounded-card border border-coral/20 bg-surface px-5 py-4
                 text-sm text-ink shadow-card"
             role="status">
-            Connection interrupted. Already loaded menu items remain available.
-            Retry loading when the connection returns.
+            Connection interrupted. The loaded menu remains available, but
+            product customization requires a connection.
         </div>
     </div>
 
     <div
-        class="public-container grid gap-10 py-12
-            lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start
-            lg:gap-12 lg:py-16 xl:grid-cols-[14rem_minmax(0,1fr)]">
+        class="public-container grid gap-10
+            lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start lg:gap-12
+            xl:grid-cols-[14rem_minmax(0,1fr)]">
         @if ($categories->isNotEmpty())
             <aside
                 class="hidden lg:block"
@@ -76,9 +77,9 @@
                                 @if ($loop->first) aria-current="true" @endif
                                 class="menu-category-link flex min-h-12
                                     items-center gap-3 rounded-xl border
-                                    border-transparent px-3.5 py-2.5
-                                    text-sm font-medium text-ink
-                                    transition duration-200">
+                                    border-transparent px-3.5 py-2.5 text-sm
+                                    font-medium text-ink transition
+                                    duration-200">
                                 <span
                                     class="flex size-8 shrink-0 items-center
                                         justify-center rounded-full
@@ -99,7 +100,8 @@
                                 <span
                                     class="menu-category-dot size-1.5
                                         shrink-0 rounded-full bg-primary/20"
-                                    aria-hidden="true"></span>
+                                    aria-hidden="true">
+                                </span>
                             </a>
                         @endforeach
                     </nav>
@@ -135,8 +137,12 @@
                         'visible_menu_items_count',
                     );
 
-                    $loadedItemCount = $category->menuItems->count();
-                    $hasMoreItems = $loadedItemCount < $totalItemCount;
+                    $carouselId = 'menu-carousel-'.$category->id;
+
+                    $initialVisibleCount = min(
+                        4,
+                        $totalItemCount,
+                    );
                 @endphp
 
                 <section
@@ -144,153 +150,188 @@
                     wire:key="menu-category-{{ $category->id }}"
                     data-menu-section
                     data-menu-category="{{ $category->slug }}"
-                    class="scroll-mt-[10.5rem] pb-16 last:pb-4
-                        lg:scroll-mt-28 lg:pb-20">
-                    <header
-                        class="mb-6 flex items-end gap-4
-                            border-b border-primary/12 pb-3">
-                        <div class="min-w-0">
-                            <p
-                                class="text-[0.64rem] font-semibold uppercase
-                                    tracking-[0.21em] text-primary">
-                                {{ str_pad(
-                                    (string) $loop->iteration,
-                                    2,
-                                    '0',
-                                    STR_PAD_LEFT,
-                                ) }}
-                                · Menu selection
-                            </p>
+                    class="menu-section">
+                    <div class="menu-section-content w-full">
+                        <header
+                            class="mb-8"
+                            data-menu-section-heading>
+                            <div
+                                class="flex flex-col gap-6
+                                    xl:flex-row xl:items-end
+                                    xl:justify-between">
+                                <div class="max-w-3xl">
+                                    <p
+                                        class="text-[0.64rem] font-semibold
+                                            uppercase tracking-[0.21em]
+                                            text-primary">
+                                        {{ str_pad(
+                                            (string) $loop->iteration,
+                                            2,
+                                            '0',
+                                            STR_PAD_LEFT,
+                                        ) }}
+                                        · Menu selection
+                                    </p>
 
-                            <h2
-                                class="mt-1 font-display text-3xl leading-tight
-                                    text-primary-deep sm:text-4xl">
-                                {{ $category->name }}
-                            </h2>
-                        </div>
+                                    <h2
+                                        class="mt-2 font-display text-4xl
+                                            leading-tight text-primary-deep
+                                            sm:text-5xl">
+                                        {{ $category->name }}
+                                    </h2>
 
-                        <div
-                            class="mb-2 h-px min-w-8 flex-1 bg-line"
-                            aria-hidden="true"></div>
+                                    @if ($category->description)
+                                        <p
+                                            class="mt-4 max-w-2xl text-sm
+                                                leading-7 text-muted">
+                                            {{ $category->description }}
+                                        </p>
+                                    @endif
+                                </div>
 
-                        <p
-                            class="mb-1 shrink-0 text-xs font-medium
-                                tabular-nums text-muted">
-                            {{ $totalItemCount }}
-                            {{ str('item')->plural($totalItemCount) }}
-                        </p>
-                    </header>
+                                <div
+                                    class="flex shrink-0 items-center gap-3"
+                                    data-menu-carousel-controls>
+                                    <p
+                                        class="mr-2 text-xs font-medium
+                                            tabular-nums text-muted"
+                                        data-menu-carousel-status
+                                        aria-live="polite">
+                                        @if ($totalItemCount > 0)
+                                            1–{{ $initialVisibleCount }}
+                                            of {{ $totalItemCount }}
+                                        @else
+                                            0 items
+                                        @endif
+                                    </p>
 
-                    @if ($category->description)
-                        <p
-                            class="-mt-2 mb-6 max-w-2xl text-sm leading-7
-                                text-muted">
-                            {{ $category->description }}
-                        </p>
-                    @endif
+                                    <button
+                                        type="button"
+                                        data-menu-carousel-previous
+                                        aria-label="Show previous {{ $category->name }} items"
+                                        aria-controls="{{ $carouselId }}"
+                                        disabled
+                                        class="inline-flex size-11 items-center
+                                            justify-center rounded-full border
+                                            border-primary/15 bg-surface
+                                            text-primary shadow-card
+                                            transition hover:border-primary/30
+                                            hover:bg-surface-soft
+                                            disabled:cursor-not-allowed
+                                            disabled:opacity-35">
+                                        <svg
+                                            class="size-5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                            aria-hidden="true">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m15 18-6-6 6-6" />
+                                        </svg>
+                                    </button>
 
-                    <div
-                        id="category-items-{{ $category->id }}"
-                        class="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2
-                            xl:grid-cols-3 2xl:grid-cols-4"
-                        data-menu-card-grid>
-                        @forelse ($category->menuItems as $item)
-                            @php
-                                $quantity = $quantities[$item->id] ?? 1;
-                            @endphp
+                                    <button
+                                        type="button"
+                                        data-menu-carousel-next
+                                        aria-label="Show next {{ $category->name }} items"
+                                        aria-controls="{{ $carouselId }}"
+                                        @disabled($totalItemCount <= 4)
+                                        class="inline-flex size-11 items-center
+                                            justify-center rounded-full border
+                                            border-primary/15 bg-primary
+                                            text-canvas shadow-card transition
+                                            hover:-translate-y-0.5
+                                            hover:bg-primary-deep
+                                            hover:shadow-panel
+                                            disabled:cursor-not-allowed
+                                            disabled:opacity-35
+                                            motion-reduce:transform-none">
+                                        <svg
+                                            class="size-5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                            aria-hidden="true">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="m9 18 6-6-6-6" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
 
-                            <x-public.menu-order-card
-                                wire:key="menu-item-{{ $item->id }}"
-                                :item="$item"
-                                :quantity="$quantity" />
-                        @empty
-                            <x-public.alert
-                                type="warning"
-                                class="min-[560px]:col-span-2
-                                    xl:col-span-3 2xl:col-span-4">
-                                This selection is currently being prepared.
+                            <div
+                                class="mt-6 h-px w-full origin-left bg-line"
+                                data-menu-section-rule
+                                aria-hidden="true">
+                            </div>
+                        </header>
+
+                        @if ($category->menuItems->isNotEmpty())
+                            <div
+                                data-menu-carousel
+                                class="menu-carousel">
+                                <ul
+                                    id="{{ $carouselId }}"
+                                    data-menu-carousel-track
+                                    tabindex="0"
+                                    role="list"
+                                    aria-label="{{ $category->name }} menu items"
+                                    class="menu-carousel-track">
+                                    @foreach ($category->menuItems as $item)
+                                        <li
+                                            wire:key="menu-item-{{ $item->id }}"
+                                            data-menu-carousel-item
+                                            class="menu-carousel-item">
+                                            <x-public.menu-card
+                                                :item="$item"
+                                                :eager="$loop->parent->first
+                                                    && $loop->iteration <= 4"
+                                                :priority="$loop->parent->first
+                                                    && $loop->first" />
+                                        </li>
+                                    @endforeach
+                                </ul>
+
+                                <div
+                                    class="mt-2 h-0.5 overflow-hidden
+                                        rounded-full bg-line"
+                                    aria-hidden="true">
+                                    <span
+                                        class="block h-full origin-left
+                                            bg-coral"
+                                        data-menu-carousel-progress>
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <x-public.alert type="warning">
+                                This menu selection is currently being prepared.
                             </x-public.alert>
-                        @endforelse
+                        @endif
                     </div>
-
-                    @if ($hasMoreItems)
-                        <div class="mt-8 flex justify-center">
-                            <button
-                                type="button"
-                                wire:key="load-more-{{ $category->id }}-{{ $loadedItemCount }}"
-                                wire:click.preserve-scroll="loadMore({{ $category->id }})"
-                                data-menu-load-more
-                                aria-controls="category-items-{{ $category->id }}"
-                                class="inline-flex min-h-11 items-center
-                                    justify-center rounded-full border
-                                    border-primary/15 bg-surface px-5
-                                    text-xs font-semibold uppercase
-                                    tracking-[0.12em] text-primary shadow-card
-                                    transition hover:border-primary/30
-                                    hover:bg-surface-soft
-                                    data-loading:pointer-events-none
-                                    data-loading:opacity-65">
-                                <span
-                                    class="inline-flex items-center gap-2
-                                        data-loading:hidden">
-                                    Load more island flavors
-
-                                    <svg
-                                        class="size-4"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        aria-hidden="true">
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="m7 10 5 5 5-5" />
-                                    </svg>
-                                </span>
-
-                                <span
-                                    class="hidden items-center gap-2
-                                        data-loading:inline-flex">
-                                    <svg
-                                        class="size-4 animate-spin
-                                            motion-reduce:animate-none"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        aria-hidden="true">
-                                        <circle
-                                            class="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="9"
-                                            stroke="currentColor"
-                                            stroke-width="2" />
-
-                                        <path
-                                            d="M21 12a9 9 0 0 0-9-9"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round" />
-                                    </svg>
-
-                                    Loading menu items
-                                </span>
-                            </button>
-                        </div>
-                    @endif
                 </section>
             @empty
-                <x-public.alert type="warning">
-                    Our latest menu is currently being prepared.
-                </x-public.alert>
+                <div class="py-24">
+                    <x-public.alert type="warning">
+                        Our latest menu is currently being prepared.
+                    </x-public.alert>
+                </div>
             @endforelse
 
             @if ($categories->isNotEmpty())
-                <div
-                    class="flex flex-col items-center border-t border-primary/10
-                        pb-8 pt-10 text-center">
+                <section
+                    class="flex min-h-[55svh] flex-col items-center
+                        justify-center border-t border-primary/10 py-20
+                        text-center"
+                    data-menu-closing>
                     <svg
-                        class="size-7 text-primary"
+                        class="size-8 text-primary"
                         viewBox="0 0 32 32"
                         fill="none"
                         stroke="currentColor"
@@ -302,15 +343,22 @@
                     </svg>
 
                     <p
-                        class="mt-3 font-display text-xl
+                        class="mt-4 font-display text-3xl
                             text-primary-deep">
                         That’s all for now.
                     </p>
 
-                    <p class="mt-1 text-sm text-muted">
-                        More seasonal specials are always on the horizon.
+                    <p class="mt-3 max-w-md text-sm leading-7 text-muted">
+                        More seasonal specials and Caribbean favorites are
+                        always on the horizon.
                     </p>
-                </div>
+
+                    <a
+                        href="{{ route('cart.index') }}"
+                        class="public-button-primary mt-8">
+                        Review Your Cart
+                    </a>
+                </section>
             @endif
         </div>
     </div>
