@@ -1,10 +1,8 @@
-import "../css/public-header.css";
-
 const compactClass = "public-header-compact";
 const compactThreshold = 24;
 
 /**
- * Synchronize the homepage header appearance with the current scroll position.
+ * Synchronize the shared public header with the current scroll position.
  */
 function synchronizeHeaderState(header) {
     const isCompact = window.scrollY > compactThreshold;
@@ -24,10 +22,12 @@ function synchronizeHeaderState(header) {
 }
 
 /**
- * Initialize the compact homepage header when the viewport leaves the top.
+ * Initialize expanded and compact states for the shared public navigation.
  */
 export function initPublicHeader(
-    header = document.querySelector('body[data-page="home"] header'),
+    header = document.querySelector(
+        "[data-public-header-shell] > header",
+    ),
 ) {
     if (!(header instanceof HTMLElement)) {
         return () => {};
@@ -36,7 +36,7 @@ export function initPublicHeader(
     let animationFrame = null;
 
     /**
-     * Apply one scroll-state update during the browser's next render frame.
+     * Apply the pending header state during the next browser render frame.
      */
     const updateHeader = () => {
         animationFrame = null;
@@ -44,7 +44,7 @@ export function initPublicHeader(
     };
 
     /**
-     * Coalesce repeated scroll events into one pending visual update.
+     * Coalesce repeated scroll events into one visual update.
      */
     const scheduleUpdate = () => {
         if (animationFrame !== null) {
@@ -63,7 +63,7 @@ export function initPublicHeader(
     window.addEventListener("pageshow", scheduleUpdate);
 
     /**
-     * Remove listeners and temporary header state.
+     * Remove all listeners and temporary presentation state.
      */
     const cleanup = () => {
         window.removeEventListener("scroll", scheduleUpdate);

@@ -7,21 +7,33 @@
 ])
 
 @php
+    /*
+     * A light theme means the component is rendered on a light surface.
+     * A dark theme means it is rendered over a dark or photographic surface.
+     */
     $isCentered = $align === 'center';
-    $isLight = $theme === 'light';
-    $descriptionText = is_string($description) ? $description : (string) $description;
-    $isRichDescription = strip_tags($descriptionText) !== $descriptionText;
+    $isLightSurface = $theme === 'light';
+
+    $descriptionText = is_string($description)
+        ? $description
+        : (string) $description;
+
+    $isRichDescription =
+        strip_tags($descriptionText) !== $descriptionText;
 @endphp
 
-<div data-gsap-reveal {{ $attributes->except('class') }} @class([
-    'max-w-3xl',
-    'mx-auto text-center' => $isCentered,
-])>
+<div
+    data-gsap-reveal
+    {{ $attributes->except('class') }}
+    @class([
+        'max-w-3xl',
+        'mx-auto text-center' => $isCentered,
+    ])>
     @if ($eyebrow)
         <p @class([
             'text-xs font-semibold uppercase tracking-[0.32em]',
-            'text-brand-gold-dark' => $isLight,
-            'text-brand-gold' => ! $isLight,
+            'text-coral-deep' => $isLightSurface,
+            'text-sun' => ! $isLightSurface,
         ])>
             {{ $eyebrow }}
         </p>
@@ -29,8 +41,8 @@
 
     <h2 @class([
         'mt-4 font-display text-4xl leading-tight sm:text-5xl',
-        'text-brand-ink' => $isLight,
-        'text-brand-ivory' => ! $isLight,
+        'text-ink' => $isLightSurface,
+        'text-canvas' => ! $isLightSurface,
     ])>
         {{ $title }}
     </h2>
@@ -47,8 +59,16 @@
                 '[&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6',
                 '[&_p]:leading-8',
                 '[&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6',
-                'text-brand-muted [&_a]:text-brand-gold-dark [&_blockquote]:border-brand-gold/50 [&_h2]:text-brand-ink [&_h3]:text-brand-ink [&_li]:marker:text-brand-gold-dark [&_strong]:text-brand-ink' => $isLight,
-                'text-stone-400 [&_a]:text-brand-gold [&_blockquote]:border-brand-gold/50 [&_h2]:text-brand-ivory [&_h3]:text-brand-ivory [&_li]:marker:text-brand-gold [&_strong]:text-brand-ivory' => ! $isLight,
+                'text-muted [&_a]:text-coral-deep
+                    [&_blockquote]:border-coral/50
+                    [&_h2]:text-ink [&_h3]:text-ink
+                    [&_li]:marker:text-coral-deep
+                    [&_strong]:text-ink' => $isLightSurface,
+                'text-canvas/75 [&_a]:text-sun
+                    [&_blockquote]:border-sun/50
+                    [&_h2]:text-canvas [&_h3]:text-canvas
+                    [&_li]:marker:text-sun
+                    [&_strong]:text-canvas' => ! $isLightSurface,
             ])>
                 {!! str($descriptionText)->sanitizeHtml() !!}
             </div>
@@ -56,16 +76,21 @@
             <p @class([
                 'mt-5 max-w-2xl text-base leading-8',
                 'mx-auto' => $isCentered,
-                'text-brand-muted' => $isLight,
-                'text-stone-400' => ! $isLight,
+                'text-muted' => $isLightSurface,
+                'text-canvas/75' => ! $isLightSurface,
             ])>
                 {{ $description }}
             </p>
         @endif
     @endif
 
-    <div @class([
-        'mt-7 h-px w-14 bg-brand-gold',
-        'mx-auto' => $isCentered,
-    ]) aria-hidden="true"></div>
+    <div
+        @class([
+            'mt-7 h-px w-14',
+            'mx-auto' => $isCentered,
+            'bg-coral' => $isLightSurface,
+            'bg-sun' => ! $isLightSurface,
+        ])
+        aria-hidden="true">
+    </div>
 </div>

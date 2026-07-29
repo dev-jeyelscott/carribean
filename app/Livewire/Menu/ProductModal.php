@@ -8,7 +8,7 @@ use App\Support\Money;
 use App\Support\Orders\OrderPriceCalculator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -20,17 +20,14 @@ final class ProductModal extends Component
     public int|string $quantity = 1;
 
     /**
-     * Selected user-controlled values indexed by option-group ID.
+     * Store selected option identifiers by option-group ID.
      *
-     * The nested values remain mixed until normalized and validated because
-     * Livewire state may contain malformed or stale browser input.
-     *
-     * @var array<int, mixed>
+     * @var array<int, int|string|array<int, int|string>|null>
      */
     public array $selections = [];
 
     /**
-     * Load one public item and prepare its modal selection state.
+     * Load a public menu item and initialize its modal state.
      */
     #[On('open-product-modal')]
     public function open(int $menuItemId): void
@@ -56,8 +53,8 @@ final class ProductModal extends Component
         foreach ($menuItem->optionGroups as $optionGroup) {
             $this->selections[$optionGroup->id] =
                 $optionGroup->maximum_selections === 1
-                ? null
-                : [];
+                    ? null
+                    : [];
         }
 
         $this->dispatch(
@@ -67,10 +64,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Request an animated browser-side close without discarding the last item.
-     *
-     * Retaining the rendered item allows the closing animation to complete
-     * before the dialog leaves the browser top layer.
+     * Dispatch the browser event that performs the animated modal close.
      */
     public function close(): void
     {
@@ -80,7 +74,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Increase the configured quantity by one up to the cart maximum.
+     * Increase the requested quantity without exceeding the cart maximum.
      */
     public function incrementQuantity(): void
     {
@@ -93,7 +87,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Decrease the configured quantity while retaining the minimum of one.
+     * Decrease the requested quantity while retaining a minimum of one.
      */
     public function decrementQuantity(): void
     {
@@ -106,14 +100,11 @@ final class ProductModal extends Component
     }
 
     /**
-     * Validate the latest item state and add its configuration to the cart.
+     * Validate the current configuration and add it to the session cart.
      */
     public function addToCart(): void
     {
-        $this->resetValidation([
-            'cart',
-            'selections',
-        ]);
+        $this->resetValidation();
 
         try {
             $validated = $this->validate([
@@ -124,52 +115,34 @@ final class ProductModal extends Component
                     'max:'.SessionCart::MAX_QUANTITY,
                 ],
             ]);
-        } catch (ValidationException $exception) {
-            $this->handleValidationFailure($exception);
 
-            return;
-        }
+            $menuItem = $this->menuItemId === null
+                ? null
+                : $this->loadPublicMenuItem($this->menuItemId);
 
-        $menuItem = $this->menuItemId === null
-            ? null
-            : $this->loadPublicMenuItem($this->menuItemId);
-
-        if (! $menuItem instanceof MenuItem) {
-            $this->handleValidationFailure(
-                ValidationException::withMessages([
+            if (! $menuItem instanceof MenuItem) {
+                throw ValidationException::withMessages([
                     'cart' => 'This menu item is no longer available.',
-                ]),
-            );
+                ]);
+            }
 
-            return;
-        }
-
-        if (! $menuItem->is_available) {
-            $this->handleValidationFailure(
-                ValidationException::withMessages([
+            if (! $menuItem->is_available) {
+                throw ValidationException::withMessages([
                     'cart' => $menuItem->name
                         .' is currently unavailable.',
-                ]),
-            );
+                ]);
+            }
 
-            return;
-        }
-
-        if (
-            ! $menuItem->is_purchasable
-            || $menuItem->price_cents === null
-        ) {
-            $this->handleValidationFailure(
-                ValidationException::withMessages([
+            if (
+                ! $menuItem->is_purchasable
+                || $menuItem->price_cents === null
+            ) {
+                throw ValidationException::withMessages([
                     'cart' => $menuItem->name
                         .' cannot currently be ordered online.',
-                ]),
-            );
+                ]);
+            }
 
-            return;
-        }
-
-        try {
             $optionIds = $this->selectedOptionIds();
 
             app(OrderPriceCalculator::class)->validateSelection(
@@ -199,7 +172,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Render the selected item and its presentation-only calculated total.
+     * Render the currently selected product and its preview total.
      */
     public function render(): View
     {
@@ -220,7 +193,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Load one visible menu item with its public category and available options.
+     * Load a visible item, category, option groups, and available options.
      */
     private function loadPublicMenuItem(
         int $menuItemId,
@@ -238,16 +211,16 @@ final class ProductModal extends Component
             ->with([
                 'menuCategory',
                 'optionGroups' => function (
-                    Relation $relation,
+                    HasMany $relation,
                 ): void {
                     $relation
                         ->getQuery()
                         ->reorder()
-                        ->orderBy('menu_item_option_groups.sort_order')
-                        ->orderBy('menu_item_option_groups.name')
+                        ->orderBy('sort_order')
+                        ->orderBy('name')
                         ->with([
                             'options' => function (
-                                Relation $optionRelation,
+                                HasMany $optionRelation,
                             ): void {
                                 $optionRelation
                                     ->getQuery()
@@ -270,7 +243,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Flatten the current option-group state into strict option identifiers.
+     * Flatten Livewire option-group state into validated integer IDs.
      *
      * @return list<int>
      */
@@ -308,10 +281,9 @@ final class ProductModal extends Component
     }
 
     /**
-     * Return safe numeric selections for presentation-only total updates.
+     * Return valid numeric option IDs for preview calculations.
      *
-     * Invalid or stale values are ignored here and rejected by the
-     * authoritative server-side validator during Add to Cart.
+     * Invalid values are ignored here and rejected during cart validation.
      *
      * @return list<int>
      */
@@ -345,9 +317,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Calculate the modal's immediate display total from loaded options.
-     *
-     * This value is never trusted for cart or checkout pricing.
+     * Calculate the current presentation-only product total.
      */
     private function displayTotalCents(
         MenuItem $menuItem,
@@ -381,23 +351,19 @@ final class ProductModal extends Component
     }
 
     /**
-     * Normalize the current quantity for presentation calculations.
+     * Normalize quantity into the supported session-cart range.
      */
     private function normalizedQuantity(): int
     {
         $quantity = $this->quantity;
 
-        if (is_int($quantity)) {
-            return max(
-                1,
-                min(
-                    SessionCart::MAX_QUANTITY,
-                    $quantity,
-                ),
-            );
-        }
-
-        if (! ctype_digit($quantity)) {
+        if (
+            ! is_int($quantity)
+            && ! (
+                is_string($quantity)
+                && ctype_digit($quantity)
+            )
+        ) {
             return 1;
         }
 
@@ -411,7 +377,7 @@ final class ProductModal extends Component
     }
 
     /**
-     * Copy domain-validation messages into Livewire's error bag.
+     * Add domain validation messages to Livewire's error bag.
      */
     private function handleValidationFailure(
         ValidationException $exception,
@@ -420,6 +386,10 @@ final class ProductModal extends Component
 
         foreach ($exception->errors() as $key => $messages) {
             foreach ($messages as $message) {
+                if (! is_string($message)) {
+                    continue;
+                }
+
                 if (! $this->getErrorBag()->has($key)) {
                     $this->addError($key, $message);
                 }
@@ -428,20 +398,18 @@ final class ProductModal extends Component
             }
         }
 
-        $message = $firstMessage
-            ?? 'The selected item could not be added to your cart.';
-
         $this->dispatch('product-modal-error');
 
         $this->notify(
             type: 'error',
             title: 'Unable to add item',
-            message: $message,
+            message: $firstMessage
+                ?? 'The selected item could not be added to your cart.',
         );
     }
 
     /**
-     * Dispatch one reusable public notification.
+     * Dispatch a reusable public cart notification.
      */
     private function notify(
         string $type,

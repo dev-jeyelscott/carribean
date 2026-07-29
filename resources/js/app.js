@@ -10,18 +10,18 @@ Alpine.data("contactForm", contactForm);
 
 Livewire.start();
 
-const homepageHeader = document.querySelector(
-    'body[data-page="home"] header',
+const publicHeader = document.querySelector(
+    "[data-public-header-shell] > header",
 );
 
-if (homepageHeader) {
+if (publicHeader) {
     import("./public-header")
         .then(({ initPublicHeader }) => {
-            initPublicHeader(homepageHeader);
+            initPublicHeader(publicHeader);
         })
         .catch((error) => {
             console.error(
-                "Unable to initialize the public homepage header.",
+                "Unable to initialize the shared public header.",
                 error,
             );
         });

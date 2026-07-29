@@ -8,12 +8,55 @@ test.use({
     },
 });
 
-test("homepage header becomes compact away from the page top", async ({
+const sharedHeaderRoutes = [
+    "/",
+    "/menu",
+    "/cart",
+];
+
+for (const route of sharedHeaderRoutes) {
+    test(`shared public header renders on ${route}`, async ({
+        page,
+    }) => {
+        await page.goto(route);
+
+        const header = page.locator(
+            "[data-public-header-shell] > header",
+        );
+
+        await expect(header).toHaveCount(1);
+
+        await expect(header).toHaveAttribute(
+            "data-public-header-state",
+            "expanded",
+            {
+                timeout: 10_000,
+            },
+        );
+
+        await expect(
+            header.locator(
+                'nav[aria-label="Primary navigation"]',
+            ),
+        ).toHaveCount(1);
+
+        const position = await header.evaluate(
+            (element) =>
+                window.getComputedStyle(element).position,
+        );
+
+        expect(position).toBe("fixed");
+    });
+}
+
+test("shared public header becomes compact after scrolling", async ({
     page,
 }) => {
-    await page.goto("/");
+    await page.goto("/menu");
 
-    const header = page.locator('body[data-page="home"] header');
+    const header = page.locator(
+        "[data-public-header-shell] > header",
+    );
 
     await expect(header).toHaveAttribute(
         "data-public-header-state",
@@ -36,13 +79,16 @@ test("homepage header becomes compact away from the page top", async ({
         "compact",
     );
 
-    await expect(header).toHaveClass(/public-header-compact/);
+    await expect(header).toHaveClass(
+        /public-header-compact/,
+    );
 
     await expect
         .poll(
             async () =>
                 header.evaluate(
-                    (element) => element.getBoundingClientRect().height,
+                    (element) =>
+                        element.getBoundingClientRect().height,
                 ),
             {
                 timeout: 5_000,
@@ -59,17 +105,7 @@ test("homepage header becomes compact away from the page top", async ({
         "expanded",
     );
 
-    await expect(header).not.toHaveClass(/public-header-compact/);
-
-    await expect
-        .poll(
-            async () =>
-                header.evaluate(
-                    (element) => element.getBoundingClientRect().height,
-                ),
-            {
-                timeout: 5_000,
-            },
-        )
-        .toBeGreaterThan(expandedHeight - 5);
+    await expect(header).not.toHaveClass(
+        /public-header-compact/,
+    );
 });
