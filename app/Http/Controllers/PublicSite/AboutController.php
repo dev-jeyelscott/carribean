@@ -44,9 +44,9 @@ final class AboutController extends Controller
                 'ambiance',
                 'guests',
             ],
-            excludedIds: array_values(array_filter([
+            excludedIds: array_filter([
                 $heroImage?->getKey(),
-            ], is_int(...))),
+            ], is_int(...)),
         );
 
         $heritageImage = $this->preferredImage(

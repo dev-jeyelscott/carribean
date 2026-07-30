@@ -8,7 +8,7 @@ use App\Support\Money;
 use App\Support\Orders\OrderPriceCalculator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -211,7 +211,7 @@ final class ProductModal extends Component
             ->with([
                 'menuCategory',
                 'optionGroups' => function (
-                    HasMany $relation,
+                    Relation $relation,
                 ): void {
                     $relation
                         ->getQuery()
@@ -220,7 +220,7 @@ final class ProductModal extends Component
                         ->orderBy('name')
                         ->with([
                             'options' => function (
-                                HasMany $optionRelation,
+                                Relation $optionRelation,
                             ): void {
                                 $optionRelation
                                     ->getQuery()
@@ -263,10 +263,7 @@ final class ProductModal extends Component
 
                 if (
                     ! is_int($value)
-                    && ! (
-                        is_string($value)
-                        && ctype_digit($value)
-                    )
+                    && ! ctype_digit($value)
                 ) {
                     throw ValidationException::withMessages([
                         'selections' => 'One or more selected options are invalid.',
@@ -359,10 +356,7 @@ final class ProductModal extends Component
 
         if (
             ! is_int($quantity)
-            && ! (
-                is_string($quantity)
-                && ctype_digit($quantity)
-            )
+            && ! ctype_digit($quantity)
         ) {
             return 1;
         }
