@@ -120,3 +120,20 @@ if (aboutPageRoot) {
             );
         });
 }
+
+const galleryPageRoot = document.querySelector(
+    "[data-gallery-page]",
+);
+
+if (galleryPageRoot) {
+    import("./gallery-experience")
+        .then(({ initGalleryExperience }) => {
+            initGalleryExperience(galleryPageRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize the Gallery page experience.",
+                error,
+            );
+        });
+}

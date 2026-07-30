@@ -1,13 +1,74 @@
 @props([
     'image',
     'variant' => 'default',
+    'index' => null,
 ])
 
 @php
+    /*
+     * Keep legacy variants reusable while adding the gallery contact-sheet card.
+     */
+    $isContactSheet = $variant === 'contact-sheet';
     $isEditorial = $variant === 'editorial';
+    $displayTitle = $image->title ?: 'Coast & Cay moment';
+    $displayCategory = filled($image->category)
+        ? str($image->category)->headline()->toString()
+        : 'Coast & Cay';
+    $largeImageUrl = $image->responsiveImageUrl('large');
+    $sourceSet = $image->responsiveImageSrcset();
 @endphp
 
-@if ($isEditorial)
+@if ($isContactSheet)
+    <article
+        data-gallery-item
+        {{ $attributes->class(['gallery-contact-card']) }}>
+        @if ($largeImageUrl)
+            <a
+                data-gallery-open
+                data-gallery-src="{{ $largeImageUrl }}"
+                data-gallery-srcset="{{ $sourceSet }}"
+                data-gallery-alt="{{ $image->alt_text ?: $displayTitle }}"
+                data-gallery-title="{{ $displayTitle }}"
+                data-gallery-category="{{ $displayCategory }}"
+                href="{{ $largeImageUrl }}"
+                class="gallery-contact-card__button"
+                aria-label="Open {{ $displayTitle }} in the gallery viewer">
+                <x-public.responsive-image
+                    :image="$image"
+                    :alt="$image->alt_text ?: $displayTitle"
+                    variant="large"
+                    sizes="(min-width: 1280px) 38vw, (min-width: 768px) 48vw, 100vw"
+                    width="1200"
+                    height="900"
+                    img-class="gallery-contact-card__image" />
+
+                <span class="gallery-contact-card__veil" aria-hidden="true"></span>
+
+                <span class="gallery-contact-card__meta" aria-hidden="true">
+                    <span class="gallery-contact-card__number">
+                        {{ str_pad((string) ($index ?? 1), 2, '0', STR_PAD_LEFT) }}
+                    </span>
+                    <span class="gallery-contact-card__category">
+                        {{ $displayCategory }}
+                    </span>
+                </span>
+
+                <span class="gallery-contact-card__content">
+                    <span class="gallery-contact-card__title">
+                        {{ $displayTitle }}
+                    </span>
+                    <span class="gallery-contact-card__open" aria-hidden="true">
+                        Open frame ↗
+                    </span>
+                </span>
+            </a>
+        @else
+            <div class="gallery-contact-card__fallback">
+                <span>{{ $displayTitle }}</span>
+            </div>
+        @endif
+    </article>
+@elseif ($isEditorial)
     <article data-gsap="tile" {{ $attributes->class([
         'group relative isolate min-h-72 overflow-hidden bg-brand-ink-soft',
     ]) }}>
@@ -19,8 +80,7 @@
                 sizes="(min-width: 1024px) 66vw, (min-width: 768px) 50vw, 100vw"
                 width="1200"
                 height="900"
-                img-class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
-            />
+                img-class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105" />
         @else
             <div class="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_28%_22%,rgba(201,164,93,0.3),transparent_32%),linear-gradient(145deg,#4d4437,#171916)]"></div>
         @endif
@@ -57,8 +117,7 @@
                     sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
                     width="960"
                     height="720"
-                    img-class="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
-                />
+                    img-class="h-64 w-full object-cover transition duration-500 group-hover:scale-105" />
             </div>
         @endif
 

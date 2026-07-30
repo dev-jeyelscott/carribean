@@ -2,6 +2,7 @@
 @import "./menu.css";
 @import "./menu-page-enhancements.css";
 @import "./about.css";
+@import "./gallery.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

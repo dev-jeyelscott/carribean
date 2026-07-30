@@ -1,336 +1,470 @@
 <x-layouts.public
     :title="$page?->meta_title ?: 'Gallery | Coast & Cay'"
-    :description="$page?->meta_description ?: 'Explore Coast & Cay food, drinks, hospitality, and relaxed island-inspired details.'">
+    :description="$page?->meta_description ?: 'Explore Coast & Cay food, hospitality, and coastal moments.'"
+    :image="$heroImage?->image_url"
+    :header-overlay="true">
     @php
-    $heroImage = $galleryImages->first();
-    $supportingImages = $galleryImages->skip(1)->take(2)->values();
-    $categories = $galleryImages
-    ->pluck('category')
-    ->filter()
-    ->unique()
-    ->values();
+        /*
+         * Read optional structured page copy while preserving useful defaults.
+         */
+        $sections = is_array($page?->sections)
+            ? $page->sections
+            : [];
+
+        $heroTitle = data_get(
+            $sections,
+            'hero.title',
+            'An Island, Framed.',
+        );
+
+        $heroAccent = data_get(
+            $sections,
+            'hero.accent',
+            'Every plate tells a story.',
+        );
+
+        $heroDescription = data_get(
+            $sections,
+            'hero.description',
+            filled($page?->excerpt)
+                ? $page->excerpt
+                : 'A visual journal of bold plates, easy evenings, and the people who bring Caribbean warmth to the California coast.',
+        );
+
+        $signatureDescription = filled($page?->content)
+            ? str($page->content)->stripTags()->squish()
+            : 'This is not a catalog of perfect moments. It is a moving postcard from the kitchen, the dining room, and the coast beyond our doors.';
+
+        $chapterEntries = $categoryCounts
+            ->take(3)
+            ->map(
+                fn (int $count, string $category): array => [
+                    'label' => str($category)->headline()->toString(),
+                    'count' => $count,
+                ],
+            )
+            ->values();
+
+        if ($chapterEntries->isEmpty()) {
+            $chapterEntries = collect([
+                ['label' => 'The Food', 'count' => 0],
+                ['label' => 'The Room', 'count' => 0],
+                ['label' => 'The People', 'count' => 0],
+            ]);
+        }
+
+        $activeCollectionTitle = $selectedCategory !== null
+            ? str($selectedCategory)->headline()->toString()
+            : 'The complete contact sheet';
     @endphp
 
-    <div data-home-motion data-gallery-motion>
+    <div
+        data-gallery-page
+        data-gallery-motion-state="loading"
+        class="gallery-page">
+        {{-- Cinematic full-screen gallery introduction. --}}
         <section
-            data-public-hero
-            class="public-hero-viewport relative isolate flex items-center
-                overflow-hidden bg-brand-palm-dark">
+            data-gallery-hero
+            class="gallery-hero"
+            aria-labelledby="gallery-hero-heading">
             @if ($heroImage?->image_url)
-            <div data-gsap="hero-image" class="absolute inset-0 -z-30">
-                <x-public.responsive-image
-                    :image="$heroImage"
-                    :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Coast and Cay restaurant gallery'"
-                    variant="hero"
-                    sizes="100vw"
-                    width="1920"
-                    height="1280"
-                    loading="eager"
-                    fetchpriority="high"
-                    img-class="h-full w-full object-cover object-center" />
-            </div>
+                <div
+                    data-gallery-hero-image
+                    class="gallery-hero__background">
+                    <x-public.responsive-image
+                        :image="$heroImage"
+                        :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Coast and Cay restaurant atmosphere'"
+                        variant="hero"
+                        sizes="100vw"
+                        width="2000"
+                        height="1400"
+                        loading="eager"
+                        fetchpriority="high"
+                        img-class="size-full object-cover" />
+                </div>
             @else
-            <div
-                class="absolute inset-0 -z-30
-                    bg-[radial-gradient(circle_at_70%_28%,rgba(242,199,107,0.25),transparent_34%),linear-gradient(145deg,#206f7c,#0c342b_68%)]">
-            </div>
+                <div class="gallery-hero__fallback" aria-hidden="true"></div>
             @endif
 
-            <div
-                class="absolute inset-0 -z-20
-                    bg-[linear-gradient(to_bottom,rgba(12,52,43,0.38),rgba(12,52,43,0.28)_32%,rgba(12,52,43,0.94))]">
-            </div>
+            <div class="gallery-hero__grain" aria-hidden="true"></div>
 
-            <div
-                class="absolute inset-0 -z-10 bg-gradient-to-r
-                    from-brand-palm-dark/88 via-brand-palm-dark/35
-                    to-transparent">
-            </div>
-
-            <div
-                class="public-container pb-12 pt-28
-                    sm:pb-20 sm:pt-36 lg:pb-28 lg:pt-44">
-                <div data-gsap="hero-content" class="max-w-4xl">
-                    <p
-                        data-gsap-reveal
-                        class="text-xs font-semibold uppercase tracking-[0.38em]
-                            text-brand-sun sm:text-sm">
-                        The Gallery
+            <div class="public-container gallery-hero__grid">
+                <div data-gallery-hero-copy class="gallery-hero__copy">
+                    <p data-gallery-reveal class="gallery-hero__kicker">
+                        The Coast & Cay visual journal
                     </p>
 
                     <h1
-                        data-gsap-reveal
-                        class="mt-6 max-w-4xl font-display text-5xl
-                            leading-[0.98] text-white sm:text-6xl lg:text-8xl">
-                        {{ $page?->title ?: 'Food, Color, and Easy Evenings' }}
+                        id="gallery-hero-heading"
+                        data-gallery-reveal
+                        class="gallery-hero__title">
+                        {{ $heroTitle }}
+                        <span class="gallery-hero__accent">
+                            {{ $heroAccent }}
+                        </span>
                     </h1>
 
-                    <p
-                        data-gsap-reveal
-                        class="mt-7 max-w-2xl text-base leading-8
-                            text-white/78 sm:text-lg">
-                        {{ $page?->excerpt ?: 'A look at the dishes, rooms, and warm details shaping the Coast & Cay experience.' }}
+                    <p data-gallery-reveal class="gallery-hero__description">
+                        {{ $heroDescription }}
                     </p>
 
-                    <div
-                        data-gsap-reveal
-                        class="mt-10 flex flex-col gap-4 sm:flex-row">
+                    <div data-gallery-reveal class="gallery-hero__actions">
                         <a
                             href="#gallery-collection"
                             class="public-button-primary">
-                            View the Gallery
+                            Enter the Collection
+                        </a>
+
+                        <a
+                            href="{{ route('menu') }}"
+                            class="public-button-secondary text-white">
+                            Explore the Menu
                         </a>
                     </div>
                 </div>
+
+                <div
+                    data-gallery-stack
+                    class="gallery-hero__stack"
+                    aria-label="Featured Coast and Cay moments">
+                    @for ($stackIndex = 0; $stackIndex < 3; $stackIndex++)
+                        @php
+                            $stackImage = $highlightImages->get($stackIndex);
+                            $stackPosition = match ($stackIndex) {
+                                0 => 'gallery-stack-card--one',
+                                1 => 'gallery-stack-card--two',
+                                default => 'gallery-stack-card--three',
+                            };
+                        @endphp
+
+                        <figure
+                            data-gallery-stack-card
+                            class="gallery-stack-card {{ $stackPosition }}">
+                            @if ($stackImage?->image_url)
+                                <div class="gallery-stack-card__media">
+                                    <x-public.responsive-image
+                                        :image="$stackImage"
+                                        :alt="$stackImage->alt_text ?: $stackImage->title ?: 'Featured Coast and Cay gallery moment'"
+                                        variant="large"
+                                        sizes="(min-width: 1024px) 24vw, 42vw"
+                                        width="900"
+                                        height="1125"
+                                        img-class="size-full object-cover" />
+                                </div>
+
+                                <figcaption class="gallery-stack-card__caption">
+                                    {{ $stackImage->title ?: 'Coast & Cay moment' }}
+                                </figcaption>
+                            @else
+                                <div class="gallery-stack-card--placeholder">
+                                    <span>More island moments soon.</span>
+                                </div>
+                            @endif
+                        </figure>
+                    @endfor
+                </div>
             </div>
+
+            <a
+                data-gallery-reveal
+                href="#gallery-signature"
+                class="gallery-hero__scroll">
+                Scroll through the story
+            </a>
         </section>
 
+        {{-- Editorial bridge between the hero and the image collection. --}}
         <section
-            data-gsap="section"
-            class="overflow-hidden bg-brand-cream py-24
-                text-brand-forest lg:py-32">
-            <div
-                class="public-container grid items-center gap-16
-                    lg:grid-cols-[0.9fr_1.1fr]">
+            id="gallery-signature"
+            data-gallery-section
+            class="gallery-signature"
+            aria-labelledby="gallery-signature-heading">
+            <div class="public-container gallery-signature__grid">
                 <div>
-                    <x-public.section-heading
-                        eyebrow="The Experience"
-                        title="A taste of the island"
-                        :description="$page?->content ?: 'From vibrant plates to a warm dining room, every image reflects generous Caribbean hospitality and California ease.'"
-                        align="left"
-                        theme="light" />
+                    <p data-gallery-reveal class="gallery-signature__kicker">
+                        One table, many stories
+                    </p>
 
-                    <div
-                        data-gsap-reveal
-                        class="mt-10 grid max-w-xl grid-cols-2 gap-8
-                            border-t border-brand-palm/15 pt-8">
-                        <div
-                            data-gsap-counter
-                            data-count-value="{{ $galleryImages->count() }}">
-                            <p
-                                data-gsap-count
-                                class="font-display text-4xl text-brand-forest">
-                                {{ $galleryImages->count() }}
-                            </p>
-                            <p
-                                class="mt-2 text-xs font-semibold uppercase
-                                    tracking-[0.2em] text-brand-coral-dark">
-                                Moments on this page
-                            </p>
-                        </div>
-
-                        <div
-                            data-gsap-counter
-                            data-count-value="{{ $categories->count() }}">
-                            <p
-                                data-gsap-count
-                                class="font-display text-4xl text-brand-forest">
-                                {{ $categories->count() }}
-                            </p>
-                            <p
-                                class="mt-2 text-xs font-semibold uppercase
-                                    tracking-[0.2em] text-brand-coral-dark">
-                                Categories on this page
-                            </p>
-                        </div>
-                    </div>
+                    <h2
+                        id="gallery-signature-heading"
+                        data-gallery-reveal
+                        class="gallery-signature__title">
+                        A visual rhythm of flavor, place, and welcome.
+                    </h2>
                 </div>
 
-                <div class="relative min-h-[27rem] sm:min-h-[34rem]">
-                    <div
-                        data-gsap="frame"
-                        class="absolute left-0 top-0 h-[82%] w-[78%]
-                            border border-brand-coral/45"
-                        aria-hidden="true">
-                    </div>
+                <div>
+                    <p data-gallery-reveal class="gallery-signature__copy">
+                        {{ $signatureDescription }}
+                    </p>
 
-                    @if ($supportingImages->count() >= 2)
-                    @foreach ($supportingImages as $image)
-                    <figure
-                        data-gsap="image"
-                        @class([
-                            'absolute overflow-hidden rounded-island bg-white shadow-island',
-                            'left-5 top-5 h-[72%] w-[72%]' => $loop->first,
-                            'bottom-0 right-0 h-[52%] w-[52%] border-8 border-brand-cream' => $loop->last,
-                        ])>
-                        @if ($image->image_url)
-                        <x-public.responsive-image
-                            :image="$image"
-                            :alt="$image->alt_text ?: $image->title ?: 'Restaurant gallery image'"
-                            variant="large"
-                            sizes="(min-width: 1024px) 40vw, 75vw"
-                            width="1200"
-                            height="900"
-                            img-class="h-full w-full object-cover" />
-                        @endif
-                    </figure>
-                    @endforeach
-                    @elseif ($heroImage?->image_url)
-                    <figure
-                        data-gsap="image"
-                        class="absolute bottom-0 right-0 h-[88%] w-[88%]
-                            overflow-hidden rounded-island bg-white
-                            shadow-island">
-                        <x-public.responsive-image
-                            :image="$heroImage"
-                            :alt="$heroImage->alt_text ?: $heroImage->title ?: 'Restaurant gallery image'"
-                            variant="large"
-                            sizes="(min-width: 1024px) 45vw, 88vw"
-                            width="1200"
-                            height="900"
-                            img-class="h-full w-full object-cover" />
-                    </figure>
-                    @else
-                    <div
-                        class="absolute bottom-0 right-0 h-[88%] w-[88%]
-                            rounded-island
-                            bg-[radial-gradient(circle_at_65%_28%,rgba(242,199,107,0.3),transparent_34%),linear-gradient(145deg,#e8d6b8,#206f7c)]
-                            shadow-island">
+                    <div class="gallery-chapters" aria-label="Gallery chapters">
+                        @foreach ($chapterEntries as $chapter)
+                            <article data-gallery-reveal class="gallery-chapter">
+                                <span class="gallery-chapter__number" aria-hidden="true">
+                                    {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}
+                                </span>
+                                <h3 class="gallery-chapter__label">
+                                    {{ $chapter['label'] }}
+                                </h3>
+                                <p class="gallery-chapter__count">
+                                    {{ $chapter['count'] }}
+                                    {{ str('frame')->plural($chapter['count']) }}
+                                </p>
+                            </article>
+                        @endforeach
                     </div>
-                    @endif
                 </div>
             </div>
         </section>
 
+        {{-- Server-rendered filter and asymmetrical editorial contact sheet. --}}
         <section
             id="gallery-collection"
-            data-gsap="gallery"
-            class="scroll-mt-24 bg-brand-palm-dark py-24 lg:py-32">
-            <div class="public-container">
-                <x-public.section-heading
-                    eyebrow="The Collection"
-                    title="Food, hospitality, and coastal moments"
-                    description="Explore colorful dishes, relaxed spaces, and the warm details that make Coast & Cay feel welcoming." />
+            data-gallery-collection
+            class="gallery-collection"
+            aria-labelledby="gallery-collection-heading">
+            <div class="public-container gallery-collection__inner">
+                <header class="gallery-collection__header">
+                    <div>
+                        <p data-gallery-reveal class="gallery-collection__kicker">
+                            Volume 01 · Coast & Cay
+                        </p>
 
-                @if ($categories->isNotEmpty())
-                <ul
-                    class="mt-10 flex flex-wrap justify-center gap-3"
-                    aria-label="Gallery categories">
-                    @foreach ($categories as $category)
-                    <li
-                        data-gsap-reveal
-                        class="rounded-full border border-white/15 px-4 py-2
-                            text-[0.65rem] font-semibold uppercase
-                            tracking-[0.22em] text-white/72">
-                        {{ $category }}
-                    </li>
-                    @endforeach
-                </ul>
-                @endif
+                        <h2
+                            id="gallery-collection-heading"
+                            data-gallery-reveal
+                            class="gallery-collection__title">
+                            {{ $activeCollectionTitle }}
+                        </h2>
+                    </div>
 
-                @if ($galleryImages->isNotEmpty())
-                <div
-                    data-gsap="gallery-collection"
-                    class="mt-14 grid gap-4 md:auto-rows-[18rem]
-                        md:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($galleryImages as $image)
-                    @php
-                    $patternIndex = $loop->index % 8;
-                    $cardClass = match ($patternIndex) {
-                    0 => 'md:col-span-2 md:row-span-2 lg:col-span-2',
-                    3 => 'lg:row-span-2',
-                    5 => 'md:col-span-2 lg:col-span-1',
-                    6 => 'lg:col-span-2',
-                    default => '',
-                    };
-                    @endphp
+                    <p data-gallery-reveal class="gallery-collection__description">
+                        {{ $totalImageCount }} curated moments. Choose a chapter,
+                        then open any frame for the full view.
+                    </p>
+                </header>
 
-                    <x-public.gallery-card
-                        :image="$image"
-                        variant="editorial"
-                        :class="$cardClass" />
-                    @endforeach
+                <div class="gallery-collection__layout">
+                    <aside
+                        data-gallery-film-index
+                        class="gallery-film-index"
+                        aria-label="Filter the gallery by category">
+                        <div class="gallery-film-index__header">
+                            <p class="gallery-film-index__title">Film index</p>
+                            <span>{{ str_pad((string) $totalImageCount, 2, '0', STR_PAD_LEFT) }}</span>
+                        </div>
+
+                        <nav class="gallery-filter-list">
+                            <a
+                                data-gallery-filter
+                                data-gallery-category="all"
+                                href="{{ route('gallery') }}#gallery-collection"
+                                class="gallery-filter-link"
+                                aria-current="{{ $selectedCategory === null ? 'true' : 'false' }}">
+                                <span>All moments</span>
+                                <span class="gallery-filter-link__count">
+                                    {{ $totalImageCount }}
+                                </span>
+                            </a>
+
+                            @foreach ($categoryCounts as $category => $count)
+                                <a
+                                    data-gallery-filter
+                                    data-gallery-category="{{ $category }}"
+                                    href="{{ route('gallery', ['category' => $category]) }}#gallery-collection"
+                                    class="gallery-filter-link"
+                                    aria-current="{{ $selectedCategory === $category ? 'true' : 'false' }}">
+                                    <span>{{ str($category)->headline() }}</span>
+                                    <span class="gallery-filter-link__count">
+                                        {{ $count }}
+                                    </span>
+                                </a>
+                            @endforeach
+                        </nav>
+                    </aside>
+
+                    <div>
+                        @if ($galleryImages->isNotEmpty())
+                            <div class="gallery-contact-sheet">
+                                @foreach ($galleryImages as $image)
+                                    @php
+                                        $patternClass = match ($loop->index % 7) {
+                                            0 => 'gallery-contact-card--wide',
+                                            2 => 'gallery-contact-card--portrait',
+                                            5 => 'gallery-contact-card--tall',
+                                            default => '',
+                                        };
+
+                                        $displayIndex = ($galleryImages->firstItem() ?? 1)
+                                            + $loop->index;
+                                    @endphp
+
+                                    <x-public.gallery-card
+                                        :image="$image"
+                                        :index="$displayIndex"
+                                        variant="contact-sheet"
+                                        :class="$patternClass" />
+                                @endforeach
+                            </div>
+
+                            @if ($galleryImages->hasPages())
+                                <nav
+                                    class="gallery-pagination"
+                                    aria-label="Gallery pagination">
+                                    @if ($galleryImages->previousPageUrl())
+                                        <a
+                                            href="{{ $galleryImages->previousPageUrl() }}"
+                                            class="gallery-pagination__control"
+                                            rel="prev">
+                                            Previous volume
+                                        </a>
+                                    @else
+                                        <span
+                                            class="gallery-pagination__control"
+                                            aria-disabled="true">
+                                            Previous volume
+                                        </span>
+                                    @endif
+
+                                    <span class="gallery-pagination__status">
+                                        Volume {{ str_pad((string) $galleryImages->currentPage(), 2, '0', STR_PAD_LEFT) }}
+                                    </span>
+
+                                    @if ($galleryImages->nextPageUrl())
+                                        <a
+                                            href="{{ $galleryImages->nextPageUrl() }}"
+                                            class="gallery-pagination__control"
+                                            rel="next">
+                                            Next volume
+                                        </a>
+                                    @else
+                                        <span
+                                            class="gallery-pagination__control"
+                                            aria-disabled="true">
+                                            Next volume
+                                        </span>
+                                    @endif
+                                </nav>
+                            @endif
+                        @else
+                            <x-public.alert type="warning">
+                                No visible gallery moments match this collection yet.
+                            </x-public.alert>
+                        @endif
+                    </div>
                 </div>
-
-                @if ($galleryImages->hasPages())
-                <div
-                    data-gsap="section"
-                    class="mt-14 border-t border-white/10 pt-10">
-                    {{ $galleryImages->links() }}
-                </div>
-                @endif
-                @else
-                <x-public.alert type="warning" class="mt-14">
-                    Our gallery is currently being curated. Please check back
-                    soon for more Coast & Cay moments.
-                </x-public.alert>
-                @endif
             </div>
         </section>
 
-        <section class="grid lg:grid-cols-2">
-            <article
-                data-gsap="panel"
-                class="relative isolate flex min-h-[30rem] items-center
-                    overflow-hidden bg-brand-ocean px-5 py-20 text-white
-                    sm:px-10 lg:px-16">
-                @if ($heroImage?->image_url)
-                <div data-gsap="parallax" class="absolute inset-0 -z-20">
+        {{-- Full-width invitation that keeps the gallery connected to conversion. --}}
+        <section
+            data-gallery-cta
+            class="gallery-cta"
+            aria-labelledby="gallery-cta-heading">
+            @if ($heroImage?->image_url)
+                <div class="gallery-cta__background" aria-hidden="true">
                     <x-public.responsive-image
                         :image="$heroImage"
                         alt=""
-                        variant="large"
-                        sizes="(min-width: 1024px) 50vw, 100vw"
-                        width="1200"
-                        height="900"
-                        img-class="h-full w-full object-cover opacity-25" />
+                        variant="hero"
+                        sizes="100vw"
+                        width="2000"
+                        height="1100"
+                        img-class="size-full object-cover" />
                 </div>
-                @endif
+            @endif
 
-                <div class="absolute inset-0 -z-10 bg-brand-palm-dark/70"></div>
+            <div class="gallery-cta__overlay" aria-hidden="true"></div>
 
-                <div data-gsap-reveal class="mx-auto max-w-lg text-center">
-                    <p
-                        class="text-xs font-semibold uppercase
-                            tracking-[0.3em] text-brand-sun">
-                        Island Hospitality
-                    </p>
-                    <h2
-                        class="mt-5 font-display text-4xl leading-tight
-                            sm:text-5xl">
-                        Food made for sharing
-                    </h2>
-                    <p class="mt-6 text-base leading-8 text-white/72">
-                        Coast & Cay brings vibrant food, thoughtful drinks,
-                        and an easy welcome to every table.
-                    </p>
-                </div>
-            </article>
+            <div class="public-container gallery-cta__copy">
+                <p data-gallery-reveal class="gallery-cta__kicker">
+                    The next frame is yours
+                </p>
 
-            <article
-                data-gsap="panel"
-                class="relative isolate flex min-h-[30rem] items-center
-                    overflow-hidden bg-brand-sand-soft px-5 py-20
-                    text-brand-forest sm:px-10 lg:px-16">
-                <div
-                    class="absolute inset-0 -z-10
-                        bg-[radial-gradient(circle_at_75%_22%,rgba(230,110,80,0.18),transparent_35%)]">
-                </div>
+                <h2
+                    id="gallery-cta-heading"
+                    data-gallery-reveal
+                    class="gallery-cta__title">
+                    Come for the food.<br>
+                    Leave with a favorite moment.
+                </h2>
 
-                <div data-gsap-reveal class="mx-auto max-w-lg text-center">
-                    <p
-                        class="text-xs font-semibold uppercase
-                            tracking-[0.3em] text-brand-coral-dark">
-                        Need a Hand?
-                    </p>
-                    <h2
-                        class="mt-5 font-display text-4xl leading-tight
-                            sm:text-5xl">
-                        Questions about the menu or an order?
-                    </h2>
-                    <p
-                        class="mt-6 text-base leading-8 text-brand-muted">
-                        Contact the restaurant team for menu questions,
-                        online-order support, directions, or accessibility
-                        information.
-                    </p>
+                <p data-gallery-reveal class="gallery-cta__description">
+                    Explore the menu before your visit, or contact the team for
+                    restaurant and accessibility information.
+                </p>
+
+                <div data-gallery-reveal class="gallery-hero__actions">
+                    <a href="{{ route('menu') }}" class="public-button-primary">
+                        Explore the Menu
+                    </a>
                     <a
                         href="{{ route('contact.create') }}"
-                        class="public-button-primary mt-9">
-                        Contact Us
+                        class="public-button-secondary text-white">
+                        Contact the Team
                     </a>
                 </div>
-            </article>
+            </div>
         </section>
+
+        {{-- One shared native dialog keeps the DOM small and keyboard behavior native. --}}
+        <dialog
+            data-gallery-dialog
+            data-gallery-image-state="idle"
+            class="gallery-lightbox"
+            aria-labelledby="gallery-dialog-title">
+            <div class="gallery-lightbox__panel">
+                <button
+                    type="button"
+                    data-gallery-close
+                    class="gallery-lightbox__close"
+                    aria-label="Close gallery image"
+                    autofocus>
+                    <span aria-hidden="true">×</span>
+                </button>
+
+                <button
+                    type="button"
+                    data-gallery-previous
+                    class="gallery-lightbox__navigation gallery-lightbox__navigation--previous"
+                    aria-label="View previous gallery image">
+                    <span aria-hidden="true">←</span>
+                </button>
+
+                <figure class="gallery-lightbox__media">
+                    <div class="gallery-lightbox__image-shell">
+                        <img
+                            data-gallery-dialog-image
+                            class="gallery-lightbox__image"
+                            width="1600"
+                            height="1200"
+                            alt="">
+                    </div>
+
+                    <figcaption class="gallery-lightbox__caption">
+                        <p
+                            data-gallery-dialog-category
+                            class="gallery-lightbox__category">
+                            Coast & Cay
+                        </p>
+                        <h2
+                            id="gallery-dialog-title"
+                            data-gallery-dialog-title
+                            class="gallery-lightbox__title">
+                            Coast & Cay moment
+                        </h2>
+                    </figcaption>
+                </figure>
+
+                <button
+                    type="button"
+                    data-gallery-next
+                    class="gallery-lightbox__navigation gallery-lightbox__navigation--next"
+                    aria-label="View next gallery image">
+                    <span aria-hidden="true">→</span>
+                </button>
+            </div>
+        </dialog>
     </div>
 </x-layouts.public>
