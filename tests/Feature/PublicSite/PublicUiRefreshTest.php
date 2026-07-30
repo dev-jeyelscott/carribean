@@ -36,6 +36,11 @@ beforeEach(function (): void {
         'title' => 'Caribbean Roots, California Rhythm',
         'excerpt' => 'Our restaurant story.',
         'content' => '<p>A restaurant made for gathering.</p>',
+        'sections' => [
+            'hero' => [
+                'title' => 'Caribbean Roots, California Rhythm',
+            ],
+        ],
         'meta_title' => 'About Coast & Cay',
         'meta_description' => 'About Coast & Cay.',
         'is_published' => true,

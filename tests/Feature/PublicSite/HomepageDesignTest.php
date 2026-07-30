@@ -1,14 +1,15 @@
 <?php
 
-it('renders the island restaurant mockup sections', function (): void {
+it('renders the approved island restaurant homepage sections', function (): void {
     $response = $this->get(route('home'));
 
     $response
         ->assertOk()
         ->assertSee('data-home-motion', escape: false)
+        ->assertSee('data-home-section-pager', escape: false)
         ->assertSee('data-public-hero', escape: false)
         ->assertSee(
-            'aria-label="Restaurant highlights"',
+            'aria-labelledby="featured-dishes-heading"',
             escape: false,
         )
         ->assertSeeText('Bold flavors. Warm hospitality.')
@@ -20,11 +21,9 @@ it('renders the island restaurant mockup sections', function (): void {
         ->assertSeeText('Featured Dishes')
         ->assertSeeText('Rooted in Tradition.')
         ->assertSeeText('Made for Today.')
-        ->assertSeeText('Explore by Category')
-        ->assertSeeText('Made for Good Company')
-        ->assertSeeText(
-            'Ready for Good Food and Island Vibes?',
-        );
+        ->assertSeeText('Find your next favorite')
+        ->assertSeeText('Food, warmth, and coastal evenings.')
+        ->assertSeeText('Ready for good food and island vibes?');
 });
 
 it('does not publish unsupported restaurant claims', function (): void {

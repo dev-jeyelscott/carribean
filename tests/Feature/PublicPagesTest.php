@@ -87,7 +87,7 @@ test('all public pages share sticky accessible navigation', function (
     'contact' => 'contact.create',
 ]);
 
-test('standard public pages share the public hero contract', function (
+test('shared public image heroes expose the shared GSAP contract', function (
     string $routeName,
 ): void {
     $this->get(route($routeName))
@@ -95,10 +95,18 @@ test('standard public pages share the public hero contract', function (
         ->assertSee('data-public-hero', false)
         ->assertSee('data-gsap="hero-content"', false);
 })->with([
-    'home' => 'home',
     'gallery' => 'gallery',
     'contact' => 'contact.create',
 ]);
+
+test('homepage exposes its dedicated section-pager hero contract', function (): void {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('data-public-hero', false)
+        ->assertSee('data-home-motion', false)
+        ->assertSee('data-home-section-pager', false)
+        ->assertSee('data-home-reveal', false);
+});
 
 test('menu page uses its dedicated progressive hero contract', function (): void {
     $this->get(route('menu'))

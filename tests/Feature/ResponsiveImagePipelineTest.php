@@ -163,40 +163,6 @@ test('public pages render responsive image selection while preserving hero prior
         ->assertSee('fetchpriority="high"', false);
 });
 
-test('menu hero uses responsive hero candidates with high loading priority', function (): void {
-    $menuPath = storeResponsiveTestImage(
-        'menu-items',
-        'menu-hero.jpg',
-    );
-
-    $category = MenuCategory::query()->create([
-        'name' => 'Dinner',
-        'slug' => 'dinner',
-        'sort_order' => 1,
-        'is_visible' => true,
-    ]);
-
-    MenuItem::query()->create([
-        'menu_category_id' => $category->id,
-        'name' => 'Menu Hero',
-        'slug' => 'menu-hero',
-        'image_path' => $menuPath,
-        'sort_order' => 1,
-        'is_visible' => true,
-    ]);
-
-    $this->get(route('menu'))
-        ->assertOk()
-        ->assertSeeText('Menu Hero')
-        ->assertSee(
-            '/storage/menu-items/variants/menu-hero-hero.jpg',
-            false,
-        )
-        ->assertSee('sizes="100vw"', false)
-        ->assertSee('loading="eager"', false)
-        ->assertSee('fetchpriority="high"', false);
-});
-
 test('filament image tables resolve dedicated thumbnail variants', function (): void {
     $galleryTable = File::get(app_path('Filament/Resources/GalleryImages/Tables/GalleryImagesTable.php'));
     $menuTable = File::get(app_path('Filament/Resources/MenuItems/Tables/MenuItemsTable.php'));

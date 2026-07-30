@@ -23,8 +23,9 @@ test('development seeders use the Coast and Cay scope and brand voice', function
         ->not->toContain('Order Inquiry');
 
     expect($gallerySeeder)
-        ->toContain('Coastal Dining Room')
-        ->toContain('Island-Inspired Signature Plate')
+        ->toContain('Coast & Cay Signature Dish')
+        ->toContain('Island Flavor Collection')
+        ->toContain('Caribbean Dining Experience')
         ->not->toContain('fine-dining');
 
     expect($databaseSeeder)

@@ -208,7 +208,7 @@ it('adds a valid configured item to the session cart', function () {
 it('rejects a missing required option', function () {
     $category = createProductModalCategory();
     $menuItem = createProductModalItem($category);
-    createProductModalOptions($menuItem);
+    $options = createProductModalOptions($menuItem);
 
     Livewire::test(ProductModal::class)
         ->dispatch(
@@ -216,7 +216,9 @@ it('rejects a missing required option', function () {
             menuItemId: $menuItem->id,
         )
         ->call('addToCart')
-        ->assertHasErrors('selections')
+        ->assertHasErrors(
+            'selections.'.$options['spice_group']->id,
+        )
         ->assertDispatched('product-modal-error')
         ->assertDispatched('cart-notification');
 
