@@ -3,6 +3,7 @@
     'eager' => false,
     'priority' => false,
     'showCategory' => true,
+    'useModal' => true,
 ])
 
 @php
@@ -26,15 +27,17 @@
 
 <a
     href="{{ $itemUrl }}"
-    wire:click.prevent="$dispatchTo(
-        'menu.product-modal',
-        'open-product-modal',
-        { menuItemId: {{ $item->id }} }
-    )"
+    @if ($useModal)
+        wire:click.prevent="$dispatchTo(
+            'menu.product-modal',
+            'open-product-modal',
+            { menuItemId: {{ $item->id }} }
+        )"
+        data-product-modal-trigger
+    @endif
     data-menu-card
     data-menu-card-link
     data-menu-item-id="{{ $item->id }}"
-    data-product-modal-trigger
     aria-label="View details and customize {{ $item->name }}"
     class="group block h-full w-full min-w-0 rounded-card
         focus-visible:outline-none focus-visible:ring-2

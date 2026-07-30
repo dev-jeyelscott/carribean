@@ -8,20 +8,33 @@ const desktopQuery = "(min-width: 1024px) and (pointer: fine)";
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 const shortViewportQuery = "(max-height: 719px)";
 
-/*
- * Desktop wheel-navigation tuning.
- *
- * A low activation threshold keeps slight mouse-wheel movements responsive.
- * The release delay groups a burst of wheel events into one deliberate gesture.
- */
-const wheelActivationThreshold = 6;
-const wheelGestureReleaseDelay = 120;
-const wheelTransitionDuration = 0.42;
+const wheelActivationThreshold = 8;
+const wheelGestureReleaseDelay = 140;
+const sectionTransitionDuration = 0.48;
+const sectionRevealDuration = 0.9;
+const sectionRevealStagger = 0.09;
 
 /**
- * Mark one homepage panel as the currently active section.
+ * Return every valid top-level homepage panel in document order.
+ */
+function getPanels(root) {
+    return [
+        ...root.querySelectorAll(":scope > [data-home-panel]"),
+    ].filter(
+        (panel) => panel instanceof HTMLElement,
+    );
+}
+
+/**
+ * Mark one panel as the currently active homepage section.
  */
 function setActivePanel(root, panels, activeIndex) {
+    const activePanel = panels[activeIndex];
+
+    if (!(activePanel instanceof HTMLElement)) {
+        return;
+    }
+
     panels.forEach((panel, index) => {
         panel.setAttribute(
             "data-home-active",
@@ -30,38 +43,39 @@ function setActivePanel(root, panels, activeIndex) {
     });
 
     root.dataset.homeActiveSection =
-        panels[activeIndex]?.dataset.homeLabel ?? String(activeIndex);
+        activePanel.dataset.homeLabel ?? String(activeIndex);
 }
 
 /**
- * Expose the current section-navigation state for browser testing and
- * diagnostics without coupling tests to arbitrary animation delays.
+ * Expose navigation state for diagnostics and browser tests.
  */
 function setNavigationState(root, state) {
     root.dataset.homeSectionNavigation = state;
 }
 
 /**
- * Increment the completed-transition counter after a section movement settles.
+ * Record one completed section transition.
  */
 function recordCompletedSnap(root) {
-    const currentCount = Number.parseInt(root.dataset.homeSnapCount ?? "0", 10);
+    const currentCount = Number.parseInt(
+        root.dataset.homeSnapCount ?? "0",
+        10,
+    );
 
     root.dataset.homeSnapCount = String(currentCount + 1);
 }
 
 /**
- * Return the panel whose top edge is currently closest to the viewport top.
- *
- * This handles page restoration, anchor navigation, and browser back-forward
- * cache restoration without assuming that the homepage always starts at panel 0.
+ * Return the panel aligned closest to the viewport top.
  */
 function getClosestPanelIndex(panels) {
     let closestIndex = 0;
     let closestDistance = Number.POSITIVE_INFINITY;
 
     panels.forEach((panel, index) => {
-        const distance = Math.abs(panel.getBoundingClientRect().top);
+        const distance = Math.abs(
+            panel.getBoundingClientRect().top,
+        );
 
         if (distance >= closestDistance) {
             return;
@@ -75,10 +89,7 @@ function getClosestPanelIndex(panels) {
 }
 
 /**
- * Normalize wheel movement into approximate CSS pixels.
- *
- * Most browsers report pixel values, but traditional mouse devices may report
- * line or page units instead.
+ * Normalize browser wheel values into approximate CSS pixels.
  */
 function normalizeWheelDelta(event) {
     if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
@@ -93,38 +104,43 @@ function normalizeWheelDelta(event) {
 }
 
 /**
- * Determine whether the viewport is currently inside the homepage pager.
- *
- * The viewport center is used so native scrolling is restored after the pager
- * moves above the page and the visitor reaches footer content.
+ * Determine whether the viewport center remains inside the homepage pager.
  */
 function isPagerActive(root) {
     const bounds = root.getBoundingClientRect();
     const viewportCenter = window.innerHeight / 2;
 
-    return bounds.top <= viewportCenter && bounds.bottom > viewportCenter;
+    return bounds.top <= viewportCenter
+        && bounds.bottom > viewportCenter;
 }
 
 /**
- * Determine whether a nested element should retain its native vertical scroll.
- *
- * This prevents the homepage pager from blocking an independently scrollable
- * element such as a modal, menu, or intentionally scrollable content region.
+ * Preserve native scrolling inside independently scrollable descendants.
  */
 function hasScrollableAncestor(target, root, deltaY) {
-    let element = target instanceof Element ? target : null;
+    let element = target instanceof Element
+        ? target
+        : null;
 
     while (element && element !== root) {
         const styles = window.getComputedStyle(element);
-        const allowsScrolling =
-            styles.overflowY === "auto" || styles.overflowY === "scroll";
 
-        if (allowsScrolling && element.scrollHeight > element.clientHeight) {
-            const canScrollUp = deltaY < 0 && element.scrollTop > 0;
+        const allowsVerticalScrolling =
+            styles.overflowY === "auto"
+            || styles.overflowY === "scroll";
+
+        if (
+            allowsVerticalScrolling
+            && element.scrollHeight > element.clientHeight
+        ) {
+            const canScrollUp =
+                deltaY < 0
+                && element.scrollTop > 0;
+
             const canScrollDown =
-                deltaY > 0 &&
-                element.scrollTop + element.clientHeight <
-                    element.scrollHeight - 1;
+                deltaY > 0
+                && element.scrollTop + element.clientHeight
+                    < element.scrollHeight - 1;
 
             if (canScrollUp || canScrollDown) {
                 return true;
@@ -138,13 +154,12 @@ function hasScrollableAncestor(target, root, deltaY) {
 }
 
 /**
- * Create a one-time content reveal for one homepage panel.
- *
- * Content remains visible before JavaScript initializes. GSAP applies the
- * hidden starting state only after this module successfully loads.
+ * Create a one-time coordinated content reveal for one homepage panel.
  */
 function createPanelReveal(panel, immediate = false) {
-    const targets = [...panel.querySelectorAll("[data-home-reveal]")];
+    const targets = [
+        ...panel.querySelectorAll("[data-home-reveal]"),
+    ];
 
     if (targets.length === 0) {
         return () => {};
@@ -152,28 +167,27 @@ function createPanelReveal(panel, immediate = false) {
 
     gsap.set(targets, {
         autoAlpha: 0,
-        y: 30,
+        y: 34,
     });
 
     const timeline = gsap.timeline({
         paused: true,
         defaults: {
-            duration: 0.85,
+            duration: sectionRevealDuration,
             ease: "power3.out",
         },
     });
 
     timeline.to(targets, {
         autoAlpha: 1,
-        stagger: 0.1,
+        stagger: sectionRevealStagger,
         y: 0,
     });
 
     let hasPlayed = false;
 
     /**
-     * Play the reveal once so returning to a previous panel does not repeatedly
-     * hide and reanimate readable content.
+     * Reveal the panel once and keep its content visible afterward.
      */
     const play = () => {
         if (hasPlayed) {
@@ -181,7 +195,7 @@ function createPanelReveal(panel, immediate = false) {
         }
 
         hasPlayed = true;
-        timeline.play();
+        timeline.play(0);
     };
 
     if (immediate) {
@@ -193,9 +207,11 @@ function createPanelReveal(panel, immediate = false) {
     }
 
     const trigger = ScrollTrigger.create({
+        id: `home-reveal-${panel.id}`,
         trigger: panel,
-        start: "top 72%",
-        end: "bottom 28%",
+        start: "top 76%",
+        end: "bottom 24%",
+        invalidateOnRefresh: true,
         onEnter: play,
         onEnterBack: play,
     });
@@ -207,88 +223,162 @@ function createPanelReveal(panel, immediate = false) {
 }
 
 /**
- * Bind explicit in-page links such as the hero's Scroll control.
+ * Add restrained image depth to the redesigned Story section.
  */
-function bindScrollLinks(root, reducedMotion) {
-    const cleanup = [];
+function initializeStoryDepth(
+    root,
+    {
+        desktop,
+        reducedMotion,
+    },
+) {
+    const story = root.querySelector("#story");
 
-    root.querySelectorAll("[data-home-scroll-link]").forEach((link) => {
-        const handleClick = (event) => {
-            const selector = link.getAttribute("href");
+    const image = story?.querySelector(
+        "[data-home-story-media] img",
+    );
 
-            if (!selector?.startsWith("#")) {
-                return;
-            }
+    if (
+        !desktop
+        || reducedMotion
+        || !(story instanceof HTMLElement)
+        || !(image instanceof HTMLImageElement)
+    ) {
+        return () => {};
+    }
 
-            const target = document.querySelector(selector);
-
-            if (!(target instanceof HTMLElement)) {
-                return;
-            }
-
-            event.preventDefault();
-
-            if (reducedMotion) {
-                window.scrollTo({
-                    top: target.offsetTop,
-                    behavior: "auto",
-                });
-
-                return;
-            }
-
-            gsap.to(window, {
-                duration: 0.5,
-                ease: "power3.out",
-                overwrite: "auto",
-                scrollTo: {
-                    y: target,
-                    autoKill: true,
-                },
-            });
-        };
-
-        link.addEventListener("click", handleClick);
-
-        cleanup.push(() => {
-            link.removeEventListener("click", handleClick);
-        });
-    });
+    const tween = gsap.fromTo(
+        image,
+        {
+            scale: 1.06,
+            yPercent: -2,
+        },
+        {
+            ease: "none",
+            scale: 1.02,
+            yPercent: 2,
+            scrollTrigger: {
+                id: "home-story-depth",
+                trigger: story,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+                invalidateOnRefresh: true,
+            },
+        },
+    );
 
     return () => {
-        cleanup.forEach((callback) => callback());
+        tween.scrollTrigger?.kill();
+        tween.kill();
     };
 }
 
 /**
- * Initialize full-screen homepage panel navigation.
- *
- * Desktop:
- * - The first meaningful wheel movement responds immediately.
- * - One complete wheel or trackpad gesture moves exactly one panel.
- * - Momentum events are consumed instead of queued.
- * - Native scrolling is restored above the first and below the final panel.
- *
- * Mobile, short viewports, and reduced-motion environments retain native
- * document scrolling without forced section navigation.
+ * Bind explicit homepage links such as the hero Scroll control.
+ */
+function bindScrollLinks(root, reducedMotion) {
+    const cleanupCallbacks = [];
+
+    root.querySelectorAll("[data-home-scroll-link]").forEach(
+        (link) => {
+            if (!(link instanceof HTMLAnchorElement)) {
+                return;
+            }
+
+            const handleClick = (event) => {
+                const selector = link.getAttribute("href");
+
+                if (!selector?.startsWith("#")) {
+                    return;
+                }
+
+                const target = document.querySelector(selector);
+
+                if (!(target instanceof HTMLElement)) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (reducedMotion) {
+                    window.scrollTo({
+                        behavior: "auto",
+                        left: 0,
+                        top: target.offsetTop,
+                    });
+
+                    return;
+                }
+
+                gsap.to(window, {
+                    duration: sectionTransitionDuration,
+                    ease: "power3.out",
+                    overwrite: "auto",
+                    scrollTo: {
+                        autoKill: false,
+                        y: target,
+                    },
+                });
+            };
+
+            link.addEventListener("click", handleClick);
+
+            cleanupCallbacks.push(() => {
+                link.removeEventListener(
+                    "click",
+                    handleClick,
+                );
+            });
+        },
+    );
+
+    return () => {
+        cleanupCallbacks.forEach(
+            (callback) => callback(),
+        );
+    };
+}
+
+/**
+ * Restore final readable states for reduced-motion visitors.
+ */
+function setReducedMotionState(root) {
+    gsap.set(
+        root.querySelectorAll(
+            [
+                "[data-home-reveal]",
+                "[data-home-story-media] img",
+            ].join(", "),
+        ),
+        {
+            autoAlpha: 1,
+            clearProps: "opacity,transform,visibility,willChange",
+        },
+    );
+}
+
+/**
+ * Initialize the complete homepage navigation and reveal experience.
  */
 export function initHomepageSectionNavigation(
-    root = document.querySelector("[data-home-section-pager]"),
+    root = document.querySelector(
+        "[data-home-section-pager]",
+    ),
 ) {
     if (!(root instanceof HTMLElement)) {
         return () => {};
     }
 
-    const panels = [
-        ...root.querySelectorAll(":scope > [data-home-panel]"),
-    ].filter((panel) => panel instanceof HTMLElement);
+    const panels = getPanels(root);
 
     if (panels.length === 0) {
         return () => {};
     }
 
-    setNavigationState(root, "initializing");
     root.dataset.homeSnapCount = "0";
+
+    setNavigationState(root, "initializing");
 
     const media = gsap.matchMedia();
 
@@ -303,108 +393,131 @@ export function initHomepageSectionNavigation(
                 desktop = false,
                 reducedMotion = false,
                 shortViewport = false,
-            } = context.conditions;
+            } = context.conditions ?? {};
 
-            const cleanup = [];
-            const revealTargets = root.querySelectorAll("[data-home-reveal]");
+            const cleanupCallbacks = [];
 
+            let disposed = false;
             let activeIndex = getClosestPanelIndex(panels);
+            let activeTween = null;
             let isAnimating = false;
             let isGestureLocked = false;
             let wheelIsActive = false;
             let accumulatedWheelDelta = 0;
             let gestureReleaseTimer = null;
-            let activeTween = null;
 
             /**
-             * Update both the internal navigation index and public diagnostics.
+             * Synchronize active panel state before navigation begins.
              */
-            const updateActivePanel = (index) => {
+            const activatePanel = (index) => {
                 activeIndex = Math.max(
                     0,
                     Math.min(index, panels.length - 1),
                 );
 
-                setActivePanel(root, panels, activeIndex);
+                setActivePanel(
+                    root,
+                    panels,
+                    activeIndex,
+                );
             };
 
-            setNavigationState(root, "initializing");
-
             if (reducedMotion) {
-                gsap.set(revealTargets, {
-                    autoAlpha: 1,
-                    clearProps: "transform",
-                });
+                setReducedMotionState(root);
             } else {
                 panels.forEach((panel, index) => {
-                    cleanup.push(createPanelReveal(panel, index === 0));
+                    cleanupCallbacks.push(
+                        createPanelReveal(
+                            panel,
+                            index === 0,
+                        ),
+                    );
                 });
             }
 
-            cleanup.push(bindScrollLinks(root, reducedMotion));
-
-            /*
-             * ScrollTrigger still observes the visible panel for diagnostics,
-             * direct anchor navigation, native boundary scrolling, and browser
-             * restoration. It no longer performs delayed snapping.
-             */
-            const activeTriggers = panels.map((panel, index) =>
-                ScrollTrigger.create({
-                    trigger: panel,
-                    start: "top 52%",
-                    end: "bottom 48%",
-                    onEnter: () => updateActivePanel(index),
-                    onEnterBack: () => updateActivePanel(index),
+            cleanupCallbacks.push(
+                initializeStoryDepth(root, {
+                    desktop,
+                    reducedMotion,
                 }),
             );
 
-            cleanup.push(() => {
-                activeTriggers.forEach((trigger) => trigger.kill());
+            cleanupCallbacks.push(
+                bindScrollLinks(
+                    root,
+                    reducedMotion,
+                ),
+            );
+
+            /*
+             * Track the active panel independently from the navigation tween.
+             */
+            const trackingTriggers = panels.map(
+                (panel, index) =>
+                    ScrollTrigger.create({
+                        id: `home-active-${panel.id}`,
+                        trigger: panel,
+                        start: "top 52%",
+                        end: "bottom 48%",
+                        invalidateOnRefresh: true,
+                        onEnter: () => {
+                            activatePanel(index);
+                        },
+                        onEnterBack: () => {
+                            activatePanel(index);
+                        },
+                    }),
+            );
+
+            cleanupCallbacks.push(() => {
+                trackingTriggers.forEach(
+                    (trigger) => trigger.kill(),
+                );
             });
 
-            updateActivePanel(activeIndex);
+            activatePanel(activeIndex);
 
-            if (
-                desktop &&
-                !reducedMotion &&
-                !shortViewport &&
-                panels.length > 1
-            ) {
+            const canSnap =
+                desktop
+                && !reducedMotion
+                && !shortViewport
+                && panels.length > 1;
+
+            if (canSnap) {
                 document.documentElement.classList.add(
                     "home-section-snap-active",
                 );
 
                 /**
-                 * Release the current gesture only after wheel activity has
-                 * stopped and the active section transition has completed.
-                 *
-                 * Fast wheels and trackpads emit many momentum events. Keeping
-                 * the gesture locked prevents those events from becoming queued
-                 * section transitions.
+                 * Release one wheel gesture after its momentum settles.
                  */
                 const scheduleGestureRelease = () => {
                     wheelIsActive = true;
 
                     if (gestureReleaseTimer !== null) {
-                        window.clearTimeout(gestureReleaseTimer);
+                        window.clearTimeout(
+                            gestureReleaseTimer,
+                        );
                     }
 
-                    gestureReleaseTimer = window.setTimeout(() => {
-                        wheelIsActive = false;
-                        accumulatedWheelDelta = 0;
-                        gestureReleaseTimer = null;
+                    gestureReleaseTimer =
+                        window.setTimeout(() => {
+                            wheelIsActive = false;
+                            accumulatedWheelDelta = 0;
+                            gestureReleaseTimer = null;
 
-                        if (!isAnimating) {
-                            isGestureLocked = false;
-                        }
-                    }, wheelGestureReleaseDelay);
+                            if (!isAnimating) {
+                                isGestureLocked = false;
+                            }
+                        }, wheelGestureReleaseDelay);
                 };
 
                 /**
-                 * Restore navigation state when a transition completes or is
-                 * interrupted by explicit programmatic navigation.
+                 * Return navigation to a ready state after a tween settles.
                  */
-                const settleNavigation = (completed) => {
+                const settleNavigation = (
+                    completed = false,
+                ) => {
                     isAnimating = false;
                     activeTween = null;
 
@@ -413,6 +526,7 @@ export function initHomepageSectionNavigation(
                     }
 
                     setNavigationState(root, "ready");
+
                     ScrollTrigger.update();
 
                     if (!wheelIsActive) {
@@ -421,31 +535,33 @@ export function initHomepageSectionNavigation(
                 };
 
                 /**
-                 * Animate directly to one adjacent panel.
-                 *
-                 * The active index is updated before the animation begins so
-                 * momentum events cannot select another panel during movement.
+                 * Move to one exact adjacent homepage panel.
                  */
                 const navigateToPanel = (targetIndex) => {
-                    const targetPanel = panels[targetIndex];
+                    const targetPanel =
+                        panels[targetIndex];
 
-                    if (!(targetPanel instanceof HTMLElement)) {
+                    if (
+                        !(targetPanel instanceof HTMLElement)
+                    ) {
                         return;
                     }
+
+                    activeTween?.kill();
 
                     isAnimating = true;
                     isGestureLocked = true;
 
-                    updateActivePanel(targetIndex);
+                    activatePanel(targetIndex);
                     setNavigationState(root, "snapping");
 
                     activeTween = gsap.to(window, {
-                        duration: wheelTransitionDuration,
+                        duration: sectionTransitionDuration,
                         ease: "power3.out",
                         overwrite: "auto",
                         scrollTo: {
-                            y: targetPanel,
                             autoKill: false,
+                            y: targetPanel,
                         },
                         onComplete: () => {
                             settleNavigation(true);
@@ -457,160 +573,220 @@ export function initHomepageSectionNavigation(
                 };
 
                 /**
-                 * Convert desktop wheel input into immediate, sequential
-                 * one-panel navigation.
+                 * Convert one desktop wheel gesture into one adjacent section.
                  */
                 const handleWheel = (event) => {
                     if (
-                        event.defaultPrevented ||
-                        event.ctrlKey ||
-                        !isPagerActive(root)
+                        event.defaultPrevented
+                        || event.ctrlKey
+                        || !isPagerActive(root)
                     ) {
                         return;
                     }
 
-                    const deltaY = normalizeWheelDelta(event);
+                    const deltaY =
+                        normalizeWheelDelta(event);
 
-                    /*
-                     * Ignore primarily horizontal trackpad gestures and
-                     * negligible browser noise.
-                     */
                     if (
-                        Math.abs(event.deltaX) > Math.abs(deltaY) ||
-                        Math.abs(deltaY) < 0.5
+                        Math.abs(event.deltaX)
+                            > Math.abs(deltaY)
+                        || Math.abs(deltaY) < 0.5
                     ) {
                         return;
                     }
 
-                    /*
-                     * Preserve native scrolling for independently scrollable
-                     * content nested inside a homepage panel.
-                     */
-                    if (hasScrollableAncestor(event.target, root, deltaY)) {
+                    if (
+                        hasScrollableAncestor(
+                            event.target,
+                            root,
+                            deltaY,
+                        )
+                    ) {
                         return;
                     }
 
-                    /*
-                     * While a transition or its originating gesture remains
-                     * active, consume every residual momentum event.
-                     */
-                    if (isAnimating || isGestureLocked) {
+                    if (
+                        isAnimating
+                        || isGestureLocked
+                    ) {
                         event.preventDefault();
                         scheduleGestureRelease();
 
                         return;
                     }
 
-                    const direction = deltaY > 0 ? 1 : -1;
-                    const isBeforeFirstPanel =
-                        activeIndex === 0 && direction < 0;
-                    const isAfterFinalPanel =
-                        activeIndex === panels.length - 1 && direction > 0;
+                    activeIndex =
+                        getClosestPanelIndex(panels);
 
-                    /*
-                     * Do not trap the visitor at either pager boundary.
-                     *
-                     * Scrolling down from the final panel reaches the footer.
-                     * Scrolling up from the first panel retains normal browser
-                     * behavior.
-                     */
-                    if (isBeforeFirstPanel || isAfterFinalPanel) {
+                    const direction =
+                        deltaY > 0 ? 1 : -1;
+
+                    const movingBeforeFirst =
+                        activeIndex === 0
+                        && direction < 0;
+
+                    const movingAfterFinal =
+                        activeIndex
+                            === panels.length - 1
+                        && direction > 0;
+
+                    if (
+                        movingBeforeFirst
+                        || movingAfterFinal
+                    ) {
                         accumulatedWheelDelta = 0;
 
                         return;
                     }
 
-                    /*
-                     * Prevent native movement immediately so the page never
-                     * drifts between sections while the gesture is evaluated.
-                     */
                     event.preventDefault();
                     scheduleGestureRelease();
 
                     accumulatedWheelDelta += deltaY;
 
                     if (
-                        Math.abs(accumulatedWheelDelta) <
-                        wheelActivationThreshold
+                        Math.abs(accumulatedWheelDelta)
+                            < wheelActivationThreshold
                     ) {
                         return;
                     }
 
                     const targetIndex =
-                        activeIndex +
-                        (accumulatedWheelDelta > 0 ? 1 : -1);
+                        activeIndex
+                        + (
+                            accumulatedWheelDelta > 0
+                                ? 1
+                                : -1
+                        );
 
                     accumulatedWheelDelta = 0;
+                    isGestureLocked = true;
 
                     navigateToPanel(targetIndex);
                 };
 
-                window.addEventListener("wheel", handleWheel, {
-                    passive: false,
-                });
+                window.addEventListener(
+                    "wheel",
+                    handleWheel,
+                    {
+                        passive: false,
+                    },
+                );
 
-                cleanup.push(() => {
-                    window.removeEventListener("wheel", handleWheel);
-
-                    if (gestureReleaseTimer !== null) {
-                        window.clearTimeout(gestureReleaseTimer);
-                    }
-
-                    activeTween?.kill();
-
-                    document.documentElement.classList.remove(
-                        "home-section-snap-active",
+                cleanupCallbacks.push(() => {
+                    window.removeEventListener(
+                        "wheel",
+                        handleWheel,
                     );
+
+                    document.documentElement
+                        .classList
+                        .remove(
+                            "home-section-snap-active",
+                        );
                 });
             }
 
-            /*
-             * Calculate panel positions before exposing the ready state.
-             * This prevents the first real or Playwright wheel gesture from
-             * arriving before ScrollTrigger knows the section boundaries.
-             */
-            ScrollTrigger.refresh();
-            updateActivePanel(getClosestPanelIndex(panels));
-            setNavigationState(root, "ready");
-
             /**
-             * Recalculate section positions after load or font changes.
+             * Refresh panel and trigger geometry after layout resources settle.
              */
-            const refresh = () => {
-                if (isAnimating) {
+            const refreshLayout = () => {
+                if (disposed || isAnimating) {
                     return;
                 }
 
-                setNavigationState(root, "initializing");
+                setNavigationState(
+                    root,
+                    "initializing",
+                );
+
                 ScrollTrigger.refresh();
-                updateActivePanel(getClosestPanelIndex(panels));
-                setNavigationState(root, "ready");
+
+                activatePanel(
+                    getClosestPanelIndex(panels),
+                );
+
+                setNavigationState(
+                    root,
+                    reducedMotion
+                        ? "reduced"
+                        : "ready",
+                );
             };
 
-            window.addEventListener("load", refresh, {
-                once: true,
+            const refreshFrame =
+                window.requestAnimationFrame(
+                    refreshLayout,
+                );
+
+            const handleWindowLoad = () => {
+                refreshLayout();
+            };
+
+            window.addEventListener(
+                "load",
+                handleWindowLoad,
+                {
+                    once: true,
+                },
+            );
+
+            document.fonts?.ready
+                ?.then(() => {
+                    refreshLayout();
+                })
+                .catch(() => {
+                    setNavigationState(
+                        root,
+                        reducedMotion
+                            ? "reduced"
+                            : "ready",
+                    );
+                });
+
+            cleanupCallbacks.push(() => {
+                disposed = true;
+
+                window.cancelAnimationFrame(
+                    refreshFrame,
+                );
+
+                window.removeEventListener(
+                    "load",
+                    handleWindowLoad,
+                );
+
+                if (
+                    gestureReleaseTimer !== null
+                ) {
+                    window.clearTimeout(
+                        gestureReleaseTimer,
+                    );
+                }
+
+                activeTween?.kill();
             });
 
-            cleanup.push(() => {
-                window.removeEventListener("load", refresh);
-            });
-
-            document.fonts?.ready?.then(refresh).catch(() => {
-                /*
-                 * Font loading must never prevent homepage interaction.
-                 */
-                setNavigationState(root, "ready");
-            });
+            setNavigationState(
+                root,
+                reducedMotion
+                    ? "reduced"
+                    : "ready",
+            );
 
             return () => {
-                cleanup.reverse().forEach((callback) => callback());
+                cleanupCallbacks
+                    .reverse()
+                    .forEach(
+                        (callback) => callback(),
+                    );
             };
         },
+        root,
     );
 
     /**
-     * Remove every media-query, listener, tween, and ScrollTrigger resource
-     * created by this module.
+     * Remove every responsive controller and diagnostic state.
      */
     const cleanup = () => {
         media.revert();
@@ -622,6 +798,12 @@ export function initHomepageSectionNavigation(
         delete root.dataset.homeSectionNavigation;
         delete root.dataset.homeSnapCount;
         delete root.dataset.homeActiveSection;
+
+        panels.forEach((panel) => {
+            panel.removeAttribute(
+                "data-home-active",
+            );
+        });
     };
 
     if (import.meta.hot) {

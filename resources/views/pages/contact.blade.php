@@ -78,7 +78,7 @@
                                 id="contact-hero-heading"
                                 data-gsap-reveal
                                 class="mt-5 font-display text-5xl leading-[0.94]
-                                    text-brand-forest sm:text-6xl
+                                    text-brand-white sm:text-6xl
                                     lg:text-7xl xl:text-8xl">
                                 {{ $page?->title ?: 'Let’s Plan Your Visit' }}
                             </h1>
