@@ -1,0 +1,783 @@
+@layer components {
+    /*
+     * Menu atmosphere
+     */
+    .menu-page-shell {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        overflow: clip;
+        background:
+            linear-gradient(
+                180deg,
+                rgb(255 249 240 / 97%),
+                rgb(248 238 225 / 68%) 46%,
+                rgb(255 249 240 / 98%)
+            ),
+            var(--color-canvas);
+    }
+
+    .menu-page-shell::before {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background:
+            radial-gradient(
+                circle at 86% 8%,
+                rgb(32 111 124 / 11%),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 16% 28%,
+                rgb(242 199 107 / 13%),
+                transparent 25rem
+            ),
+            radial-gradient(
+                circle at 82% 72%,
+                rgb(230 110 80 / 9%),
+                transparent 30rem
+            );
+        content: "";
+        pointer-events: none;
+    }
+
+    .menu-page-atmosphere {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                rgb(255 255 255 / 28%) 50%,
+                transparent
+            );
+        mask-image: linear-gradient(
+            to bottom,
+            black,
+            transparent 82%
+        );
+        pointer-events: none;
+    }
+
+    [data-menu-page] .menu-section:nth-of-type(even)::before {
+        background:
+            linear-gradient(
+                135deg,
+                rgb(255 253 249 / 78%),
+                rgb(248 238 225 / 34%)
+            ),
+            radial-gradient(
+                circle at 92% 10%,
+                rgb(32 111 124 / 8%),
+                transparent 34%
+            ),
+            radial-gradient(
+                circle at 10% 90%,
+                rgb(230 110 80 / 7%),
+                transparent 32%
+            );
+    }
+
+    /*
+     * Shared immersive heroes
+     */
+    .public-fullscreen-hero {
+        position: relative;
+        display: flex;
+        min-height: 100vh;
+        min-height: 100svh;
+        align-items: center;
+        overflow: hidden;
+        padding-block: clamp(8rem, 16vh, 12rem) clamp(5rem, 10vh, 8rem);
+    }
+
+    .public-fullscreen-hero::after {
+        position: absolute;
+        inset: auto 0 0;
+        height: 9rem;
+        background:
+            linear-gradient(
+                to bottom,
+                transparent,
+                rgb(3 19 16 / 16%)
+            );
+        content: "";
+        pointer-events: none;
+    }
+
+    .public-hero-scroll-cue {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: rgb(255 255 255 / 68%);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .public-hero-scroll-cue::before {
+        width: 2.75rem;
+        height: 1px;
+        background: currentColor;
+        content: "";
+    }
+
+    /*
+     * Journal listing
+     */
+    .journal-page {
+        background: var(--color-canvas);
+    }
+
+    .journal-index-hero {
+        color: white;
+        background:
+            radial-gradient(
+                circle at 82% 18%,
+                rgb(242 199 107 / 22%),
+                transparent 27rem
+            ),
+            radial-gradient(
+                circle at 12% 84%,
+                rgb(32 111 124 / 30%),
+                transparent 30rem
+            ),
+            linear-gradient(
+                122deg,
+                #07271f,
+                #0c3a30 52%,
+                #103e35
+            );
+    }
+
+    .journal-index-hero::before {
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(
+                115deg,
+                rgb(255 255 255 / 3%),
+                transparent 32%,
+                rgb(255 255 255 / 4%) 66%,
+                transparent
+            );
+        content: "";
+        pointer-events: none;
+    }
+
+    .journal-hero-orbit {
+        position: relative;
+        width: min(34rem, 78vw);
+        aspect-ratio: 1;
+        margin-inline: auto;
+        border: 1px solid rgb(255 255 255 / 14%);
+        border-radius: 9999px;
+    }
+
+    .journal-hero-orbit::before,
+    .journal-hero-orbit::after {
+        position: absolute;
+        border: 1px solid rgb(255 255 255 / 10%);
+        border-radius: inherit;
+        content: "";
+    }
+
+    .journal-hero-orbit::before {
+        inset: 12%;
+    }
+
+    .journal-hero-orbit::after {
+        inset: 27%;
+    }
+
+    .journal-hero-orbit__card {
+        position: absolute;
+        inset: 22% 8% auto auto;
+        width: min(17rem, 62vw);
+        border: 1px solid rgb(255 255 255 / 15%);
+        border-radius: var(--radius-panel);
+        background: rgb(255 255 255 / 9%);
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 30px 80px rgb(3 19 16 / 28%);
+        backdrop-filter: blur(1rem);
+        transform: rotate(4deg);
+    }
+
+    .journal-hero-orbit__sun {
+        position: absolute;
+        bottom: 9%;
+        left: 7%;
+        width: 7rem;
+        aspect-ratio: 1;
+        border-radius: 9999px;
+        background:
+            radial-gradient(
+                circle at 35% 35%,
+                #f8d98e,
+                var(--color-sun) 44%,
+                rgb(230 110 80 / 72%)
+            );
+        box-shadow: 0 0 80px rgb(242 199 107 / 32%);
+    }
+
+    .journal-feature-section {
+        display: flex;
+        min-height: 100vh;
+        min-height: 100svh;
+        align-items: center;
+        padding-block: clamp(5rem, 10vh, 8rem);
+        background:
+            radial-gradient(
+                circle at 12% 12%,
+                rgb(242 199 107 / 18%),
+                transparent 25rem
+            ),
+            radial-gradient(
+                circle at 90% 80%,
+                rgb(32 111 124 / 12%),
+                transparent 28rem
+            ),
+            var(--color-canvas);
+    }
+
+    .journal-feature-card {
+        display: grid;
+        overflow: hidden;
+        border: 1px solid rgb(22 83 68 / 10%);
+        border-radius: clamp(1.75rem, 3vw, 3rem);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .journal-feature-media {
+        position: relative;
+        min-height: 25rem;
+        overflow: hidden;
+        background:
+            radial-gradient(
+                circle at 78% 22%,
+                rgb(242 199 107 / 30%),
+                transparent 32%
+            ),
+            linear-gradient(
+                145deg,
+                var(--color-primary-deep),
+                var(--color-ocean)
+            );
+    }
+
+    .journal-feature-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 700ms var(--ease-island);
+    }
+
+    .journal-feature-card:hover .journal-feature-media img {
+        transform: scale(1.035);
+    }
+
+    .journal-feature-placeholder {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        min-height: inherit;
+        place-items: center;
+        color: rgb(255 255 255 / 78%);
+    }
+
+    .journal-card {
+        overflow: hidden;
+        border: 1px solid rgb(22 83 68 / 9%);
+        border-radius: var(--radius-panel);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+        transition:
+            transform 320ms var(--ease-island),
+            box-shadow 320ms var(--ease-island),
+            border-color 320ms var(--ease-island);
+    }
+
+    .journal-card:hover {
+        border-color: rgb(22 83 68 / 18%);
+        box-shadow: var(--shadow-panel);
+        transform: translateY(-0.4rem);
+    }
+
+    .journal-card__media {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        background:
+            linear-gradient(
+                145deg,
+                var(--color-primary-deep),
+                var(--color-ocean)
+            );
+    }
+
+    .journal-card__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 600ms var(--ease-island);
+    }
+
+    .journal-card:hover .journal-card__media img {
+        transform: scale(1.045);
+    }
+
+    /*
+     * Journal article
+     */
+    .journal-article-hero {
+        color: white;
+        background:
+            radial-gradient(
+                circle at 80% 18%,
+                rgb(242 199 107 / 20%),
+                transparent 29rem
+            ),
+            linear-gradient(
+                128deg,
+                var(--color-primary-deep),
+                #071f1a
+            );
+    }
+
+    .journal-article-hero__image {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .journal-article-hero__overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+            linear-gradient(
+                90deg,
+                rgb(3 19 16 / 92%),
+                rgb(3 19 16 / 68%) 54%,
+                rgb(3 19 16 / 42%)
+            ),
+            linear-gradient(
+                to top,
+                rgb(3 19 16 / 74%),
+                transparent 48%
+            );
+    }
+
+    .journal-article-shell {
+        position: relative;
+        background:
+            radial-gradient(
+                circle at 8% 14%,
+                rgb(242 199 107 / 15%),
+                transparent 24rem
+            ),
+            radial-gradient(
+                circle at 94% 80%,
+                rgb(32 111 124 / 10%),
+                transparent 27rem
+            ),
+            var(--color-canvas);
+    }
+
+    .journal-article-card {
+        border: 1px solid rgb(22 83 68 / 9%);
+        border-radius: clamp(1.5rem, 3vw, 2.75rem);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .journal-article-body {
+        color: var(--color-muted);
+        font-size: 1.0625rem;
+        line-height: 1.95;
+    }
+
+    .journal-article-body :where(p + p) {
+        margin-top: 1.5rem;
+    }
+
+    .journal-article-body :where(h2) {
+        margin-top: 3.5rem;
+        margin-bottom: 1.25rem;
+        color: var(--color-primary-deep);
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+    }
+
+    .journal-article-body :where(h3) {
+        margin-top: 2.75rem;
+        margin-bottom: 1rem;
+        color: var(--color-primary);
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+    }
+
+    .journal-article-body :where(ul, ol) {
+        margin-block: 1.75rem;
+        padding-left: 1.5rem;
+    }
+
+    .journal-article-body :where(ul) {
+        list-style: disc;
+    }
+
+    .journal-article-body :where(ol) {
+        list-style: decimal;
+    }
+
+    .journal-article-body :where(li + li) {
+        margin-top: 0.75rem;
+    }
+
+    .journal-article-body :where(blockquote) {
+        margin-block: 2.5rem;
+        border-left: 4px solid var(--color-coral);
+        background: var(--color-surface-soft);
+        padding: 1.5rem 1.75rem;
+        color: var(--color-primary-deep);
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        line-height: 1.6;
+    }
+
+    .journal-article-body :where(a) {
+        color: var(--color-coral-deep);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 0.25rem;
+    }
+
+    /*
+     * Shared order status
+     */
+    .order-status-pill {
+        display: inline-flex;
+        min-height: 2rem;
+        align-items: center;
+        gap: 0.55rem;
+        border-radius: 9999px;
+        padding: 0.35rem 0.75rem;
+        background: rgb(242 199 107 / 20%);
+        color: var(--color-primary-deep);
+        font-size: 0.67rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .order-status-pill::before {
+        width: 0.45rem;
+        height: 0.45rem;
+        flex: none;
+        border-radius: 9999px;
+        background: var(--color-sun);
+        content: "";
+    }
+
+    .order-status-pill[data-order-status="confirmed"],
+    .order-status-pill[data-order-status="preparing"] {
+        background: rgb(32 111 124 / 12%);
+        color: var(--color-ocean);
+    }
+
+    .order-status-pill[data-order-status="confirmed"]::before,
+    .order-status-pill[data-order-status="preparing"]::before {
+        background: var(--color-ocean);
+    }
+
+    .order-status-pill[data-order-status="ready_for_pickup"],
+    .order-status-pill[data-order-status="out_for_delivery"] {
+        background: rgb(22 83 68 / 12%);
+        color: var(--color-primary);
+    }
+
+    .order-status-pill[data-order-status="ready_for_pickup"]::before,
+    .order-status-pill[data-order-status="out_for_delivery"]::before {
+        background: var(--color-primary);
+    }
+
+    .order-status-pill[data-order-status="picked_up"],
+    .order-status-pill[data-order-status="delivered"],
+    .order-status-pill[data-order-status="completed"] {
+        background: rgb(22 83 68 / 14%);
+        color: var(--color-primary-deep);
+    }
+
+    .order-status-pill[data-order-status="picked_up"]::before,
+    .order-status-pill[data-order-status="delivered"]::before,
+    .order-status-pill[data-order-status="completed"]::before {
+        background: #3f8c71;
+    }
+
+    .order-status-pill[data-order-status="rejected"],
+    .order-status-pill[data-order-status="cancelled"] {
+        background: rgb(230 110 80 / 13%);
+        color: var(--color-coral-deep);
+    }
+
+    .order-status-pill[data-order-status="rejected"]::before,
+    .order-status-pill[data-order-status="cancelled"]::before {
+        background: var(--color-coral);
+    }
+
+    /*
+     * Checkout confirmation
+     */
+    .order-confirmation-page {
+        background: var(--color-canvas);
+    }
+
+    .order-confirmation-hero {
+        color: white;
+        background:
+            radial-gradient(
+                circle at 88% 14%,
+                rgb(242 199 107 / 22%),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 12% 86%,
+                rgb(32 111 124 / 24%),
+                transparent 30rem
+            ),
+            linear-gradient(
+                128deg,
+                #06241d,
+                var(--color-primary-deep) 58%,
+                #12493e
+            );
+    }
+
+    .order-receipt-card {
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 18%);
+        border-radius: clamp(1.5rem, 3vw, 2.5rem);
+        background: var(--color-surface);
+        color: var(--color-ink);
+        box-shadow: 0 35px 90px rgb(3 19 16 / 38%);
+    }
+
+    .order-receipt-items {
+        max-height: 22rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color:
+            rgb(22 83 68 / 24%)
+            transparent;
+    }
+
+    .order-progress-track {
+        height: 0.35rem;
+        overflow: hidden;
+        border-radius: 9999px;
+        background: rgb(255 255 255 / 13%);
+    }
+
+    .order-progress-value {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        background:
+            linear-gradient(
+                90deg,
+                var(--color-sun),
+                var(--color-coral)
+            );
+        transform-origin: left;
+    }
+
+    /*
+     * Customer order list
+     */
+    .account-orders-page {
+        background:
+            radial-gradient(
+                circle at 10% 72%,
+                rgb(242 199 107 / 15%),
+                transparent 26rem
+            ),
+            radial-gradient(
+                circle at 92% 86%,
+                rgb(32 111 124 / 10%),
+                transparent 30rem
+            ),
+            var(--color-canvas);
+    }
+
+    .account-orders-hero {
+        position: relative;
+        display: flex;
+        min-height: 72vh;
+        min-height: 72svh;
+        align-items: center;
+        overflow: hidden;
+        padding-block: clamp(8rem, 16vh, 11rem) 10rem;
+        color: white;
+        background:
+            radial-gradient(
+                circle at 86% 16%,
+                rgb(242 199 107 / 20%),
+                transparent 27rem
+            ),
+            radial-gradient(
+                circle at 8% 88%,
+                rgb(32 111 124 / 30%),
+                transparent 30rem
+            ),
+            linear-gradient(
+                125deg,
+                #06231c,
+                var(--color-primary-deep) 58%,
+                #12483d
+            );
+    }
+
+    .account-orders-content {
+        position: relative;
+        z-index: 2;
+        margin-top: -7rem;
+        padding-bottom: clamp(5rem, 10vw, 8rem);
+    }
+
+    .order-history-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgb(22 83 68 / 9%);
+        border-radius: clamp(1.5rem, 2.5vw, 2.25rem);
+        background: rgb(255 253 249 / 96%);
+        box-shadow: var(--shadow-card);
+        transition:
+            transform 320ms var(--ease-island),
+            box-shadow 320ms var(--ease-island),
+            border-color 320ms var(--ease-island);
+    }
+
+    .order-history-card::before {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0.3rem;
+        background:
+            linear-gradient(
+                to bottom,
+                var(--color-sun),
+                var(--color-coral)
+            );
+        content: "";
+    }
+
+    .order-history-card:hover {
+        border-color: rgb(22 83 68 / 18%);
+        box-shadow: var(--shadow-panel);
+        transform: translateY(-0.35rem);
+    }
+
+    .order-history-progress {
+        height: 0.3rem;
+        overflow: hidden;
+        border-radius: 9999px;
+        background: var(--color-line);
+    }
+
+    .order-history-progress > span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        background:
+            linear-gradient(
+                90deg,
+                var(--color-ocean),
+                var(--color-primary),
+                var(--color-coral)
+            );
+        transform-origin: left;
+    }
+
+    .order-history-card[data-order-status="rejected"]
+        .order-history-progress
+        > span,
+    .order-history-card[data-order-status="cancelled"]
+        .order-history-progress
+        > span {
+        background: var(--color-coral);
+    }
+}
+
+@media (min-width: 1024px) {
+    .journal-feature-card {
+        grid-template-columns: minmax(0, 1.12fr) minmax(24rem, 0.88fr);
+    }
+}
+
+@media (max-width: 1023px) {
+    .journal-hero-orbit {
+        width: min(28rem, 84vw);
+    }
+
+    .journal-feature-media {
+        min-height: 21rem;
+    }
+
+    .account-orders-content {
+        margin-top: -4rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .public-fullscreen-hero {
+        padding-block: 8rem 5rem;
+    }
+
+    .journal-hero-orbit {
+        width: min(22rem, 82vw);
+    }
+
+    .journal-hero-orbit__card {
+        inset: 20% 3% auto auto;
+    }
+
+    .journal-hero-orbit__sun {
+        width: 5rem;
+    }
+
+    .journal-feature-media {
+        min-height: 18rem;
+    }
+
+    .account-orders-hero {
+        min-height: auto;
+        padding-block: 8rem 8rem;
+    }
+
+    .account-orders-content {
+        margin-top: -2.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .journal-feature-card:hover .journal-feature-media img,
+    .journal-card:hover,
+    .journal-card:hover .journal-card__media img,
+    .order-history-card:hover,
+    [data-public-parallax],
+    [data-public-progress] {
+        transform: none !important;
+        transition: none !important;
+    }
+}

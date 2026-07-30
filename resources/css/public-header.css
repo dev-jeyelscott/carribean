@@ -1,8 +1,10 @@
 /*
- * Shared public navigation
+ * Shared public navigation.
  *
- * Every public route uses the same expanded and compact navigation states.
- * The layout decides whether main content sits beneath or behind the header.
+ * Header transparency and content overlap are intentionally independent:
+ *
+ * - data-public-header-transparent controls the initial header surface.
+ * - public-main--header-offset controls whether content starts below it.
  */
 
 [data-public-header-shell] > header {
@@ -14,8 +16,8 @@
     background:
         linear-gradient(
             to bottom,
-            rgb(3 19 16 / 82%),
-            rgb(3 19 16 / 34%),
+            rgb(3 19 16 / 84%),
+            rgb(3 19 16 / 38%),
             transparent
         );
     color: white;
@@ -29,10 +31,9 @@
 }
 
 /*
- * Pages without an overlapping hero receive a stronger expanded surface.
- * It retains the homepage colors while guaranteeing readable navigation.
+ * Explicit solid fallback. Public pages use the transparent state by default.
  */
-body[data-public-header-overlay="false"]
+body[data-public-header-transparent="false"]
     [data-public-header-shell]
     > header {
     border-color: rgb(255 255 255 / 10%);
@@ -55,9 +56,8 @@ body[data-public-header-overlay="false"]
 }
 
 /*
- * The existing header Blade markup uses semantic utility classes designed
- * for light surfaces. Override only the top navigation row while leaving the
- * mobile dropdown on its normal light surface.
+ * The original header markup uses utilities intended for light surfaces.
+ * These scoped overrides retain white controls on the transparent header.
  */
 [data-public-header-shell]
     > header
@@ -109,8 +109,7 @@ body[data-public-header-overlay="false"]
 }
 
 /*
- * Transition the brand mark and tagline without querying fragile Tailwind
- * utility combinations from JavaScript.
+ * Brand transition into the compact header state.
  */
 [data-public-header-shell]
     > header
@@ -147,8 +146,7 @@ body[data-public-header-overlay="false"]
 }
 
 /*
- * Compact state shared by the homepage, menu, cart, content, account, blog,
- * gallery, FAQ, contact, checkout, and guest-order pages.
+ * Compact navigation is shared by every public page.
  */
 [data-public-header-shell]
     > header.public-header-compact {
@@ -210,8 +208,7 @@ body[data-public-header-overlay="false"]
 }
 
 /*
- * Non-overlay pages need a stable initial content offset because the shared
- * navigation is fixed and therefore removed from normal document flow.
+ * Non-overlapping pages retain safe space beneath the fixed header.
  */
 .public-main--header-offset {
     padding-top: 6.5rem;
@@ -241,10 +238,6 @@ body[data-public-header-overlay="false"]
     }
 }
 
-/*
- * Preserve state changes while removing non-essential movement when the
- * visitor requests reduced motion.
- */
 @media (prefers-reduced-motion: reduce) {
     [data-public-header-shell] > header,
     [data-public-header-shell]

@@ -18,6 +18,7 @@ use Livewire\WithPagination;
     [
         'title' => 'My Orders',
         'description' => 'View your Coast & Cay order history and current order status.',
+        'headerOverlay' => true,
     ],
 )]
 final class OrderList extends Component

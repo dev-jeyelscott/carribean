@@ -7,19 +7,29 @@
     'noindex' => false,
     'structuredData' => null,
     'headerOverlay' => null,
+    'headerTransparent' => true,
 ])
 
 @php
     /*
-     * The homepage overlays the shared navigation on its hero by default.
-     * Other public pages reserve the expanded-header height before main content.
-     * A page may explicitly override this behavior through :header-overlay.
+     * Header overlap controls document spacing only.
+     *
+     * Homepage and immersive hero pages render behind the fixed header.
+     * Standard content pages retain a safe header offset.
      */
     $isHomepage = request()->routeIs('home');
 
     $headerOverlaysContent = is_bool($headerOverlay)
         ? $headerOverlay
         : $isHomepage;
+
+    /*
+     * All public pages use the homepage-inspired transparent navigation by
+     * default. A page may explicitly request the solid fallback when needed.
+     */
+    $headerUsesTransparentSurface = is_bool($headerTransparent)
+        ? $headerTransparent
+        : true;
 @endphp
 
 <!DOCTYPE html>
@@ -56,6 +66,7 @@
 <body
     data-page="{{ $isHomepage ? 'home' : 'default' }}"
     data-public-header-overlay="{{ $headerOverlaysContent ? 'true' : 'false' }}"
+    data-public-header-transparent="{{ $headerUsesTransparentSurface ? 'true' : 'false' }}"
     class="min-h-screen overflow-x-hidden bg-canvas
         font-sans text-ink antialiased">
     <a

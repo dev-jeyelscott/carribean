@@ -10,8 +10,7 @@
 @import "./contact-experience.css";
 @import "./homepage-experience.css";
 @import "./contact-hero-refresh.css";
-@import "./order-detail.css";
-@import "./ui-regression-fixes.css";
+@import "./public-page-refresh.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

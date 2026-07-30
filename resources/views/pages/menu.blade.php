@@ -4,7 +4,11 @@
     :header-overlay="true">
     <div
         data-menu-page
-        class="menu-page-shell min-h-screen bg-canvas">
+        class="menu-page-shell min-h-screen">
+        <div
+            class="menu-page-atmosphere"
+            aria-hidden="true">
+        </div>
 
         <livewire:menu.catalog />
 

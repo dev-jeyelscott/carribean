@@ -41,9 +41,31 @@ if (document.querySelector("[data-reveal]")) {
 }
 
 /*
- * Contact now has a dedicated coordinated animation profile. Excluding it here
- * prevents the generic section and panel timelines from animating the same
- * elements twice.
+ * Journal, checkout confirmation, and customer order pages use one
+ * lightweight, page-scoped animation profile.
+ */
+const publicPageMotionRoot = document.querySelector(
+    "[data-public-page-motion]",
+);
+
+if (publicPageMotionRoot) {
+    import("./public-page-experience")
+        .then(({ initPublicPageExperience }) => {
+            initPublicPageExperience(
+                publicPageMotionRoot,
+            );
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize the public page experience.",
+                error,
+            );
+        });
+}
+
+/*
+ * Contact has a dedicated coordinated animation profile. Excluding it here
+ * prevents generic section timelines from animating the same elements twice.
  */
 const publicMotionRoot = document.querySelector(
     "[data-home-motion]:not([data-contact-page])",
