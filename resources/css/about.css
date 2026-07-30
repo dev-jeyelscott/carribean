@@ -1,31 +1,81 @@
 /*
  * About page editorial experience
  *
- * Every section remains normal server-rendered document content. JavaScript
- * enhances the page through ScrollTrigger without controlling native scrolling.
+ * All content remains server-rendered and readable without JavaScript.
+ * GSAP progressively enhances navigation, reveals, and image movement.
  */
 
+/*
+ * The shared header overlays the About panels, so in-page navigation must
+ * align panels to the actual viewport top instead of reserving header space.
+ *
+ * The :has() selector preserves correct native-anchor behavior before the
+ * JavaScript module initializes. The class is added by JavaScript as a
+ * persistent fallback while the About experience is active.
+ */
+html:has([data-about-page]),
+html.about-section-navigation-active {
+    scroll-behavior: auto;
+    scroll-padding-top: 0;
+}
+
 .about-page {
+    --about-panel-height: 100vh;
+
     position: relative;
     width: 100%;
     isolation: isolate;
 }
 
+@supports (height: 100svh) {
+    .about-page {
+        --about-panel-height: 100svh;
+    }
+}
+
+@supports (height: 100dvh) {
+    .about-page {
+        --about-panel-height: 100dvh;
+    }
+}
+
+/*
+ * Panels use a viewport minimum everywhere.
+ *
+ * Tall desktop displays additionally receive an exact viewport height in the
+ * desktop media query below. Mobile and short screens retain natural content
+ * height so text and controls are never clipped.
+ */
 .about-panel {
     position: relative;
     display: flex;
     width: 100%;
-    min-height: 100vh;
-    min-height: 100svh;
+    min-height: var(--about-panel-height);
     align-items: center;
     overflow: hidden;
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 0;
+}
+
+.about-panel > .public-container {
+    width: 100%;
+}
+
+.about-panel[data-about-active="true"] {
+    z-index: 1;
+}
+
+/*
+ * Only elements actively managed by GSAP receive will-change hints.
+ * The hints are removed when animations are reverted or reduced motion is on.
+ */
+.about-page[data-about-motion="ready"] [data-about-parallax] img,
+.about-page[data-about-motion="ready"] [data-about-image-reveal] img {
+    will-change: transform;
 }
 
 /*
  * Desktop section navigation
  */
-
 .about-section-nav {
     position: fixed;
     top: 50%;
@@ -116,17 +166,22 @@
 }
 
 /*
- * Editorial cards
+ * Editorial story quote
  */
-
 .about-quote-card {
     border: 1px solid rgb(255 255 255 / 10%);
 }
 
+/*
+ * Restaurant-value cards
+ *
+ * The slightly reduced desktop card height allows the complete values section
+ * to fit inside one 900px-or-taller viewport without clipping its heading.
+ */
 .about-value-card {
     display: grid;
-    min-height: 31rem;
-    grid-template-rows: minmax(0, 1fr) 12rem;
+    min-height: 28rem;
+    grid-template-rows: minmax(0, 1fr) 10rem;
     transition:
         transform 320ms var(--ease-island),
         box-shadow 320ms var(--ease-island);
@@ -138,13 +193,12 @@
 }
 
 .about-value-card__image {
-    min-height: 12rem;
+    min-height: 10rem;
 }
 
 /*
  * Heritage timeline
  */
-
 .about-heritage-list {
     display: flex;
     flex-direction: column;
@@ -170,7 +224,6 @@
 /*
  * Guest-experience photography mosaic
  */
-
 .about-mosaic {
     display: grid;
     min-height: 34rem;
@@ -183,20 +236,47 @@
     min-height: 0;
 }
 
+/*
+ * Display the section pager only when sufficient horizontal space is
+ * available. It remains hidden on tablets and phones.
+ */
 @media (min-width: 1280px) {
     .about-section-nav {
         display: block;
     }
 }
 
-@media (max-width: 1023px), (max-height: 719px) {
+/*
+ * Exact full-screen panels are enabled only for sufficiently tall desktop
+ * viewports. This provides deterministic section navigation without clipping
+ * the values cards or other editorial content.
+ */
+@media (min-width: 1024px) and (min-height: 900px) and (pointer: fine) {
     .about-panel {
-        min-height: 100svh;
+        height: var(--about-panel-height);
+        min-height: var(--about-panel-height);
+    }
+}
+
+/*
+ * Phones, tablets, and short laptop screens retain natural section height.
+ * Each section still fills at least one viewport, but content may extend
+ * vertically when needed.
+ */
+@media (max-width: 1023px), (max-height: 899px) {
+    .about-panel {
+        height: auto;
+        min-height: var(--about-panel-height);
         overflow: visible;
     }
 
     .about-value-card {
-        min-height: 28rem;
+        min-height: 27rem;
+        grid-template-rows: minmax(0, 1fr) 11rem;
+    }
+
+    .about-value-card__image {
+        min-height: 11rem;
     }
 }
 
@@ -208,10 +288,13 @@
 
     .about-value-card {
         min-height: 27rem;
-        grid-template-rows: minmax(0, 1fr) 11rem;
     }
 }
 
+/*
+ * Reduced motion preserves all readable final states and removes every
+ * non-essential transition.
+ */
 @media (prefers-reduced-motion: reduce) {
     .about-value-card,
     .about-section-nav__link,
@@ -232,5 +315,6 @@
         visibility: visible !important;
         clip-path: none !important;
         transform: none !important;
+        will-change: auto !important;
     }
 }
