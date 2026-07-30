@@ -5,19 +5,46 @@ use App\Filament\Resources\MenuCategories\Schemas\MenuCategoryForm;
 use App\Filament\Resources\MenuItems\Schemas\MenuItemForm;
 use App\Filament\Resources\Pages\Schemas\PageForm;
 use App\Filament\Resources\SiteSettings\Schemas\SiteSettingForm;
+use App\Models\GalleryImage;
+use App\Models\MenuCategory;
+use App\Models\MenuItem;
+use App\Models\Page;
+use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 
 /**
- * Collect every labelled section without evaluating conditional visibility.
+ * Provide a real Livewire and Filament schema context for standalone form tests.
+ */
+final class BrandedResourceFormSchemaHost extends Component implements HasSchemas
+{
+    use InteractsWithSchemas;
+
+    /**
+     * Hold standalone schema state so Get callbacks resolve normally.
+     *
+     * @var array<string, mixed>
+     */
+    public array $data = [];
+}
+
+/**
+ * Collect every labelled section, including conditionally hidden sections.
+ *
+ * A real Livewire schema host handles state resolution, while the supplied
+ * model gives relationship-backed fields the same context they receive on
+ * actual Filament resource pages.
  *
  * @param  class-string  $form
+ * @param  class-string<Model>  $model
  * @return array<int, Section>
  */
-function brandedFormSections(string $form): array
+function brandedFormSections(string $form, string $model): array
 {
     $sections = [];
 
@@ -46,13 +73,14 @@ function brandedFormSections(string $form): array
         }
     };
 
+    $record = new $model;
+
     $schema = $form::configure(
         Schema::make(
-            Mockery::mock(
-                Component::class,
-                HasSchemas::class,
-            ),
-        ),
+            new BrandedResourceFormSchemaHost,
+        )
+            ->statePath('data')
+            ->model($record),
     );
 
     $walk(
@@ -66,8 +94,15 @@ function brandedFormSections(string $form): array
 
 test(
     'approved editable resources use labelled form sections',
-    function (string $form, array $headings): void {
-        $sections = brandedFormSections($form);
+    function (
+        string $form,
+        string $model,
+        array $headings,
+    ): void {
+        $sections = brandedFormSections(
+            form: $form,
+            model: $model,
+        );
 
         expect($sections)
             ->toHaveCount(count($headings))
@@ -83,6 +118,7 @@ test(
 )->with([
     'site settings' => [
         SiteSettingForm::class,
+        SiteSetting::class,
         [
             'Setting details',
             'Setting value',
@@ -90,6 +126,7 @@ test(
     ],
     'pages' => [
         PageForm::class,
+        Page::class,
         [
             'Page content',
             'About page storytelling',
@@ -99,6 +136,7 @@ test(
     ],
     'menu categories' => [
         MenuCategoryForm::class,
+        MenuCategory::class,
         [
             'Category details',
             'Display settings',
@@ -106,6 +144,7 @@ test(
     ],
     'menu items' => [
         MenuItemForm::class,
+        MenuItem::class,
         [
             'Menu item details',
             'Ordering and display',
@@ -115,6 +154,7 @@ test(
     ],
     'gallery images' => [
         GalleryImageForm::class,
+        GalleryImage::class,
         [
             'Image details',
             'Gallery image',
@@ -125,8 +165,17 @@ test(
 
 test(
     'branded image sections preserve the existing upload safeguards',
-    function (string $form, string $directory): void {
-        $upload = collect(brandedFormSections($form))
+    function (
+        string $form,
+        string $model,
+        string $directory,
+    ): void {
+        $upload = collect(
+            brandedFormSections(
+                form: $form,
+                model: $model,
+            ),
+        )
             ->flatMap(
                 static fn (Section $section): array => $section
                     ->getChildComponents(),
@@ -154,10 +203,12 @@ test(
 )->with([
     'menu item image' => [
         MenuItemForm::class,
+        MenuItem::class,
         'menu-items',
     ],
     'gallery image' => [
         GalleryImageForm::class,
+        GalleryImage::class,
         'gallery',
     ],
 ]);
