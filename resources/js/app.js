@@ -121,6 +121,27 @@ if (aboutPageRoot) {
         });
 }
 
+const sharedSectionPagers = [
+    ...document.querySelectorAll(
+        '[data-section-pager][data-section-pager-enhancer="shared"]',
+    ),
+];
+
+if (sharedSectionPagers.length > 0) {
+    import("./section-pager")
+        .then(({ initSectionPager }) => {
+            sharedSectionPagers.forEach((pager) => {
+                initSectionPager(pager);
+            });
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize shared section navigation.",
+                error,
+            );
+        });
+}
+
 const galleryPageRoot = document.querySelector(
     "[data-gallery-page]",
 );
