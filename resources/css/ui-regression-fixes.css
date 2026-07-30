@@ -1,0 +1,173 @@
+/*
+ * Public UI regression fixes.
+ *
+ * Keep these selectors unlayered so they reliably override both Tailwind
+ * utility classes and the older page-specific component rules.
+ */
+
+/*
+ * Menu page
+ *
+ * The public navigation is fixed and the menu intentionally uses an overlay
+ * layout. Reserve the expanded header height before the first category.
+ */
+[data-menu-page] [data-menu-catalog] {
+    box-sizing: border-box;
+    padding-top: 6.5rem;
+}
+
+/*
+ * Contact hero
+ *
+ * Keep the quick-contact bar in normal document flow rather than pulling it
+ * upward across the primary content and restaurant image.
+ */
+#contact-hero .contact-panel__content {
+    padding-top: clamp(7.5rem, 11vh, 9rem);
+    padding-bottom: clamp(2.5rem, 5vh, 4rem);
+}
+
+#contact-hero .contact-panel__content > .public-container {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.25rem, 2.5vh, 2rem);
+}
+
+#contact-hero
+    .contact-panel__content
+    > .public-container
+    > [data-gsap-reveal] {
+    margin-top: 0 !important;
+}
+
+#contact-hero #contact-hero-heading {
+    max-width: 8.75ch;
+    font-size: clamp(3.75rem, 6.35vw, 6.9rem);
+    line-height: 0.92;
+}
+
+#contact-hero #contact-hero-heading + p {
+    margin-top: clamp(1.25rem, 2.2vh, 1.75rem);
+}
+
+#contact-hero [data-gsap="hero-content"] > div:last-child {
+    margin-top: clamp(1.25rem, 2.3vh, 2rem);
+}
+
+#contact-hero .contact-quick-card {
+    min-height: 4.5rem;
+}
+
+/*
+ * About story
+ *
+ * The image itself remains clipped by its reveal wrapper, while the parent
+ * column allows the quote card to cross the centre seam without being cut.
+ */
+@media (min-width: 1024px) {
+    #island-roots > .grid > div:last-child {
+        z-index: 2;
+        overflow: visible !important;
+    }
+
+    #island-roots [data-about-image-reveal] {
+        overflow: hidden !important;
+    }
+
+    #island-roots .about-quote-card {
+        z-index: 10;
+        left: 0 !important;
+        bottom: clamp(1.5rem, 4vh, 3rem);
+        width: min(21rem, 38vw);
+        max-width: none;
+        transform: translateX(-42%) !important;
+    }
+}
+
+/*
+ * Homepage dotted section navigation
+ *
+ * The pager is rendered inside the hero. Remove the hero-only clipping and
+ * stacking context so its fixed positioning remains relative to the viewport
+ * and it can paint above every subsequent homepage section.
+ */
+.home-hero {
+    isolation: auto !important;
+    overflow: visible !important;
+}
+
+.home-hero > picture {
+    clip-path: inset(0);
+}
+
+.home-section-nav {
+    position: fixed !important;
+    z-index: 45 !important;
+}
+
+/*
+ * Compact desktop hero treatment for common 1366x768 and other short laptop
+ * displays. This keeps the Contact hero inside one readable viewport.
+ */
+@media (min-width: 1024px) and (min-height: 720px) {
+    #contact-hero .contact-hero-media {
+        height: clamp(27rem, 55svh, 38rem);
+        min-height: 0 !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+    #contact-hero .contact-panel__content {
+        padding-top: 7rem;
+        padding-bottom: 1.75rem;
+    }
+
+    #contact-hero #contact-hero-heading {
+        font-size: clamp(3.5rem, 5.5vw, 5.5rem);
+    }
+
+    #contact-hero .contact-hero-media {
+        height: clamp(25rem, 52svh, 29rem);
+    }
+
+    #contact-hero .contact-quick-card {
+        min-height: 4.25rem;
+        padding: 0.8rem 0.9rem;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+    #island-roots .about-quote-card {
+        width: min(19rem, 36vw);
+        transform: translateX(-30%) !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    [data-menu-page] [data-menu-catalog] {
+        padding-top: 5.5rem;
+    }
+
+    #contact-hero .contact-panel__content > .public-container {
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 639px) {
+    #contact-hero .contact-panel__content {
+        padding-top: 6.75rem;
+        padding-bottom: 3rem;
+    }
+
+    #contact-hero #contact-hero-heading {
+        font-size: clamp(3.25rem, 15vw, 4.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-section-nav,
+    #island-roots .about-quote-card,
+    #contact-hero .contact-hero-media {
+        transition: none !important;
+    }
+}
