@@ -40,8 +40,13 @@ if (document.querySelector("[data-reveal]")) {
         });
 }
 
+/*
+ * Contact now has a dedicated coordinated animation profile. Excluding it here
+ * prevents the generic section and panel timelines from animating the same
+ * elements twice.
+ */
 const publicMotionRoot = document.querySelector(
-    "[data-home-motion]",
+    "[data-home-motion]:not([data-contact-page])",
 );
 
 if (publicMotionRoot) {
@@ -116,6 +121,23 @@ if (aboutPageRoot) {
         .catch((error) => {
             console.error(
                 "Unable to initialize the About page experience.",
+                error,
+            );
+        });
+}
+
+const contactPageRoot = document.querySelector(
+    "[data-contact-page]",
+);
+
+if (contactPageRoot) {
+    import("./contact-experience")
+        .then(({ initContactExperience }) => {
+            initContactExperience(contactPageRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize the Contact page experience.",
                 error,
             );
         });

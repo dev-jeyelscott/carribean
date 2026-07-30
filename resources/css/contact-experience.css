@@ -1,0 +1,154 @@
+@layer components {
+    /*
+     * Match the Contact hero with the About page's deep tropical-green entry
+     * treatment while retaining the existing Contact layout and content.
+     */
+    #contact-hero {
+        background:
+            radial-gradient(
+                circle at 75% 18%,
+                rgb(242 199 107 / 11%),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 8% 82%,
+                rgb(32 111 124 / 10%),
+                transparent 32%
+            ),
+            linear-gradient(
+                118deg,
+                var(--color-primary-deep),
+                #071f1a 78%
+            );
+        color: var(--color-canvas);
+    }
+
+    /*
+     * Use the same deep-green layered overlay language as the About hero.
+     * The content remains above this layer through an explicit stacking level.
+     */
+    #contact-hero::before {
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        content: "";
+        background:
+            linear-gradient(
+                90deg,
+                rgb(12 52 43 / 98%) 0%,
+                rgb(12 52 43 / 91%) 43%,
+                rgb(12 52 43 / 58%) 100%
+            ),
+            linear-gradient(
+                to top,
+                rgb(12 52 43 / 78%),
+                transparent 58%
+            );
+        pointer-events: none;
+    }
+
+    #contact-hero > .contact-panel__content {
+        position: relative;
+        z-index: 2;
+    }
+
+    #contact-hero .contact-organic-glow {
+        z-index: 1;
+        background: rgb(242 199 107 / 8%);
+    }
+
+    /*
+     * Replace the light Contact typography with About-compatible hero contrast.
+     */
+    #contact-hero .public-eyebrow {
+        color: var(--color-sun);
+    }
+
+    #contact-hero #contact-hero-heading {
+        color: var(--color-canvas);
+    }
+
+    #contact-hero .text-brand-muted {
+        color: rgb(255 255 255 / 72%);
+    }
+
+    #contact-hero .text-brand-forest {
+        color: white;
+    }
+
+    /*
+     * Keep the secondary hero action legible without competing with the coral
+     * primary call-to-action.
+     */
+    #contact-hero .public-button-secondary {
+        border-color: rgb(255 255 255 / 30%);
+        background: rgb(3 19 16 / 28%);
+        color: white;
+    }
+
+    #contact-hero .public-button-secondary:hover {
+        border-color: white;
+        background: white;
+        color: var(--color-primary-deep);
+    }
+
+    /*
+     * The foreground restaurant image uses the same deep-green photographic
+     * overlay instead of the current light bottom-only treatment.
+     */
+    #contact-hero .contact-hero-media {
+        border: 1px solid rgb(255 255 255 / 14%);
+        box-shadow:
+            0 2.25rem 6rem rgb(1 11 9 / 42%),
+            0 0.5rem 1.5rem rgb(1 11 9 / 20%);
+    }
+
+    #contact-hero .contact-hero-media::after {
+        background:
+            linear-gradient(
+                90deg,
+                rgb(12 52 43 / 46%),
+                transparent 58%
+            ),
+            linear-gradient(
+                to top,
+                rgb(12 52 43 / 72%),
+                transparent 55%
+            );
+    }
+
+    /*
+     * Quick-contact information becomes restrained dark glass, matching the
+     * About and Gallery navigation surfaces.
+     */
+    #contact-hero .contact-quick-card {
+        border-color: rgb(255 255 255 / 12%);
+        background: rgb(3 19 16 / 76%);
+        color: white;
+        box-shadow:
+            0 1.5rem 4rem rgb(1 11 9 / 27%),
+            inset 0 1px rgb(255 255 255 / 5%);
+    }
+
+    @supports (backdrop-filter: blur(1rem)) {
+        #contact-hero .contact-quick-card {
+            background: rgb(3 19 16 / 68%);
+            backdrop-filter: blur(1rem) saturate(1.08);
+        }
+    }
+
+    /*
+     * Apply a rendering hint only while the Contact motion controller is active.
+     */
+    .contact-page[data-contact-motion="ready"]
+        [data-gsap="hero-image"]
+        img {
+        will-change: transform;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .contact-page [data-gsap="hero-image"] img {
+        will-change: auto;
+    }
+}
