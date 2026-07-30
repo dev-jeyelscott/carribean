@@ -99,7 +99,7 @@ test('the public cart page renders its livewire component', function (): void {
     $this->get(route('cart.index'))
         ->assertOk()
         ->assertSeeLivewire(CartPage::class)
-        ->assertSee('Shopping Cart')
+        ->assertSee('Review Your Cart')
         ->assertSee('Your cart is empty');
 });
 
@@ -158,13 +158,12 @@ test('an unavailable option cannot be submitted manually', function (): void {
     $menuItem = createCartMenuItem($category);
     $options = createCartSideOptions($menuItem);
 
-    $unavailableOption =
-        $options['group']->options()->create([
-            'name' => 'Unavailable Side',
-            'additional_price_cents' => 300,
-            'is_available' => false,
-            'sort_order' => 3,
-        ]);
+    $unavailableOption = $options['group']->options()->create([
+        'name' => 'Unavailable Side',
+        'additional_price_cents' => 300,
+        'is_available' => false,
+        'sort_order' => 3,
+    ]);
 
     Livewire::test(AddToCart::class, [
         'menuItem' => $menuItem,
@@ -357,7 +356,7 @@ test('unavailable items are removed when the cart loads', function (): void {
 
     Livewire::test(CartPage::class)
         ->assertSee(
-            'One or more unavailable items were removed',
+            'One or more unavailable items or stale options were removed from your cart.',
         )
         ->assertSee('Your cart is empty');
 
