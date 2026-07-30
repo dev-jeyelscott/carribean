@@ -107,3 +107,48 @@ test('an unknown category safely falls back to the complete collection', functio
         ->assertSeeText('Warm Welcome')
         ->assertSeeText('The complete contact sheet');
 });
+
+test('each gallery volume is limited to five viewport frames', function (): void {
+    foreach (range(1, 7) as $index) {
+        createGalleryPageImage([
+            'title' => sprintf('Volume Frame %02d', $index),
+            'image_path' => sprintf(
+                'gallery/volume-frame-%02d.jpg',
+                $index,
+            ),
+            'category' => 'volume',
+            'sort_order' => $index,
+        ]);
+    }
+
+    $firstVolume = $this->get(route('gallery'));
+
+    $firstVolume
+        ->assertOk()
+        ->assertSeeText('Volume Frame 05')
+        ->assertDontSeeText('Volume Frame 06')
+        ->assertSee('rel="next"', false);
+
+    expect(
+        substr_count(
+            $firstVolume->getContent(),
+            'data-gallery-open',
+        ),
+    )->toBe(5);
+
+    $secondVolume = $this->get(route('gallery', [
+        'page' => 2,
+    ]));
+
+    $secondVolume
+        ->assertOk()
+        ->assertSeeText('Volume Frame 06')
+        ->assertSeeText('Volume Frame 07');
+
+    expect(
+        substr_count(
+            $secondVolume->getContent(),
+            'data-gallery-open',
+        ),
+    )->toBe(2);
+});

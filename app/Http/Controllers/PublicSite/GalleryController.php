@@ -10,7 +10,10 @@ use Illuminate\Http\Request;
 
 class GalleryController extends Controller
 {
-    private const IMAGES_PER_PAGE = 12;
+    /**
+     * Keep each gallery volume small enough to fit inside one desktop viewport.
+     */
+    private const IMAGES_PER_PAGE = 5;
 
     /**
      * Display the public gallery with server-rendered category filtering.
