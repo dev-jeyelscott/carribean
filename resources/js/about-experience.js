@@ -5,13 +5,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 const desktopQuery = "(min-width: 1024px) and (pointer: fine)";
-const shortViewportQuery = "(max-height: 899px)";
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-
-const sectionNavigationDuration = 0.62;
+const sectionNavigationDuration = 0.68;
 
 /**
- * Return every valid About panel in document order.
+ * Return all valid About panels in document order.
  */
 function getPanels(root) {
     return [...root.querySelectorAll("[data-about-panel]")].filter(
@@ -20,36 +18,32 @@ function getPanels(root) {
 }
 
 /**
- * Return the panel whose top edge is nearest to the viewport top.
+ * Return the configured compact-header offset in pixels.
  */
-function getClosestPanelIndex(panels) {
-    let closestIndex = 0;
-    let closestDistance = Number.POSITIVE_INFINITY;
+function getHeaderOffset(root) {
+    const rawValue = window
+        .getComputedStyle(root)
+        .getPropertyValue("--about-header-height");
 
-    panels.forEach((panel, index) => {
-        const distance = Math.abs(panel.getBoundingClientRect().top);
+    const offset = Number.parseFloat(rawValue);
 
-        if (distance >= closestDistance) {
-            return;
-        }
-
-        closestDistance = distance;
-        closestIndex = index;
-    });
-
-    return closestIndex;
+    return Number.isFinite(offset) ? offset : 0;
 }
 
 /**
- * Return the exact document scroll position for a panel.
- *
- * A numeric value deliberately avoids native scroll-padding and scroll-margin
- * adjustments that would otherwise expose part of the previous section.
+ * Return the exact document destination for one panel.
  */
-function getPanelScrollPosition(panel) {
-    return Math.round(
-        window.scrollY + panel.getBoundingClientRect().top,
-    );
+function getPanelScrollPosition(root, panel) {
+    const panelTop =
+        window.scrollY +
+        panel.getBoundingClientRect().top;
+
+    const offset =
+        panel.id === "about-hero"
+            ? 0
+            : getHeaderOffset(root);
+
+    return Math.round(panelTop - offset);
 }
 
 /**
@@ -66,7 +60,37 @@ function getPanelFromHash(panels, hash = window.location.hash) {
 }
 
 /**
- * Mark one About panel and its navigation link as active.
+ * Return the panel whose visible area is closest to the viewport center.
+ */
+function getClosestPanel(panels) {
+    const viewportCenter = window.innerHeight / 2;
+
+    return panels.reduce(
+        (closestPanel, panel) => {
+            const bounds = panel.getBoundingClientRect();
+            const panelCenter = bounds.top + bounds.height / 2;
+            const distance = Math.abs(
+                panelCenter - viewportCenter,
+            );
+
+            if (distance >= closestPanel.distance) {
+                return closestPanel;
+            }
+
+            return {
+                panel,
+                distance,
+            };
+        },
+        {
+            panel: panels[0],
+            distance: Number.POSITIVE_INFINITY,
+        },
+    ).panel;
+}
+
+/**
+ * Mark one panel and its navigation control as active.
  */
 function setActiveSection(root, panels, sectionId) {
     root.dataset.aboutActiveSection = sectionId;
@@ -79,7 +103,8 @@ function setActiveSection(root, panels, sectionId) {
     });
 
     root.querySelectorAll("[data-about-section-link]").forEach((link) => {
-        const isActive = link.getAttribute("href") === `#${sectionId}`;
+        const isActive =
+            link.getAttribute("href") === `#${sectionId}`;
 
         link.setAttribute(
             "aria-current",
@@ -89,100 +114,96 @@ function setActiveSection(root, panels, sectionId) {
 }
 
 /**
- * Expose navigation readiness for diagnostics and browser acceptance tests.
+ * Expose navigation readiness for diagnostics and browser tests.
  */
 function setNavigationState(root, state) {
     root.dataset.aboutSectionNavigation = state;
 }
 
 /**
- * Create ScrollTriggers that keep the dot navigation synchronized with the
- * section crossing the center of the viewport.
+ * Count the About-specific ScrollTriggers currently registered.
  */
-function initializeSectionTracking(root, panels) {
-    return panels.map((panel) =>
-        ScrollTrigger.create({
-            trigger: panel,
-            start: "top 51%",
-            end: "bottom 49%",
-            onEnter: () => {
-                setActiveSection(root, panels, panel.id);
-            },
-            onEnterBack: () => {
-                setActiveSection(root, panels, panel.id);
-            },
-        }),
-    );
+function updateTriggerCount(root) {
+    const triggerCount = ScrollTrigger.getAll().filter((trigger) => {
+        const id = trigger.vars.id;
+
+        return (
+            typeof id === "string" &&
+            id.startsWith("about-")
+        );
+    }).length;
+
+    root.dataset.aboutTriggerCount = String(triggerCount);
 }
 
 /**
- * Animate the hero image and content after JavaScript successfully loads.
+ * Animate the initial hero content and image.
  */
 function initializeHero(root) {
-    const cleanup = [];
+    const hero = root.querySelector("#about-hero");
 
-    const heroImage = root.querySelector(
+    if (!(hero instanceof HTMLElement)) {
+        return;
+    }
+
+    const image = hero.querySelector(
         "[data-about-hero-image] img",
     );
 
-    if (heroImage) {
-        const imageTween = gsap.fromTo(
-            heroImage,
+    const contentTargets = [
+        ...hero.querySelectorAll(
+            "[data-about-hero-content] [data-about-reveal]",
+        ),
+    ];
+
+    const scrollControl = hero.querySelector(
+        ":scope > [data-about-reveal]",
+    );
+
+    hero.dataset.aboutAnimationState = "active";
+
+    const timeline = gsap.timeline({
+        defaults: {
+            ease: "power4.out",
+        },
+        onComplete: () => {
+            hero.dataset.aboutAnimationState = "complete";
+        },
+    });
+
+    if (image) {
+        timeline.fromTo(
+            image,
             {
-                scale: 1.06,
+                scale: 1.07,
             },
             {
-                duration: 1.6,
-                ease: "power4.out",
+                duration: 1.55,
                 scale: 1,
             },
+            0,
         );
-
-        cleanup.push(() => {
-            imageTween.kill();
-        });
     }
 
-    const heroContent = root.querySelector(
-        "[data-about-hero-content]",
-    );
-
-    if (heroContent) {
-        const targets = [
-            ...heroContent.querySelectorAll("[data-about-reveal]"),
-        ];
-
-        if (targets.length > 0) {
-            gsap.set(targets, {
+    if (contentTargets.length > 0) {
+        timeline.fromTo(
+            contentTargets,
+            {
                 autoAlpha: 0,
-                y: 26,
-            });
-
-            const timeline = gsap.timeline({
-                defaults: {
-                    ease: "power4.out",
-                },
-            });
-
-            timeline.to(targets, {
+                y: 34,
+            },
+            {
                 autoAlpha: 1,
-                duration: 1,
+                duration: 0.95,
                 stagger: 0.11,
                 y: 0,
-            });
-
-            cleanup.push(() => {
-                timeline.kill();
-            });
-        }
+            },
+            0.12,
+        );
     }
 
-    const scrollControl = root.querySelector(
-        "#about-hero > [data-about-reveal]",
-    );
-
     if (scrollControl) {
-        const scrollTween = gsap.fromTo(
+        timeline.fromTo(
             scrollControl,
             {
                 autoAlpha: 0,
@@ -190,252 +211,249 @@ function initializeHero(root) {
             },
             {
                 autoAlpha: 1,
-                delay: 0.75,
-                duration: 0.7,
-                ease: "power3.out",
+                duration: 0.65,
                 y: 0,
             },
+            0.72,
         );
-
-        cleanup.push(() => {
-            scrollTween.kill();
-        });
     }
-
-    return () => {
-        cleanup.reverse().forEach((callback) => callback());
-    };
-}
-
-/**
- * Create one coordinated reveal timeline for one non-hero panel.
- *
- * The hidden starting state is applied only after JavaScript loads, preserving
- * readable server-rendered content if JavaScript fails.
- */
-function createPanelReveal(panel) {
-    const targets = [
-        ...panel.querySelectorAll("[data-about-reveal]"),
-    ];
-
-    if (targets.length === 0) {
-        return () => {};
-    }
-
-    gsap.set(targets, {
-        autoAlpha: 0,
-        y: 30,
-    });
-
-    const timeline = gsap.timeline({
-        paused: true,
-        defaults: {
-            duration: 0.85,
-            ease: "power3.out",
-        },
-    });
-
-    timeline.to(targets, {
-        autoAlpha: 1,
-        stagger: 0.09,
-        y: 0,
-    });
-
-    let hasPlayed = false;
-
-    /**
-     * Play the section reveal once.
-     */
-    const play = () => {
-        if (hasPlayed) {
-            return;
-        }
-
-        hasPlayed = true;
-        timeline.play();
-    };
-
-    const trigger = ScrollTrigger.create({
-        trigger: panel,
-        start: "top 72%",
-        end: "bottom 28%",
-        onEnter: play,
-        onEnterBack: play,
-    });
 
     /*
-     * A deep-linked section may already be visible by the time ScrollTrigger
-     * initializes. Reveal it immediately instead of leaving content hidden.
+     * Add a ScrollTrigger to the hero so its background receives restrained
+     * depth while leaving the initial content entrance independent.
      */
-    if (ScrollTrigger.isInViewport(panel, 0.12)) {
-        window.requestAnimationFrame(play);
-    }
-
-    return () => {
-        trigger.kill();
-        timeline.kill();
-    };
-}
-
-/**
- * Add a reveal timeline to every non-hero About panel.
- */
-function initializePanelReveals(panels) {
-    return panels.slice(1).map((panel) => createPanelReveal(panel));
-}
-
-/**
- * Reveal editorial images through a restrained clipping transition.
- */
-function initializeImageReveals(root) {
-    const cleanup = [];
-
-    root.querySelectorAll("[data-about-image-reveal]").forEach((frame) => {
-        const image = frame.querySelector("img");
-
-        if (!image) {
-            return;
-        }
-
-        gsap.set(frame, {
-            clipPath: "inset(0 0 100% 0)",
-        });
-
-        gsap.set(image, {
-            scale: 1.05,
-        });
-
-        const timeline = gsap.timeline({
-            paused: true,
-        });
-
-        timeline
-            .to(frame, {
-                clipPath: "inset(0 0 0% 0)",
-                duration: 0.95,
-                ease: "power4.out",
-            })
-            .to(
-                image,
-                {
-                    duration: 1.15,
-                    ease: "power3.out",
-                    scale: 1,
-                },
-                "<",
-            );
-
-        let hasPlayed = false;
-
-        /**
-         * Play the image reveal once.
-         */
-        const play = () => {
-            if (hasPlayed) {
-                return;
-            }
-
-            hasPlayed = true;
-            timeline.play();
-        };
-
-        const trigger = ScrollTrigger.create({
-            trigger: frame,
-            start: "top 82%",
-            onEnter: play,
-            onEnterBack: play,
-        });
-
-        if (ScrollTrigger.isInViewport(frame, 0.08)) {
-            window.requestAnimationFrame(play);
-        }
-
-        cleanup.push(() => {
-            trigger.kill();
-            timeline.kill();
-        });
-    });
-
-    return () => {
-        cleanup.reverse().forEach((callback) => callback());
-    };
-}
-
-/**
- * Add subtle image depth on tall desktop displays.
- *
- * Native scrolling remains fully controlled by the browser and visitor.
- */
-function initializeParallax(root) {
-    const cleanup = [];
-
-    root.querySelectorAll("[data-about-parallax]").forEach((frame) => {
-        const image = frame.querySelector("img");
-
-        if (!image) {
-            return;
-        }
-
-        const tween = gsap.fromTo(
+    if (image) {
+        gsap.fromTo(
             image,
             {
-                yPercent: -3,
+                yPercent: 0,
             },
             {
                 ease: "none",
-                yPercent: 3,
+                yPercent: 5,
                 scrollTrigger: {
-                    trigger: frame,
-                    start: "top bottom",
+                    id: "about-parallax-about-hero",
+                    trigger: hero,
+                    start: "top top",
                     end: "bottom top",
                     scrub: true,
                 },
             },
         );
-
-        cleanup.push(() => {
-            tween.scrollTrigger?.kill();
-            tween.kill();
-        });
-    });
-
-    return () => {
-        cleanup.reverse().forEach((callback) => callback());
-    };
+    }
 }
 
 /**
- * Bind every About-page hash link to exact GSAP section navigation.
- *
- * This includes:
- * - The fixed dot navigation
- * - Explore Our Story
- * - The hero Scroll control
+ * Create one ScrollTrigger-controlled reveal timeline for a section.
+ */
+function initializePanelAnimation(panel, showMarkers) {
+    const revealTargets = [
+        ...panel.querySelectorAll("[data-about-reveal]"),
+    ];
+
+    const imageFrames = [
+        ...panel.querySelectorAll("[data-about-image-reveal]"),
+    ];
+
+    const images = imageFrames
+        .map((frame) => frame.querySelector("img"))
+        .filter((image) => image instanceof HTMLImageElement);
+
+    if (
+        revealTargets.length === 0 &&
+        imageFrames.length === 0
+    ) {
+        panel.dataset.aboutAnimationState = "complete";
+
+        return;
+    }
+
+    panel.dataset.aboutAnimationState = "pending";
+
+    const timeline = gsap.timeline({
+        paused: true,
+        defaults: {
+            ease: "power3.out",
+        },
+        onStart: () => {
+            panel.dataset.aboutAnimationState = "active";
+        },
+        onComplete: () => {
+            panel.dataset.aboutAnimationState = "complete";
+        },
+        onReverseComplete: () => {
+            panel.dataset.aboutAnimationState = "pending";
+        },
+    });
+
+    if (revealTargets.length > 0) {
+        timeline.fromTo(
+            revealTargets,
+            {
+                autoAlpha: 0,
+                y: 48,
+            },
+            {
+                autoAlpha: 1,
+                duration: 0.95,
+                stagger: 0.1,
+                y: 0,
+            },
+            0,
+        );
+    }
+
+    if (imageFrames.length > 0) {
+        timeline.fromTo(
+            imageFrames,
+            {
+                clipPath: "inset(0 0 100% 0)",
+            },
+            {
+                clipPath: "inset(0 0 0% 0)",
+                duration: 1.05,
+                stagger: 0.08,
+                ease: "power4.out",
+            },
+            0.08,
+        );
+    }
+
+    if (images.length > 0) {
+        timeline.fromTo(
+            images,
+            {
+                scale: 1.08,
+            },
+            {
+                duration: 1.25,
+                scale: 1,
+                stagger: 0.08,
+            },
+            0.08,
+        );
+    }
+
+    ScrollTrigger.create({
+        id: `about-animation-${panel.id}`,
+        trigger: panel,
+        animation: timeline,
+
+        /*
+         * Start after the section is substantially visible. This prevents the
+         * animation from completing during the section-navigation tween.
+         */
+        start: "top 38%",
+        end: "bottom 62%",
+
+        toggleActions: "play none restart reverse",
+        invalidateOnRefresh: true,
+        markers: showMarkers,
+    });
+}
+
+/**
+ * Create active-panel tracking for every About section.
+ */
+function initializeSectionTracking(root, panels, showMarkers) {
+    panels.forEach((panel) => {
+        ScrollTrigger.create({
+            id: `about-active-${panel.id}`,
+            trigger: panel,
+            start: "top 52%",
+            end: "bottom 48%",
+            invalidateOnRefresh: true,
+            markers: showMarkers,
+            onEnter: () => {
+                setActiveSection(root, panels, panel.id);
+            },
+            onEnterBack: () => {
+                setActiveSection(root, panels, panel.id);
+            },
+        });
+    });
+}
+
+/**
+ * Add restrained desktop parallax to section background images.
+ */
+function initializeParallax(root, showMarkers) {
+    root.querySelectorAll("[data-about-parallax]").forEach(
+        (frame, index) => {
+            const image = frame.querySelector("img");
+
+            if (!(image instanceof HTMLImageElement)) {
+                return;
+            }
+
+            /*
+             * The hero already owns a dedicated parallax animation.
+             */
+            if (frame.closest("#about-hero")) {
+                return;
+            }
+
+            const panel = frame.closest("[data-about-panel]");
+
+            if (!(panel instanceof HTMLElement)) {
+                return;
+            }
+
+            gsap.fromTo(
+                image,
+                {
+                    yPercent: -3,
+                },
+                {
+                    ease: "none",
+                    yPercent: 3,
+                    scrollTrigger: {
+                        id: `about-parallax-${panel.id}-${index}`,
+                        trigger: panel,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: true,
+                        invalidateOnRefresh: true,
+                        markers: showMarkers,
+                    },
+                },
+            );
+        },
+    );
+}
+
+/**
+ * Bind all internal About links to exact header-aware navigation.
  */
 function bindSectionLinks(root, panels, reducedMotion) {
-    const links = [...root.querySelectorAll('a[href^="#"]')];
-    const cleanup = [];
+    const links = [
+        ...root.querySelectorAll('a[href^="#"]'),
+    ];
 
+    const cleanupCallbacks = [];
     let activeTween = null;
 
     /**
-     * Scroll one panel precisely to the top of the viewport.
+     * Navigate one panel beneath the fixed compact header.
      */
     const navigateToPanel = (
-        targetPanel,
+        panel,
         {
             updateHistory = true,
         } = {},
     ) => {
-        if (!(targetPanel instanceof HTMLElement)) {
+        if (!(panel instanceof HTMLElement)) {
             return;
         }
 
         activeTween?.kill();
         activeTween = null;
 
-        const targetHash = `#${targetPanel.id}`;
-        const targetY = getPanelScrollPosition(targetPanel);
+        const targetHash = `#${panel.id}`;
+        const offsetY =
+            panel.id === "about-hero"
+                ? 0
+                : getHeaderOffset(root);
 
         if (
             updateHistory &&
@@ -448,25 +466,26 @@ function bindSectionLinks(root, panels, reducedMotion) {
             );
         }
 
-        setActiveSection(root, panels, targetPanel.id);
+        setActiveSection(root, panels, panel.id);
         setNavigationState(root, "navigating");
 
         /**
-         * Restore the ready state after a completed navigation.
+         * Restore trigger synchronization after navigation settles.
          */
-        const settle = () => {
+        const settleNavigation = () => {
             activeTween = null;
             setNavigationState(root, "ready");
             ScrollTrigger.update();
+            updateTriggerCount(root);
         };
 
         if (reducedMotion) {
             window.scrollTo({
-                top: targetY,
+                top: getPanelScrollPosition(root, panel),
                 behavior: "auto",
             });
 
-            settle();
+            settleNavigation();
 
             return;
         }
@@ -476,24 +495,19 @@ function bindSectionLinks(root, panels, reducedMotion) {
             ease: "power3.inOut",
             overwrite: "auto",
             scrollTo: {
-                y: targetY,
+                y: panel,
+                offsetY,
                 autoKill: true,
             },
-            onComplete: settle,
-            onInterrupt: settle,
+            onComplete: settleNavigation,
+            onInterrupt: settleNavigation,
         });
     };
 
     links.forEach((link) => {
-        const selector = link.getAttribute("href");
-
-        if (!selector?.startsWith("#")) {
-            return;
-        }
-
         const targetPanel = getPanelFromHash(
             panels,
-            selector,
+            link.getAttribute("href") ?? "",
         );
 
         if (!targetPanel) {
@@ -501,38 +515,38 @@ function bindSectionLinks(root, panels, reducedMotion) {
         }
 
         /**
-         * Replace native anchor scrolling with exact GSAP navigation.
+         * Replace the native anchor jump with header-aware navigation.
          */
         const handleClick = (event) => {
             event.preventDefault();
-
             navigateToPanel(targetPanel);
         };
 
         link.addEventListener("click", handleClick);
 
-        cleanup.push(() => {
-            link.removeEventListener("click", handleClick);
+        cleanupCallbacks.push(() => {
+            link.removeEventListener(
+                "click",
+                handleClick,
+            );
         });
     });
 
     /**
-     * Restore the corresponding section when browser history changes.
+     * Restore the correct section when browser history changes.
      */
     const handlePopState = () => {
-        const targetPanel =
+        const panel =
             getPanelFromHash(panels) ?? panels[0];
 
-        if (targetPanel) {
-            navigateToPanel(targetPanel, {
-                updateHistory: false,
-            });
-        }
+        navigateToPanel(panel, {
+            updateHistory: false,
+        });
     };
 
     window.addEventListener("popstate", handlePopState);
 
-    cleanup.push(() => {
+    cleanupCallbacks.push(() => {
         window.removeEventListener(
             "popstate",
             handlePopState,
@@ -541,19 +555,17 @@ function bindSectionLinks(root, panels, reducedMotion) {
         activeTween?.kill();
     });
 
-    return {
-        navigateToPanel,
-
-        cleanup: () => {
-            cleanup.reverse().forEach((callback) => callback());
-        },
+    return () => {
+        cleanupCallbacks
+            .reverse()
+            .forEach((callback) => callback());
     };
 }
 
 /**
- * Restore every animated element to its readable final state.
+ * Restore all animation targets to their final accessible state.
  */
-function setReducedMotionState(root) {
+function setReducedMotionState(root, panels) {
     gsap.set(
         root.querySelectorAll(
             [
@@ -565,17 +577,23 @@ function setReducedMotionState(root) {
         ),
         {
             autoAlpha: 1,
-            clearProps: "clipPath,transform,willChange",
+            clearProps:
+                "clipPath,transform,willChange",
         },
     );
+
+    panels.forEach((panel) => {
+        panel.dataset.aboutAnimationState = "complete";
+    });
 }
 
 /**
- * Refresh ScrollTrigger positions and preserve exact hash alignment.
+ * Refresh trigger geometry and preserve direct hash alignment.
  */
 function refreshLayout(root, panels) {
     if (
-        root.dataset.aboutSectionNavigation === "navigating"
+        root.dataset.aboutSectionNavigation ===
+        "navigating"
     ) {
         return;
     }
@@ -586,26 +604,40 @@ function refreshLayout(root, panels) {
 
     if (hashPanel) {
         window.scrollTo({
-            top: getPanelScrollPosition(hashPanel),
+            top: getPanelScrollPosition(
+                root,
+                hashPanel,
+            ),
             behavior: "auto",
         });
 
-        setActiveSection(root, panels, hashPanel.id);
+        setActiveSection(
+            root,
+            panels,
+            hashPanel.id,
+        );
+
         ScrollTrigger.update();
+        updateTriggerCount(root);
 
         return;
     }
 
-    const closestIndex = getClosestPanelIndex(panels);
-    const closestPanel = panels[closestIndex];
+    const closestPanel = getClosestPanel(panels);
 
     if (closestPanel) {
-        setActiveSection(root, panels, closestPanel.id);
+        setActiveSection(
+            root,
+            panels,
+            closestPanel.id,
+        );
     }
+
+    updateTriggerCount(root);
 }
 
 /**
- * Initialize the complete About-page experience.
+ * Initialize the complete About-page animation experience.
  */
 export function initAboutExperience(
     root = document.querySelector("[data-about-page]"),
@@ -620,6 +652,10 @@ export function initAboutExperience(
         return () => {};
     }
 
+    const showMarkers = new URLSearchParams(
+        window.location.search,
+    ).has("debug-scroll");
+
     document.documentElement.classList.add(
         "about-section-navigation-active",
     );
@@ -631,134 +667,141 @@ export function initAboutExperience(
     media.add(
         {
             desktop: desktopQuery,
-            shortViewport: shortViewportQuery,
             reducedMotion: reducedMotionQuery,
         },
         (mediaContext) => {
             const {
                 desktop = false,
-                shortViewport = false,
                 reducedMotion = false,
             } = mediaContext.conditions;
 
-            const cleanup = [];
+            let disposed = false;
 
             const animationContext = gsap.context(() => {
-                const sectionTriggers =
-                    initializeSectionTracking(
+                initializeSectionTracking(
+                    root,
+                    panels,
+                    showMarkers,
+                );
+
+                if (reducedMotion) {
+                    setReducedMotionState(
                         root,
                         panels,
                     );
 
-                cleanup.push(() => {
-                    sectionTriggers.forEach((trigger) => {
-                        trigger.kill();
-                    });
+                    root.dataset.aboutMotion =
+                        "reduced";
+
+                    return;
+                }
+
+                initializeHero(root);
+
+                panels.slice(1).forEach((panel) => {
+                    initializePanelAnimation(
+                        panel,
+                        showMarkers,
+                    );
                 });
 
-                const sectionLinks = bindSectionLinks(
+                if (desktop) {
+                    initializeParallax(
+                        root,
+                        showMarkers,
+                    );
+                }
+
+                root.dataset.aboutMotion = "ready";
+            }, root);
+
+            const removeSectionLinks =
+                bindSectionLinks(
                     root,
                     panels,
                     reducedMotion,
                 );
 
-                cleanup.push(sectionLinks.cleanup);
+            const initialPanel =
+                getPanelFromHash(panels) ??
+                getClosestPanel(panels);
 
-                if (reducedMotion) {
-                    setReducedMotionState(root);
-                    root.dataset.aboutMotion = "reduced";
-                } else {
-                    cleanup.push(initializeHero(root));
-
-                    cleanup.push(
-                        ...initializePanelReveals(panels),
-                    );
-
-                    cleanup.push(
-                        initializeImageReveals(root),
-                    );
-
-                    if (desktop && !shortViewport) {
-                        cleanup.push(
-                            initializeParallax(root),
-                        );
-                    }
-
-                    root.dataset.aboutMotion = "ready";
-                }
-
-                const initialPanel =
-                    getPanelFromHash(panels) ??
-                    panels[getClosestPanelIndex(panels)];
-
-                if (initialPanel) {
-                    setActiveSection(
-                        root,
-                        panels,
-                        initialPanel.id,
-                    );
-                }
-            }, root);
-
-            cleanup.push(() => {
-                animationContext.revert();
-            });
+            if (initialPanel) {
+                setActiveSection(
+                    root,
+                    panels,
+                    initialPanel.id,
+                );
+            }
 
             /**
-             * Perform the initial layout calculation after the browser has
-             * committed current styles.
+             * Calculate trigger positions after the current frame commits.
              */
-            const initialRefreshFrame =
+            const refreshFrame =
                 window.requestAnimationFrame(() => {
+                    if (disposed) {
+                        return;
+                    }
+
                     refreshLayout(root, panels);
                     setNavigationState(root, "ready");
                 });
 
-            cleanup.push(() => {
-                window.cancelAnimationFrame(
-                    initialRefreshFrame,
-                );
-            });
-
             /**
-             * Recalculate after responsive images finish loading.
+             * Recalculate after responsive images settle.
              */
-            const handleLoad = () => {
-                refreshLayout(root, panels);
+            const handleWindowLoad = () => {
+                if (!disposed) {
+                    refreshLayout(root, panels);
+                }
             };
 
-            window.addEventListener("load", handleLoad, {
-                once: true,
-            });
-
-            cleanup.push(() => {
-                window.removeEventListener(
-                    "load",
-                    handleLoad,
-                );
-            });
+            window.addEventListener(
+                "load",
+                handleWindowLoad,
+                {
+                    once: true,
+                },
+            );
 
             /**
-             * Web-font metrics can change section positions after first paint.
+             * Recalculate after web-font metrics settle.
              */
             document.fonts?.ready
                 ?.then(() => {
-                    refreshLayout(root, panels);
+                    if (!disposed) {
+                        refreshLayout(root, panels);
+                    }
                 })
                 .catch(() => {
-                    setNavigationState(root, "ready");
+                    if (!disposed) {
+                        setNavigationState(
+                            root,
+                            "ready",
+                        );
+                    }
                 });
 
             return () => {
-                cleanup.reverse().forEach((callback) => {
-                    callback();
-                });
+                disposed = true;
+
+                window.cancelAnimationFrame(
+                    refreshFrame,
+                );
+
+                window.removeEventListener(
+                    "load",
+                    handleWindowLoad,
+                );
+
+                removeSectionLinks();
+                animationContext.revert();
             };
         },
     );
 
     /**
-     * Remove all About-specific classes, media handlers, tweens, and triggers.
+     * Remove every About-specific handler and state value.
      */
     const cleanup = () => {
         media.revert();
@@ -770,6 +813,17 @@ export function initAboutExperience(
         delete root.dataset.aboutSectionNavigation;
         delete root.dataset.aboutActiveSection;
         delete root.dataset.aboutMotion;
+        delete root.dataset.aboutTriggerCount;
+
+        panels.forEach((panel) => {
+            panel.removeAttribute(
+                "data-about-active",
+            );
+
+            panel.removeAttribute(
+                "data-about-animation-state",
+            );
+        });
     };
 
     if (import.meta.hot) {

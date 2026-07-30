@@ -1,17 +1,14 @@
 /*
  * About page editorial experience
  *
- * All content remains server-rendered and readable without JavaScript.
+ * Every section remains server-rendered and readable without JavaScript.
  * GSAP progressively enhances navigation, reveals, and image movement.
  */
 
 /*
- * The shared header overlays the About panels, so in-page navigation must
- * align panels to the actual viewport top instead of reserving header space.
- *
- * The :has() selector preserves correct native-anchor behavior before the
- * JavaScript module initializes. The class is added by JavaScript as a
- * persistent fallback while the About experience is active.
+ * About-page anchor navigation is controlled explicitly by ScrollToPlugin.
+ * Remove the shared document scroll inset so native and enhanced navigation
+ * never apply two competing offsets.
  */
 html:has([data-about-page]),
 html.about-section-navigation-active {
@@ -20,7 +17,8 @@ html.about-section-navigation-active {
 }
 
 .about-page {
-    --about-panel-height: 100vh;
+    --about-viewport-height: 100vh;
+    --about-header-height: 80px;
 
     position: relative;
     width: 100%;
@@ -29,31 +27,35 @@ html.about-section-navigation-active {
 
 @supports (height: 100svh) {
     .about-page {
-        --about-panel-height: 100svh;
+        --about-viewport-height: 100svh;
     }
 }
 
 @supports (height: 100dvh) {
     .about-page {
-        --about-panel-height: 100dvh;
+        --about-viewport-height: 100dvh;
     }
 }
 
 /*
- * Panels use a viewport minimum everywhere.
+ * The hero fills the complete viewport because the shared header overlays it.
  *
- * Tall desktop displays additionally receive an exact viewport height in the
- * desktop media query below. Mobile and short screens retain natural content
- * height so text and controls are never clipped.
+ * Subsequent desktop panels use the visible viewport beneath the compact
+ * header. Short screens and touch layouts retain natural document height.
  */
 .about-panel {
     position: relative;
     display: flex;
     width: 100%;
-    min-height: var(--about-panel-height);
+    min-height: var(--about-viewport-height);
     align-items: center;
     overflow: hidden;
     scroll-margin-top: 0;
+}
+
+#about-hero {
+    height: var(--about-viewport-height);
+    min-height: var(--about-viewport-height);
 }
 
 .about-panel > .public-container {
@@ -65,8 +67,7 @@ html.about-section-navigation-active {
 }
 
 /*
- * Only elements actively managed by GSAP receive will-change hints.
- * The hints are removed when animations are reverted or reduced motion is on.
+ * Only active GSAP image targets receive rendering hints.
  */
 .about-page[data-about-motion="ready"] [data-about-parallax] img,
 .about-page[data-about-motion="ready"] [data-about-image-reveal] img {
@@ -173,14 +174,11 @@ html.about-section-navigation-active {
 }
 
 /*
- * Restaurant-value cards
- *
- * The slightly reduced desktop card height allows the complete values section
- * to fit inside one 900px-or-taller viewport without clipping its heading.
+ * Restaurant value cards
  */
 .about-value-card {
     display: grid;
-    min-height: 28rem;
+    min-height: 27rem;
     grid-template-rows: minmax(0, 1fr) 10rem;
     transition:
         transform 320ms var(--ease-island),
@@ -236,10 +234,6 @@ html.about-section-navigation-active {
     min-height: 0;
 }
 
-/*
- * Display the section pager only when sufficient horizontal space is
- * available. It remains hidden on tablets and phones.
- */
 @media (min-width: 1280px) {
     .about-section-nav {
         display: block;
@@ -247,26 +241,131 @@ html.about-section-navigation-active {
 }
 
 /*
- * Exact full-screen panels are enabled only for sufficiently tall desktop
- * viewports. This provides deterministic section navigation without clipping
- * the values cards or other editorial content.
+ * Exact desktop section viewport.
+ *
+ * This threshold covers common 1366x768, 1440x900, 1728x864, and 1920x1080
+ * desktop layouts instead of requiring an unusually tall 900px viewport.
  */
-@media (min-width: 1024px) and (min-height: 900px) and (pointer: fine) {
-    .about-panel {
-        height: var(--about-panel-height);
-        min-height: var(--about-panel-height);
+@media (min-width: 1024px) and (min-height: 720px) and (pointer: fine) {
+    .about-panel:not(#about-hero) {
+        height: calc(
+            var(--about-viewport-height) -
+            var(--about-header-height)
+        );
+        min-height: calc(
+            var(--about-viewport-height) -
+            var(--about-header-height)
+        );
+    }
+
+    /*
+     * Override the Blade utility min-height values inside the story section.
+     * Those values previously forced the inner grid and image to 100svh even
+     * though the available panel area was smaller.
+     */
+    #island-roots > .grid {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+
+    #island-roots > .grid > div:first-child {
+        height: 100%;
+        min-height: 0;
+        padding-block: clamp(1.75rem, 3.7dvh, 3rem);
+    }
+
+    #island-roots > .grid > div:last-child {
+        height: 100%;
+        min-height: 0;
+    }
+
+    #island-roots h2 {
+        margin-top: 0.8rem;
+        font-size: clamp(3rem, 6.4dvh, 4.25rem);
+        line-height: 0.98;
+    }
+
+    #island-roots h2 + div {
+        margin-top: 1.1rem;
+    }
+
+    #island-roots .max-w-xl > p.mt-7 {
+        margin-top: 1.15rem;
+        font-size: clamp(0.875rem, 1.8dvh, 1rem);
+        line-height: 1.75;
+    }
+
+    #island-roots .max-w-xl > p.mt-5 {
+        margin-top: 0.75rem;
+        font-size: clamp(0.875rem, 1.8dvh, 1rem);
+        line-height: 1.7;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 {
+        margin-top: 1.35rem;
+        padding-top: 1.15rem;
+    }
+
+    /*
+     * Keep every values card and its heading inside the visible panel.
+     */
+    #values > .public-container {
+        padding-block: clamp(1.75rem, 3.8dvh, 3rem);
+    }
+
+    #values .mt-12 {
+        margin-top: clamp(1.5rem, 3dvh, 2rem);
+    }
+
+    .about-value-card {
+        height: clamp(20rem, 43dvh, 23rem);
+        min-height: 0;
+        grid-template-rows: minmax(0, 1fr) clamp(7.5rem, 15dvh, 9rem);
+    }
+
+    .about-value-card__image {
+        min-height: 0;
+    }
+
+    /*
+     * Compact the remaining editorial sections without reducing readability.
+     */
+    #heritage > .public-container,
+    #invitation > .public-container {
+        padding-block: clamp(1.75rem, 4dvh, 3rem);
+    }
+
+    #heritage .grid {
+        gap: clamp(2rem, 4vw, 4rem);
+    }
+
+    .about-heritage-item {
+        padding-block: clamp(0.8rem, 1.8dvh, 1.25rem);
+    }
+
+    #experience > .public-container {
+        height: 100%;
+        padding-block: clamp(1.75rem, 4dvh, 3rem);
+    }
+
+    .about-mosaic {
+        height: clamp(26rem, 57dvh, 32rem);
+        min-height: 0;
     }
 }
 
 /*
- * Phones, tablets, and short laptop screens retain natural section height.
- * Each section still fills at least one viewport, but content may extend
- * vertically when needed.
+ * Natural document flow for phones, tablets, and very short displays.
  */
-@media (max-width: 1023px), (max-height: 899px) {
-    .about-panel {
+@media (max-width: 1023px), (max-height: 719px) {
+    .about-page {
+        --about-header-height: 76px;
+    }
+
+    .about-panel:not(#about-hero) {
         height: auto;
-        min-height: var(--about-panel-height);
+        min-height: var(--about-viewport-height);
         overflow: visible;
     }
 
@@ -285,15 +384,10 @@ html.about-section-navigation-active {
         min-height: 30rem;
         gap: 0.6rem;
     }
-
-    .about-value-card {
-        min-height: 27rem;
-    }
 }
 
 /*
- * Reduced motion preserves all readable final states and removes every
- * non-essential transition.
+ * Reduced-motion visitors receive the complete readable final state.
  */
 @media (prefers-reduced-motion: reduce) {
     .about-value-card,

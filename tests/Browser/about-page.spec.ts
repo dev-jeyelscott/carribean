@@ -1,4 +1,8 @@
-import { expect, test } from "@playwright/test";
+import {
+    expect,
+    test,
+    type Page,
+} from "@playwright/test";
 
 const sectionIds = [
     "island-roots",
@@ -9,46 +13,98 @@ const sectionIds = [
 ];
 
 /**
- * Return one panel's viewport-relative top position.
+ * Return a section's viewport-relative geometry.
  */
-async function panelTop(
-    page,
+async function sectionBounds(
+    page: Page,
     sectionId: string,
-): Promise<number> {
+): Promise<{
+    top: number;
+    bottom: number;
+    height: number;
+}> {
     return page
         .locator(`#${sectionId}`)
+        .evaluate((element) => {
+            const bounds =
+                element.getBoundingClientRect();
+
+            return {
+                top: Math.round(bounds.top),
+                bottom: Math.round(bounds.bottom),
+                height: Math.round(bounds.height),
+            };
+        });
+}
+
+/**
+ * Return the visible lower edge of the fixed public header.
+ */
+async function headerBottom(
+    page: Page,
+): Promise<number> {
+    return page
+        .locator(
+            "[data-public-header-shell] > header",
+        )
         .evaluate((element) =>
             Math.round(
-                element.getBoundingClientRect().top,
+                element.getBoundingClientRect().bottom,
             ),
         );
 }
 
 /**
- * Return one panel's rendered viewport height.
+ * Return the difference between a panel's top and the header's bottom.
  */
-async function panelHeight(
-    page,
+async function sectionHeaderGap(
+    page: Page,
     sectionId: string,
 ): Promise<number> {
-    return page
-        .locator(`#${sectionId}`)
-        .evaluate((element) =>
-            Math.round(
-                element.getBoundingClientRect().height,
-            ),
-        );
+    const bounds = await sectionBounds(
+        page,
+        sectionId,
+    );
+
+    const headerEdge = await headerBottom(page);
+
+    return Math.abs(bounds.top - headerEdge);
+}
+
+/**
+ * Return the difference between a panel's bottom and viewport bottom.
+ */
+async function sectionViewportBottomGap(
+    page: Page,
+    sectionId: string,
+): Promise<number> {
+    const bounds = await sectionBounds(
+        page,
+        sectionId,
+    );
+
+    const viewportHeight = await page.evaluate(
+        () => window.innerHeight,
+    );
+
+    return Math.abs(
+        bounds.bottom - viewportHeight,
+    );
 }
 
 test.describe("About page section navigation", () => {
+    /*
+     * This reproduces the viewport shown in the reported broken screenshot.
+     * The previous 1440x900 test unintentionally bypassed the short-height bug.
+     */
     test.use({
         viewport: {
-            width: 1440,
-            height: 900,
+            width: 1728,
+            height: 864,
         },
     });
 
-    test("aligns every desktop section to the viewport top", async ({
+    test("fits every section beneath the fixed header", async ({
         page,
     }) => {
         await page.goto("/about");
@@ -67,10 +123,18 @@ test.describe("About page section navigation", () => {
             "ready",
         );
 
+        const triggerCount = Number(
+            await root.getAttribute(
+                "data-about-trigger-count",
+            ),
+        );
+
         /*
-         * Verify the hero's primary internal action uses the same exact
-         * navigation behavior as the fixed section pager.
+         * Six active-section triggers, five section animation triggers, and
+         * at least one parallax trigger must be registered.
          */
+        expect(triggerCount).toBeGreaterThanOrEqual(12);
+
         await page
             .locator(
                 '#about-hero a[href="#island-roots"]',
@@ -79,18 +143,26 @@ test.describe("About page section navigation", () => {
             .click();
 
         await expect
-            .poll(() => panelTop(page, "island-roots"))
-            .toBe(0);
+            .poll(() =>
+                sectionHeaderGap(
+                    page,
+                    "island-roots",
+                ),
+            )
+            .toBeLessThanOrEqual(2);
 
-        await expect(root).toHaveAttribute(
-            "data-about-active-section",
-            "island-roots",
-        );
+        await expect
+            .poll(() =>
+                sectionViewportBottomGap(
+                    page,
+                    "island-roots",
+                ),
+            )
+            .toBeLessThanOrEqual(2);
 
-        /*
-         * The previous hero must finish exactly at the viewport top.
-         * No portion of it should remain visible above the story section.
-         */
+        const storyHeaderEdge =
+            await headerBottom(page);
+
         const heroBottom = await page
             .locator("#about-hero")
             .evaluate((element) =>
@@ -99,10 +171,24 @@ test.describe("About page section navigation", () => {
                 ),
             );
 
-        expect(heroBottom).toBe(0);
+        /*
+         * The previous panel ends behind the opaque fixed header instead of
+         * remaining visibly exposed above the story section.
+         */
+        expect(
+            Math.abs(
+                heroBottom - storyHeaderEdge,
+            ),
+        ).toBeLessThanOrEqual(2);
 
-        const viewportHeight = await page.evaluate(
-            () => window.innerHeight,
+        await expect(
+            page.locator("#island-roots"),
+        ).toHaveAttribute(
+            "data-about-animation-state",
+            "complete",
+            {
+                timeout: 5_000,
+            },
         );
 
         for (const sectionId of sectionIds) {
@@ -113,21 +199,41 @@ test.describe("About page section navigation", () => {
                 .click();
 
             await expect
-                .poll(() => panelTop(page, sectionId))
-                .toBe(0);
+                .poll(() =>
+                    sectionHeaderGap(
+                        page,
+                        sectionId,
+                    ),
+                )
+                .toBeLessThanOrEqual(2);
+
+            await expect
+                .poll(() =>
+                    sectionViewportBottomGap(
+                        page,
+                        sectionId,
+                    ),
+                )
+                .toBeLessThanOrEqual(2);
 
             await expect(root).toHaveAttribute(
                 "data-about-active-section",
                 sectionId,
             );
 
-            expect(
-                await panelHeight(page, sectionId),
-            ).toBe(viewportHeight);
+            await expect(
+                page.locator(`#${sectionId}`),
+            ).toHaveAttribute(
+                "data-about-animation-state",
+                "complete",
+                {
+                    timeout: 5_000,
+                },
+            );
         }
     });
 
-    test("keeps every section readable with reduced motion", async ({
+    test("keeps every section visible with reduced motion", async ({
         page,
     }) => {
         await page.emulateMedia({
@@ -152,8 +258,29 @@ test.describe("About page section navigation", () => {
             .click();
 
         await expect
-            .poll(() => panelTop(page, "heritage"))
-            .toBe(0);
+            .poll(() =>
+                sectionHeaderGap(
+                    page,
+                    "heritage",
+                ),
+            )
+            .toBeLessThanOrEqual(2);
+
+        await expect
+            .poll(() =>
+                sectionViewportBottomGap(
+                    page,
+                    "heritage",
+                ),
+            )
+            .toBeLessThanOrEqual(2);
+
+        await expect(
+            page.locator("#heritage"),
+        ).toHaveAttribute(
+            "data-about-animation-state",
+            "complete",
+        );
 
         const hiddenAnimatedElements =
             await page
@@ -167,11 +294,14 @@ test.describe("About page section navigation", () => {
                 .evaluateAll((elements) =>
                     elements.filter((element) => {
                         const styles =
-                            window.getComputedStyle(element);
+                            window.getComputedStyle(
+                                element,
+                            );
 
                         return (
                             styles.opacity === "0" ||
-                            styles.visibility === "hidden"
+                            styles.visibility ===
+                                "hidden"
                         );
                     }).length,
                 );
