@@ -11,18 +11,31 @@
         <form
             method="POST"
             action="{{ route('register.store') }}"
-            class="flex flex-col gap-6">
+            class="auth-form-grid">
             @csrf
 
-            <flux:input
-                name="name"
-                :label="__('Full name')"
-                :value="old('name')"
-                type="text"
-                required
-                autofocus
-                autocomplete="name"
-                :placeholder="__('Full name')" />
+            <div class="grid gap-5 sm:grid-cols-2">
+                <flux:input
+                    name="name"
+                    :label="__('Full name')"
+                    :value="old('name')"
+                    type="text"
+                    required
+                    autofocus
+                    autocomplete="name"
+                    :placeholder="__('Your full name')"
+                    input:class="auth-input" />
+
+                <flux:input
+                    name="phone"
+                    :label="__('Phone number')"
+                    :value="old('phone')"
+                    type="tel"
+                    required
+                    autocomplete="tel"
+                    placeholder="+1 555 123 4567"
+                    input:class="auth-input" />
+            </div>
 
             <flux:input
                 name="email"
@@ -31,50 +44,55 @@
                 type="email"
                 required
                 autocomplete="email"
-                placeholder="email@example.com" />
+                placeholder="email@example.com"
+                input:class="auth-input" />
 
-            <flux:input
-                name="phone"
-                :label="__('Phone number')"
-                :value="old('phone')"
-                type="tel"
-                required
-                autocomplete="tel"
-                placeholder="+1 555 123 4567" />
+            <div class="grid gap-5 sm:grid-cols-2">
+                <flux:input
+                    name="password"
+                    :label="__('Password')"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    :placeholder="__('Create password')"
+                    passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
+                    input:class="auth-input"
+                    viewable />
 
-            <flux:input
-                name="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Password')"
-                passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable />
+                <flux:input
+                    name="password_confirmation"
+                    :label="__('Confirm password')"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    :placeholder="__('Repeat password')"
+                    passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
+                    input:class="auth-input"
+                    viewable />
+            </div>
 
-            <flux:input
-                name="password_confirmation"
-                :label="__('Confirm password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Confirm password')"
-                passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable />
+            <p class="text-xs leading-6 text-brand-muted">
+                Your account is used only to speed up checkout and give you
+                secure access to your Coast &amp; Cay order history.
+            </p>
 
             <flux:button
                 type="submit"
                 variant="primary"
-                class="w-full"
+                class="auth-submit-button w-full"
                 data-test="register-user-button">
-                {{ __('Create account') }}
+                <span>{{ __('Create account') }}</span>
+                <span class="ml-2" aria-hidden="true">&rarr;</span>
             </flux:button>
         </form>
 
-        <div class="text-center text-sm text-zinc-600">
+        <div class="text-center text-sm text-brand-muted">
             <span>{{ __('Already have an account?') }}</span>
 
-            <flux:link :href="route('login')" wire:navigate>
+            <flux:link
+                class="font-semibold"
+                :href="route('login')"
+                wire:navigate>
                 {{ __('Log in') }}
             </flux:link>
         </div>

@@ -11,7 +11,7 @@
         <form
             method="POST"
             action="{{ route('login.store') }}"
-            class="flex flex-col gap-6">
+            class="auth-form-grid">
             @csrf
 
             <flux:input
@@ -22,47 +22,59 @@
                 required
                 autofocus
                 autocomplete="email"
-                placeholder="email@example.com" />
+                placeholder="email@example.com"
+                input:class="auth-input" />
 
-            <div class="relative">
+            <div class="auth-password-field">
                 <flux:input
                     name="password"
                     :label="__('Password')"
                     type="password"
                     required
                     autocomplete="current-password"
-                    :placeholder="__('Password')"
+                    :placeholder="__('Enter your password')"
+                    input:class="auth-input"
                     viewable />
 
                 @if (Route::has('password.request'))
                     <flux:link
-                        class="absolute end-0 top-0 text-sm"
+                        class="auth-password-field__link"
                         :href="route('password.request')"
                         wire:navigate>
-                        {{ __('Forgot your password?') }}
+                        {{ __('Forgot password?') }}
                     </flux:link>
                 @endif
             </div>
 
-            <flux:checkbox
-                name="remember"
-                :label="__('Remember me')"
-                :checked="old('remember')" />
+            <div class="flex items-center justify-between gap-4">
+                <flux:checkbox
+                    name="remember"
+                    :label="__('Remember me')"
+                    :checked="old('remember')" />
+
+                <span class="text-xs text-brand-muted">
+                    Secure customer login
+                </span>
+            </div>
 
             <flux:button
                 variant="primary"
                 type="submit"
-                class="w-full"
+                class="auth-submit-button w-full"
                 data-test="login-button">
-                {{ __('Log in') }}
+                <span>{{ __('Log in') }}</span>
+                <span class="ml-2" aria-hidden="true">&rarr;</span>
             </flux:button>
         </form>
 
         @if (Route::has('register'))
-            <div class="text-center text-sm text-zinc-600">
+            <div class="text-center text-sm text-brand-muted">
                 <span>{{ __('New to Coast & Cay?') }}</span>
 
-                <flux:link :href="route('register')" wire:navigate>
+                <flux:link
+                    class="font-semibold"
+                    :href="route('register')"
+                    wire:navigate>
                     {{ __('Create an account') }}
                 </flux:link>
             </div>

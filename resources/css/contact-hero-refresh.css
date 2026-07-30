@@ -1,0 +1,193 @@
+@layer components {
+    /*
+     * Contact hero conversion refresh.
+     *
+     * The existing Blade content remains CMS-editable. This stylesheet improves
+     * hierarchy, framing, CTA emphasis, and quick-contact affordances without
+     * introducing another component or animation controller.
+     */
+    #contact-hero {
+        --contact-hero-border: rgb(255 255 255 / 16%);
+        --contact-hero-glass: rgb(3 19 16 / 42%);
+    }
+
+    #contact-hero .contact-panel__content {
+        padding-top: clamp(7.75rem, 12vh, 10rem);
+        padding-bottom: clamp(3rem, 6vh, 5rem);
+    }
+
+    /*
+     * Add a restrained editorial rule beside the primary message.
+     */
+    #contact-hero [data-gsap="hero-content"] {
+        position: relative;
+        padding-left: clamp(1.25rem, 2.25vw, 2.25rem);
+    }
+
+    #contact-hero [data-gsap="hero-content"]::before {
+        position: absolute;
+        top: 0.25rem;
+        bottom: 0.25rem;
+        left: 0;
+        width: 1px;
+        content: "";
+        background:
+            linear-gradient(
+                to bottom,
+                var(--color-sun),
+                rgb(242 199 107 / 16%)
+            );
+    }
+
+    #contact-hero #contact-hero-heading {
+        max-width: 8.5ch;
+        font-size: clamp(4rem, 7.2vw, 7.6rem);
+        line-height: 0.9;
+        letter-spacing: -0.035em;
+        text-wrap: balance;
+    }
+
+    #contact-hero #contact-hero-heading + p {
+        max-width: 36rem;
+        font-size: clamp(1rem, 1.3vw, 1.18rem);
+        line-height: 1.8;
+    }
+
+    /*
+     * Primary CTA remains visually dominant while the inquiry action retains
+     * a clear, accessible secondary hierarchy.
+     */
+    #contact-hero [data-gsap="hero-content"] .public-button-primary {
+        min-width: 11.5rem;
+        box-shadow:
+            0 1.2rem 2.8rem rgb(230 110 80 / 27%),
+            inset 0 1px rgb(255 255 255 / 20%);
+    }
+
+    #contact-hero [data-gsap="hero-content"] .public-button-secondary {
+        min-width: 11.5rem;
+        backdrop-filter: blur(0.7rem);
+    }
+
+    /*
+     * Give the hospitality image an asymmetric editorial silhouette rather
+     * than a conventional rectangular marketing-banner frame.
+     */
+    #contact-hero .contact-hero-media {
+        isolation: isolate;
+        border-radius:
+            clamp(2rem, 4vw, 4rem)
+            clamp(2rem, 4vw, 4rem)
+            clamp(5rem, 11vw, 10rem)
+            clamp(2rem, 4vw, 4rem);
+        border: 1px solid var(--contact-hero-border);
+        box-shadow:
+            0 3rem 8rem rgb(1 11 9 / 48%),
+            0 0.7rem 2rem rgb(1 11 9 / 22%);
+    }
+
+    #contact-hero .contact-hero-media::before {
+        position: absolute;
+        z-index: 3;
+        inset: 1rem;
+        content: "";
+        border: 1px solid rgb(255 255 255 / 15%);
+        border-radius:
+            clamp(1.4rem, 3vw, 3rem)
+            clamp(1.4rem, 3vw, 3rem)
+            clamp(4rem, 9vw, 8.5rem)
+            clamp(1.4rem, 3vw, 3rem);
+        pointer-events: none;
+    }
+
+    #contact-hero .contact-hero-media img {
+        transition: scale 700ms var(--ease-island);
+    }
+
+    #contact-hero .contact-hero-media:hover img {
+        scale: 1.025;
+    }
+
+    /*
+     * Quick-contact cards operate as a compact trust and action bar. Preserve
+     * their existing semantic links while making them easier to identify.
+     */
+    #contact-hero .contact-quick-card {
+        min-height: 4.75rem;
+        border-color: rgb(255 255 255 / 14%);
+        background: rgb(3 19 16 / 78%);
+        box-shadow:
+            0 1.5rem 4rem rgb(1 11 9 / 30%),
+            inset 0 1px rgb(255 255 255 / 6%);
+    }
+
+    @supports (backdrop-filter: blur(1rem)) {
+        #contact-hero .contact-quick-card {
+            background: rgb(3 19 16 / 65%);
+            backdrop-filter: blur(1rem) saturate(1.1);
+        }
+    }
+
+    #contact-hero a.contact-quick-card:hover {
+        border-color: rgb(242 199 107 / 45%);
+        background: rgb(3 19 16 / 86%);
+    }
+
+    #contact-hero .contact-quick-card__icon {
+        box-shadow:
+            0 0 0 4px rgb(255 255 255 / 6%),
+            0 0.65rem 1.5rem rgb(1 11 9 / 22%);
+    }
+}
+
+@media (max-width: 1023px) {
+    #contact-hero .contact-panel__content {
+        padding-top: 7.5rem;
+    }
+
+    #contact-hero [data-gsap="hero-content"] {
+        padding-left: 1.25rem;
+    }
+
+    #contact-hero #contact-hero-heading {
+        max-width: 9ch;
+    }
+
+    #contact-hero .contact-hero-media {
+        border-radius: 2rem 2rem 5rem 2rem;
+    }
+
+    #contact-hero .contact-hero-media::before {
+        inset: 0.75rem;
+        border-radius: 1.4rem 1.4rem 4.25rem 1.4rem;
+    }
+}
+
+@media (max-width: 639px) {
+    #contact-hero [data-gsap="hero-content"] {
+        padding-left: 0;
+    }
+
+    #contact-hero [data-gsap="hero-content"]::before {
+        display: none;
+    }
+
+    #contact-hero #contact-hero-heading {
+        max-width: 10ch;
+        font-size: clamp(3.4rem, 16vw, 4.75rem);
+    }
+
+    #contact-hero .contact-hero-media {
+        min-height: 25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #contact-hero .contact-hero-media img {
+        transition: none;
+    }
+
+    #contact-hero .contact-hero-media:hover img {
+        scale: 1;
+    }
+}

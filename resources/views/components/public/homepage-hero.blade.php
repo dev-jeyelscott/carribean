@@ -17,11 +17,48 @@
      * Use the approved responsive homepage artwork.
      *
      * Meaningful marketing copy remains accessible HTML rather than being
-     * baked into the image.
+     * embedded inside the image.
      */
     $heroAvifUrl = asset('images/heroes/coast-cay-home-hero.avif');
     $heroWebpUrl = asset('images/heroes/coast-cay-home-hero.webp');
     $heroFallbackUrl = asset('images/heroes/coast-cay-home-hero.png');
+
+    /*
+     * Define every homepage section once for the reusable right-side pager.
+     *
+     * The shared pager owns link interaction and active-dot state only.
+     * Existing homepage GSAP navigation remains responsible for wheel snapping.
+     */
+    $homeNavigation = [
+        [
+            'id' => 'home',
+            'label' => 'Home',
+        ],
+        [
+            'id' => 'featured',
+            'label' => 'Featured dishes',
+        ],
+        [
+            'id' => 'story',
+            'label' => 'Our story',
+        ],
+        [
+            'id' => 'menu-explorer',
+            'label' => 'Explore menu',
+        ],
+        [
+            'id' => 'gallery-preview',
+            'label' => 'Gallery',
+        ],
+        [
+            'id' => 'journal',
+            'label' => 'Journal',
+        ],
+        [
+            'id' => 'visit',
+            'label' => 'Visit',
+        ],
+    ];
 @endphp
 
 <section
@@ -135,6 +172,15 @@
             </div>
         </div>
     </div>
+
+    <x-public.section-pager
+        :items="$homeNavigation"
+        current="home"
+        label="Homepage sections"
+        context="home"
+        enhancer="shared"
+        :snap="false"
+        class="home-section-nav" />
 
     <a
         href="#featured"
