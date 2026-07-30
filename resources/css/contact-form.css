@@ -1,0 +1,208 @@
+@layer components {
+    /*
+     * Give the Contact form enough breathing room without increasing the
+     * enclosing full-screen section beyond its intended desktop viewport.
+     */
+    .contact-form {
+        display: grid;
+        width: 100%;
+        gap: 1.25rem;
+        margin-top: 1.5rem;
+    }
+
+    /*
+     * Keep every field vertically structured so labels, controls, and error
+     * messages cannot overlap or be affected by neighboring controls.
+     */
+    .contact-form__field {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /*
+     * Labels remain readable but visually secondary to the entered value.
+     */
+    .contact-form__label {
+        display: flex;
+        min-height: 1.25rem;
+        align-items: baseline;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 650;
+        line-height: 1.25rem;
+        letter-spacing: 0.015em;
+        color: var(--color-ink);
+    }
+
+    .contact-form__optional {
+        font-size: 0.6875rem;
+        font-weight: 450;
+        color: var(--color-muted);
+    }
+
+    /*
+     * Standard desktop and mobile form-control dimensions.
+     *
+     * A 52px control provides sufficient pointer area while remaining compact
+     * enough for the full-screen desktop layout.
+     */
+    .contact-form__control {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 3.25rem;
+        border: 1px solid rgb(99 115 108 / 25%);
+        border-radius: 0.875rem;
+        background: rgb(255 255 255 / 88%);
+        padding-inline: 1rem;
+        font-size: 0.9375rem;
+        line-height: 1.5rem;
+        color: var(--color-ink);
+        box-shadow:
+            0 1px 2px rgb(12 52 43 / 3%),
+            inset 0 1px 0 rgb(255 255 255 / 65%);
+        transition:
+            border-color 180ms ease,
+            background-color 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .contact-form__control::placeholder {
+        color: rgb(99 115 108 / 72%);
+    }
+
+    .contact-form__control:hover:not(:disabled) {
+        border-color: rgb(22 83 68 / 38%);
+        background: white;
+    }
+
+    .contact-form__control:focus {
+        border-color: var(--color-ocean);
+        outline: none;
+        background: white;
+        box-shadow:
+            0 0 0 3px rgb(32 111 124 / 14%),
+            0 1px 2px rgb(12 52 43 / 5%);
+    }
+
+    .contact-form__control:disabled {
+        cursor: not-allowed;
+        background: rgb(239 221 195 / 45%);
+        color: var(--color-muted);
+        opacity: 0.72;
+    }
+
+    /*
+     * Select controls reserve enough right-hand space for the native browser
+     * indicator without reducing the readable value area.
+     */
+    .contact-form select.contact-form__control {
+        cursor: pointer;
+        padding-right: 2.75rem;
+    }
+
+    /*
+     * The message field uses a predictable full-width area. Users may expand
+     * it vertically, but not horizontally into adjacent content.
+     */
+    .contact-form__textarea {
+        height: auto;
+        min-height: 8.5rem;
+        resize: vertical;
+        padding-block: 0.875rem;
+    }
+
+    /*
+     * Server and Alpine validation share aria-invalid as their visual source.
+     * The explicit class supports Laravel's initial server-rendered response.
+     */
+    .contact-form__control[aria-invalid="true"],
+    .contact-form__control--invalid {
+        border-color: rgb(220 38 38 / 72%);
+        background:
+            linear-gradient(
+                rgb(254 242 242 / 72%),
+                rgb(255 255 255 / 92%)
+            );
+        color: var(--color-ink);
+        box-shadow:
+            0 0 0 1px rgb(220 38 38 / 5%),
+            inset 0 1px 0 rgb(255 255 255 / 60%);
+    }
+
+    .contact-form__control[aria-invalid="true"]:hover,
+    .contact-form__control--invalid:hover {
+        border-color: rgb(185 28 28 / 82%);
+    }
+
+    .contact-form__control[aria-invalid="true"]:focus,
+    .contact-form__control--invalid:focus {
+        border-color: rgb(220 38 38);
+        box-shadow:
+            0 0 0 3px rgb(220 38 38 / 13%),
+            0 1px 2px rgb(12 52 43 / 5%);
+    }
+
+    /*
+     * Validation messages remain close to the affected control and include an
+     * icon without relying on color alone.
+     */
+    .contact-form .public-field-error,
+    .contact-form__error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.375rem;
+        margin-top: 0.125rem;
+        font-size: 0.75rem;
+        font-weight: 550;
+        line-height: 1.25rem;
+        color: rgb(185 28 28);
+    }
+
+    /*
+     * Alpine creates client-side error paragraphs dynamically. This selector
+     * gives those messages the same layout as server-rendered errors.
+     */
+    .contact-form
+        .contact-form__control
+        + .public-field-error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.375rem;
+        margin-top: 0.125rem;
+    }
+
+    .contact-form button:disabled {
+        cursor: wait;
+        opacity: 0.68;
+        transform: none;
+    }
+}
+
+@media (min-width: 640px) {
+    .contact-form {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .contact-form__control {
+        /*
+         * Keep text at 16px on mobile to avoid automatic viewport zoom in
+         * mobile Safari when a field receives focus.
+         */
+        font-size: 1rem;
+    }
+
+    .contact-form__textarea {
+        min-height: 9.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .contact-form__control {
+        transition: none;
+    }
+}

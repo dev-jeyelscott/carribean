@@ -4,6 +4,8 @@
 @import "./about.css";
 @import "./gallery.css";
 @import "./gallery-section-navigation.css";
+@import "./contact.css";
+@import "./contact-form.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
