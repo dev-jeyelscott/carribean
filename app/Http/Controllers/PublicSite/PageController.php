@@ -9,14 +9,6 @@ use Illuminate\Contracts\View\View;
 final class PageController extends Controller
 {
     /**
-     * Display the published About page.
-     */
-    public function about(): View
-    {
-        return $this->showPage('about');
-    }
-
-    /**
      * Display the published privacy policy.
      */
     public function privacyPolicy(): View

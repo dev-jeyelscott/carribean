@@ -103,3 +103,20 @@ if (menuPageRoot) {
             );
         });
 }
+
+const aboutPageRoot = document.querySelector(
+    "[data-about-page]",
+);
+
+if (aboutPageRoot) {
+    import("./about-experience")
+        .then(({ initAboutExperience }) => {
+            initAboutExperience(aboutPageRoot);
+        })
+        .catch((error) => {
+            console.error(
+                "Unable to initialize the About page experience.",
+                error,
+            );
+        });
+}

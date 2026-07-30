@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GalleryImages\Schemas;
 
 use App\Rules\SafeImageDimensions;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -12,6 +13,9 @@ use Filament\Schemas\Schema;
 
 class GalleryImageForm
 {
+    /**
+     * Configure the restaurant gallery-image editor.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -26,7 +30,7 @@ class GalleryImageForm
                             ->schema([
                                 Section::make('Image details')
                                     ->description(
-                                        'Use a descriptive title and alt text so gallery content is easy to manage and accessible.'
+                                        'Use a descriptive title, category, and alt text so imagery is reusable and accessible.'
                                     )
                                     ->columns([
                                         'default' => 1,
@@ -35,6 +39,19 @@ class GalleryImageForm
                                     ->schema([
                                         TextInput::make('title')
                                             ->maxLength(180),
+
+                                        Select::make('category')
+                                            ->options([
+                                                'dish' => 'Dish',
+                                                'interior' => 'Interior',
+                                                'ambiance' => 'Ambiance',
+                                                'ingredients' => 'Ingredients',
+                                                'team' => 'Team',
+                                                'guests' => 'Guests',
+                                                'about-hero' => 'About hero',
+                                            ])
+                                            ->native(false)
+                                            ->searchable(),
 
                                         TextInput::make('alt_text')
                                             ->label('Alt text')

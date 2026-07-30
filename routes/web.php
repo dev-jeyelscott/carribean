@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CheckoutSuccessController;
+use App\Http\Controllers\PublicSite\AboutController;
 use App\Http\Controllers\PublicSite\BlogController;
 use App\Http\Controllers\PublicSite\ContactController;
 use App\Http\Controllers\PublicSite\FaqController;
@@ -96,10 +97,8 @@ Route::livewire(
     ->middleware('signed')
     ->name('guest.orders.show');
 
-Route::get(
-    '/about',
-    [PageController::class, 'about'],
-)->name('about');
+Route::get('/about', AboutController::class)
+    ->name('about');
 
 Route::get(
     '/privacy-policy',

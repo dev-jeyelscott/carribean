@@ -1,0 +1,236 @@
+/*
+ * About page editorial experience
+ *
+ * Every section remains normal server-rendered document content. JavaScript
+ * enhances the page through ScrollTrigger without controlling native scrolling.
+ */
+
+.about-page {
+    position: relative;
+    width: 100%;
+    isolation: isolate;
+}
+
+.about-panel {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    align-items: center;
+    overflow: hidden;
+    scroll-margin-top: 5rem;
+}
+
+/*
+ * Desktop section navigation
+ */
+
+.about-section-nav {
+    position: fixed;
+    top: 50%;
+    right: 1.25rem;
+    z-index: 40;
+    display: none;
+    transform: translateY(-50%);
+}
+
+.about-section-nav__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.55rem;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: var(--radius-pill);
+    background: rgb(3 19 16 / 76%);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(18px);
+}
+
+.about-section-nav__link {
+    position: relative;
+    display: flex;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    color: white;
+    transition:
+        background 240ms var(--ease-island),
+        color 240ms var(--ease-island),
+        transform 240ms var(--ease-island);
+}
+
+.about-section-nav__link:hover {
+    background: rgb(255 255 255 / 10%);
+}
+
+.about-section-nav__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 44%);
+    transition:
+        width 240ms var(--ease-island),
+        height 240ms var(--ease-island),
+        background 240ms var(--ease-island);
+}
+
+.about-section-nav__label {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 0.75rem);
+    width: max-content;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.55rem;
+    background: rgb(3 19 16 / 92%);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(0.4rem, -50%);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease;
+}
+
+.about-section-nav__link:hover .about-section-nav__label,
+.about-section-nav__link:focus-visible .about-section-nav__label {
+    opacity: 1;
+    transform: translate(0, -50%);
+}
+
+.about-section-nav__link[aria-current="location"] {
+    background: var(--color-coral);
+    color: white;
+}
+
+.about-section-nav__link[aria-current="location"]
+    .about-section-nav__dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    background: white;
+}
+
+/*
+ * Editorial cards
+ */
+
+.about-quote-card {
+    border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.about-value-card {
+    display: grid;
+    min-height: 31rem;
+    grid-template-rows: minmax(0, 1fr) 12rem;
+    transition:
+        transform 320ms var(--ease-island),
+        box-shadow 320ms var(--ease-island);
+}
+
+.about-value-card:hover {
+    transform: translateY(-0.4rem);
+    box-shadow: var(--shadow-elevated);
+}
+
+.about-value-card__image {
+    min-height: 12rem;
+}
+
+/*
+ * Heritage timeline
+ */
+
+.about-heritage-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.about-heritage-item {
+    position: relative;
+    display: flex;
+    gap: 1.25rem;
+    padding-block: 1.5rem;
+}
+
+.about-heritage-item:not(:last-child)::after {
+    position: absolute;
+    bottom: -0.75rem;
+    left: 1.35rem;
+    width: 1px;
+    height: 1.5rem;
+    background: rgb(242 199 107 / 35%);
+    content: "";
+}
+
+/*
+ * Guest-experience photography mosaic
+ */
+
+.about-mosaic {
+    display: grid;
+    min-height: 34rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.about-mosaic > figure {
+    min-height: 0;
+}
+
+@media (min-width: 1280px) {
+    .about-section-nav {
+        display: block;
+    }
+}
+
+@media (max-width: 1023px), (max-height: 719px) {
+    .about-panel {
+        min-height: 100svh;
+        overflow: visible;
+    }
+
+    .about-value-card {
+        min-height: 28rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .about-mosaic {
+        min-height: 30rem;
+        gap: 0.6rem;
+    }
+
+    .about-value-card {
+        min-height: 27rem;
+        grid-template-rows: minmax(0, 1fr) 11rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .about-value-card,
+    .about-section-nav__link,
+    .about-section-nav__dot,
+    .about-section-nav__label {
+        transition: none;
+    }
+
+    .about-value-card:hover {
+        transform: none;
+    }
+
+    [data-about-reveal],
+    [data-about-image-reveal],
+    [data-about-hero-image] img,
+    [data-about-parallax] img {
+        opacity: 1 !important;
+        visibility: visible !important;
+        clip-path: none !important;
+        transform: none !important;
+    }
+}

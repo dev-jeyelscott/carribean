@@ -24,19 +24,94 @@ class PageSeeder extends Seeder
             ],
             [
                 'slug' => 'about',
-                'title' => 'Caribbean Roots, California Rhythm',
-                'excerpt' => 'Coast & Cay is being created as a warm neighborhood restaurant where Caribbean flavors and easy California hospitality meet.',
+                'title' => 'About Coast & Cay',
+                'excerpt' => 'We are more than a restaurant. We are a meeting of cultures, a celebration of flavor, and a place where everyone feels at home.',
                 'content' => <<<'HTML'
-<p>Coast & Cay began with a simple idea: create a restaurant where the food feels vibrant, the welcome feels genuine, and guests always have a reason to stay a little longer.</p>
+<p>Coast & Cay began with a simple idea: share the soulful, vibrant flavors of the Caribbean with the laid-back ease of California hospitality.</p>
 
-<p>Our development identity draws inspiration from the warmth, generosity, and bold flavors associated with Caribbean hospitality, paired with the relaxed pace of the California coast.</p>
-
-<h2>A restaurant made for gathering</h2>
-
-<p>The final restaurant story, heritage, menu, and photography will be supplied by the client and their consultant. Until then, Coast & Cay remains an editable development identity designed to be replaced without changing the website architecture.</p>
+<p>Our chefs blend time-honored recipes with the best local ingredients to create dishes that feel both familiar and new.</p>
 HTML,
+                'sections' => [
+                    'hero' => [
+                        'title' => 'About Coast & Cay.',
+                        'accent' => 'Rooted in the Caribbean. Inspired by California.',
+                    ],
+                    'story' => [
+                        'eyebrow' => 'Our Story',
+                        'title' => 'From island roots to the California coast.',
+                        'description' => 'Coast & Cay began with a simple idea: share the soulful, vibrant flavors of the Caribbean with the laid-back ease of California hospitality. Our chefs blend time-honored recipes with the best local ingredients to create dishes that feel both familiar and new.',
+                        'quote' => 'Caribbean warmth. California ease.',
+                    ],
+                    'values_eyebrow' => 'What Defines Us',
+                    'values_title' => 'Our values. In everything we do.',
+                    'values' => [
+                        [
+                            'number' => '01',
+                            'title' => 'Bold Flavor',
+                            'description' => 'Vibrant, soulful flavors that celebrate the Caribbean spirit.',
+                        ],
+                        [
+                            'number' => '02',
+                            'title' => 'Genuine Hospitality',
+                            'description' => 'Warm welcomes, attentive service, and care in every detail.',
+                        ],
+                        [
+                            'number' => '03',
+                            'title' => 'California Ease',
+                            'description' => 'A relaxed, modern atmosphere where good food and good times flow.',
+                        ],
+                        [
+                            'number' => '04',
+                            'title' => 'Caribbean Roots',
+                            'description' => 'Traditions, ingredients, and stories that continue to inspire us.',
+                        ],
+                    ],
+                    'heritage' => [
+                        'eyebrow' => 'Our Heritage',
+                        'title' => 'Honoring where we come from. Creating what is next.',
+                        'description' => 'Our inspiration comes from sun-soaked islands, family kitchens, and the farmers and producers who share our values.',
+                        'items' => [
+                            [
+                                'title' => 'Inspired by Islands',
+                                'description' => 'Caribbean traditions and time-honored recipes.',
+                            ],
+                            [
+                                'title' => 'Thoughtful Ingredients',
+                                'description' => 'Seasonal, sustainable, and locally sourced where possible.',
+                            ],
+                            [
+                                'title' => 'Made with Care',
+                                'description' => 'Prepared daily by people who love what they do.',
+                            ],
+                        ],
+                    ],
+                    'experience' => [
+                        'eyebrow' => 'The Coast & Cay Experience',
+                        'title' => 'Why guests keep coming back.',
+                        'description' => 'It is more than the food. It is how we make you feel. Every visit is designed to be effortless, memorable, and filled with good energy.',
+                        'items' => [
+                            [
+                                'text' => 'Warm welcomes from the moment you arrive.',
+                            ],
+                            [
+                                'text' => 'Dishes that surprise and satisfy, every time.',
+                            ],
+                            [
+                                'text' => 'A space that feels elevated and easygoing.',
+                            ],
+                            [
+                                'text' => 'Moments worth savoring and sharing.',
+                            ],
+                        ],
+                    ],
+                    'closing' => [
+                        'eyebrow' => 'You Are Invited',
+                        'title' => 'Good food. Good people. Great memories.',
+                        'description' => 'Come for the flavor. Stay for the feeling.',
+                    ],
+                ],
                 'meta_title' => 'About Coast & Cay',
-                'meta_description' => 'Learn about the Coast & Cay restaurant concept, Caribbean inspiration, and relaxed California hospitality.',
+                'meta_description' => 'Learn about the Coast & Cay restaurant story, Caribbean inspiration, values, ingredients, and relaxed California hospitality.',
                 'is_published' => true,
             ],
             [
@@ -69,8 +144,10 @@ HTML,
         ];
 
         foreach ($pages as $page) {
-            Page::updateOrCreate(
-                ['slug' => $page['slug']],
+            Page::query()->updateOrCreate(
+                [
+                    'slug' => $page['slug'],
+                ],
                 $page,
             );
         }
