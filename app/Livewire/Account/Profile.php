@@ -41,11 +41,21 @@ final class Profile extends Component
         ]);
 
         $this->fillFromAuthenticatedUser();
+        $this->resetValidation();
 
         session()->flash(
             'profile_status',
             'Your profile has been updated.',
         );
+    }
+
+    /**
+     * Discard unsaved form changes and reload the persisted profile.
+     */
+    public function resetForm(): void
+    {
+        $this->fillFromAuthenticatedUser();
+        $this->resetValidation();
     }
 
     /**

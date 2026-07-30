@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Account\AccountController;
 use App\Http\Controllers\CheckoutSuccessController;
 use App\Http\Controllers\PublicSite\AboutController;
 use App\Http\Controllers\PublicSite\BlogController;
@@ -73,7 +74,7 @@ Route::middleware('auth')
     ->prefix('account')
     ->name('account.')
     ->group(function (): void {
-        Route::view('/', 'pages.account.index')
+        Route::get('/', AccountController::class)
             ->name('index');
 
         Route::view('/profile', 'pages.account.profile')

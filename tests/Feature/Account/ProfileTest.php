@@ -17,15 +17,32 @@ test('guests are redirected from customer account pages', function (): void {
         ->assertRedirect(route('login'));
 });
 
-test('authenticated customers can view the account shell', function (): void {
+test('authenticated customers can view the account overview', function (): void {
     $customer = User::factory()->create();
 
     $this->actingAs($customer)
         ->get(route('account.index'))
         ->assertOk()
         ->assertSee('Welcome back')
-        ->assertSee('Order history')
-        ->assertSee('View orders');
+        ->assertSee('Account snapshot')
+        ->assertSee('Orders placed')
+        ->assertSee('Active orders')
+        ->assertSee('Your next island favorite is waiting');
+});
+
+test('authenticated customers can view the profile interface', function (): void {
+    $customer = User::factory()->create();
+
+    $this->actingAs($customer)
+        ->get(route('account.profile'))
+        ->assertOk()
+        ->assertSee('Your details')
+        ->assertSee('Checkout defaults')
+        ->assertSee('Contact information');
+});
+
+test('authenticated customers can view the empty order history', function (): void {
+    $customer = User::factory()->create();
 
     $this->actingAs($customer)
         ->get(route('account.orders.index'))
@@ -54,6 +71,24 @@ test('customers can update their profile', function (): void {
         'email' => $customer->email,
         'phone' => '+1 555 300 4000',
     ]);
+});
+
+test('customers can discard unsaved profile changes', function (): void {
+    $customer = User::factory()->create([
+        'name' => 'Original Name',
+        'phone' => '+1 555 100 2000',
+    ]);
+
+    Livewire::actingAs($customer)
+        ->test(Profile::class)
+        ->set('name', 'Unsaved Name')
+        ->set('email', 'unsaved@example.com')
+        ->set('phone', '+1 555 999 9999')
+        ->call('resetForm')
+        ->assertSet('name', 'Original Name')
+        ->assertSet('email', $customer->email)
+        ->assertSet('phone', '+1 555 100 2000')
+        ->assertHasNoErrors();
 });
 
 test('changing email clears verification and sends a new link', function (): void {
