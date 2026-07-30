@@ -188,13 +188,13 @@ final class AboutController extends Controller
 
         if ($pool->isEmpty()) {
             /** @var Collection<int, GalleryImage> $empty */
-            $empty = new Collection();
+            $empty = new Collection;
 
             return $empty;
         }
 
         /** @var Collection<int, GalleryImage> $result */
-        $result = new Collection();
+        $result = new Collection;
 
         while ($result->count() < $count) {
             foreach ($pool as $image) {

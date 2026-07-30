@@ -6,10 +6,14 @@ gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 const desktopQuery = "(min-width: 1024px) and (pointer: fine)";
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-const sectionNavigationDuration = 0.68;
+const shortViewportQuery = "(max-height: 719px)";
+
+const wheelActivationThreshold = 8;
+const wheelGestureReleaseDelay = 140;
+const sectionTransitionDuration = 0.48;
 
 /**
- * Return all valid About panels in document order.
+ * Return every valid About panel in document order.
  */
 function getPanels(root) {
     return [...root.querySelectorAll("[data-about-panel]")].filter(
@@ -18,30 +22,18 @@ function getPanels(root) {
 }
 
 /**
- * Return the configured compact-header offset in pixels.
+ * Return the compact public-header height used while content panels are active.
  */
-function getHeaderOffset(root) {
-    const rawValue = window
-        .getComputedStyle(root)
-        .getPropertyValue("--about-header-height");
-
-    const offset = Number.parseFloat(rawValue);
-
-    return Number.isFinite(offset) ? offset : 0;
+function getHeaderOffset() {
+    return window.matchMedia("(max-width: 1023px)").matches ? 76 : 80;
 }
 
 /**
- * Return the exact document destination for one panel.
+ * Return the exact document destination for one About panel.
  */
-function getPanelScrollPosition(root, panel) {
-    const panelTop =
-        window.scrollY +
-        panel.getBoundingClientRect().top;
-
-    const offset =
-        panel.id === "about-hero"
-            ? 0
-            : getHeaderOffset(root);
+function getPanelScrollPosition(panel) {
+    const panelTop = window.scrollY + panel.getBoundingClientRect().top;
+    const offset = panel.id === "about-hero" ? 0 : getHeaderOffset();
 
     return Math.round(panelTop - offset);
 }
@@ -60,51 +52,107 @@ function getPanelFromHash(panels, hash = window.location.hash) {
 }
 
 /**
- * Return the panel whose visible area is closest to the viewport center.
+ * Return the panel aligned closest to its expected viewport position.
  */
-function getClosestPanel(panels) {
-    const viewportCenter = window.innerHeight / 2;
+function getClosestPanelIndex(panels) {
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
 
-    return panels.reduce(
-        (closestPanel, panel) => {
-            const bounds = panel.getBoundingClientRect();
-            const panelCenter = bounds.top + bounds.height / 2;
-            const distance = Math.abs(
-                panelCenter - viewportCenter,
-            );
+    panels.forEach((panel, index) => {
+        const expectedTop = panel.id === "about-hero" ? 0 : getHeaderOffset();
+        const distance = Math.abs(
+            panel.getBoundingClientRect().top - expectedTop,
+        );
 
-            if (distance >= closestPanel.distance) {
-                return closestPanel;
-            }
+        if (distance >= closestDistance) {
+            return;
+        }
 
-            return {
-                panel,
-                distance,
-            };
-        },
-        {
-            panel: panels[0],
-            distance: Number.POSITIVE_INFINITY,
-        },
-    ).panel;
+        closestDistance = distance;
+        closestIndex = index;
+    });
+
+    return closestIndex;
 }
 
 /**
- * Mark one panel and its navigation control as active.
+ * Determine whether the viewport center is inside the About panel region.
  */
-function setActiveSection(root, panels, sectionId) {
-    root.dataset.aboutActiveSection = sectionId;
+function isAboutRegionActive(root) {
+    const bounds = root.getBoundingClientRect();
+    const viewportCenter = window.innerHeight / 2;
 
-    panels.forEach((panel) => {
+    return bounds.top <= viewportCenter && bounds.bottom > viewportCenter;
+}
+
+/**
+ * Normalize wheel values reported as pixels, lines, or pages.
+ */
+function normalizeWheelDelta(event) {
+    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        return event.deltaY * 16;
+    }
+
+    if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+        return event.deltaY * window.innerHeight;
+    }
+
+    return event.deltaY;
+}
+
+/**
+ * Preserve native scrolling inside independently scrollable descendants.
+ */
+function hasScrollableAncestor(target, root, deltaY) {
+    let element = target instanceof Element ? target : null;
+
+    while (element && element !== root) {
+        const styles = window.getComputedStyle(element);
+        const allowsVerticalScrolling =
+            styles.overflowY === "auto" || styles.overflowY === "scroll";
+
+        if (
+            allowsVerticalScrolling &&
+            element.scrollHeight > element.clientHeight
+        ) {
+            const canScrollUp = deltaY < 0 && element.scrollTop > 0;
+            const canScrollDown =
+                deltaY > 0 &&
+                element.scrollTop + element.clientHeight <
+                    element.scrollHeight - 1;
+
+            if (canScrollUp || canScrollDown) {
+                return true;
+            }
+        }
+
+        element = element.parentElement;
+    }
+
+    return false;
+}
+
+/**
+ * Mark one panel and its right-side navigation control as active.
+ */
+function setActivePanel(root, panels, activeIndex) {
+    const activePanel = panels[activeIndex];
+
+    if (!(activePanel instanceof HTMLElement)) {
+        return;
+    }
+
+    root.dataset.aboutActiveSection = activePanel.id;
+
+    panels.forEach((panel, index) => {
         panel.setAttribute(
             "data-about-active",
-            panel.id === sectionId ? "true" : "false",
+            index === activeIndex ? "true" : "false",
         );
     });
 
     root.querySelectorAll("[data-about-section-link]").forEach((link) => {
-        const isActive =
-            link.getAttribute("href") === `#${sectionId}`;
+        const isActive = link.getAttribute("href") === `#${activePanel.id}`;
 
         link.setAttribute(
             "aria-current",
@@ -114,10 +162,19 @@ function setActiveSection(root, panels, sectionId) {
 }
 
 /**
- * Expose navigation readiness for diagnostics and browser tests.
+ * Expose navigation readiness for browser diagnostics and regression tests.
  */
 function setNavigationState(root, state) {
     root.dataset.aboutSectionNavigation = state;
+}
+
+/**
+ * Increment the completed desktop section-transition counter.
+ */
+function recordCompletedSnap(root) {
+    const currentCount = Number.parseInt(root.dataset.aboutSnapCount ?? "0", 10);
+
+    root.dataset.aboutSnapCount = String(currentCount + 1);
 }
 
 /**
@@ -127,17 +184,14 @@ function updateTriggerCount(root) {
     const triggerCount = ScrollTrigger.getAll().filter((trigger) => {
         const id = trigger.vars.id;
 
-        return (
-            typeof id === "string" &&
-            id.startsWith("about-")
-        );
+        return typeof id === "string" && id.startsWith("about-");
     }).length;
 
     root.dataset.aboutTriggerCount = String(triggerCount);
 }
 
 /**
- * Animate the initial hero content and image.
+ * Animate the hero immediately without making initial content depend on scroll.
  */
 function initializeHero(root) {
     const hero = root.querySelector("#about-hero");
@@ -146,19 +200,13 @@ function initializeHero(root) {
         return;
     }
 
-    const image = hero.querySelector(
-        "[data-about-hero-image] img",
-    );
-
+    const image = hero.querySelector("[data-about-hero-image] img");
     const contentTargets = [
         ...hero.querySelectorAll(
             "[data-about-hero-content] [data-about-reveal]",
         ),
     ];
-
-    const scrollControl = hero.querySelector(
-        ":scope > [data-about-reveal]",
-    );
+    const scrollControl = hero.querySelector(":scope > [data-about-reveal]");
 
     hero.dataset.aboutAnimationState = "active";
 
@@ -218,10 +266,6 @@ function initializeHero(root) {
         );
     }
 
-    /*
-     * Add a ScrollTrigger to the hero so its background receives restrained
-     * depth while leaving the initial content entrance independent.
-     */
     if (image) {
         gsap.fromTo(
             image,
@@ -237,6 +281,7 @@ function initializeHero(root) {
                     start: "top top",
                     end: "bottom top",
                     scrub: true,
+                    invalidateOnRefresh: true,
                 },
             },
         );
@@ -244,29 +289,40 @@ function initializeHero(root) {
 }
 
 /**
- * Create one ScrollTrigger-controlled reveal timeline for a section.
+ * Create a one-time reveal controller for one non-hero panel.
  */
-function initializePanelAnimation(panel, showMarkers) {
+function createPanelReveal(panel, showMarkers) {
     const revealTargets = [
         ...panel.querySelectorAll("[data-about-reveal]"),
     ];
-
     const imageFrames = [
         ...panel.querySelectorAll("[data-about-image-reveal]"),
     ];
-
     const images = imageFrames
         .map((frame) => frame.querySelector("img"))
         .filter((image) => image instanceof HTMLImageElement);
 
-    if (
-        revealTargets.length === 0 &&
-        imageFrames.length === 0
-    ) {
+    if (revealTargets.length === 0 && imageFrames.length === 0) {
         panel.dataset.aboutAnimationState = "complete";
 
-        return;
+        return {
+            play: () => {},
+            kill: () => {},
+        };
     }
+
+    gsap.set(revealTargets, {
+        autoAlpha: 0,
+        y: 42,
+    });
+
+    gsap.set(imageFrames, {
+        clipPath: "inset(0 0 100% 0)",
+    });
+
+    gsap.set(images, {
+        scale: 1.07,
+    });
 
     panel.dataset.aboutAnimationState = "pending";
 
@@ -281,22 +337,15 @@ function initializePanelAnimation(panel, showMarkers) {
         onComplete: () => {
             panel.dataset.aboutAnimationState = "complete";
         },
-        onReverseComplete: () => {
-            panel.dataset.aboutAnimationState = "pending";
-        },
     });
 
     if (revealTargets.length > 0) {
-        timeline.fromTo(
+        timeline.to(
             revealTargets,
             {
-                autoAlpha: 0,
-                y: 48,
-            },
-            {
                 autoAlpha: 1,
-                duration: 0.95,
-                stagger: 0.1,
+                duration: 0.9,
+                stagger: 0.09,
                 y: 0,
             },
             0,
@@ -304,59 +353,69 @@ function initializePanelAnimation(panel, showMarkers) {
     }
 
     if (imageFrames.length > 0) {
-        timeline.fromTo(
+        timeline.to(
             imageFrames,
             {
-                clipPath: "inset(0 0 100% 0)",
-            },
-            {
                 clipPath: "inset(0 0 0% 0)",
-                duration: 1.05,
+                duration: 1,
                 stagger: 0.08,
                 ease: "power4.out",
             },
-            0.08,
+            0.06,
         );
     }
 
     if (images.length > 0) {
-        timeline.fromTo(
+        timeline.to(
             images,
             {
-                scale: 1.08,
-            },
-            {
-                duration: 1.25,
+                duration: 1.2,
                 scale: 1,
                 stagger: 0.08,
             },
-            0.08,
+            0.06,
         );
     }
 
-    ScrollTrigger.create({
+    let hasPlayed = false;
+
+    /**
+     * Play the reveal once and never hide readable content again.
+     */
+    const play = () => {
+        if (hasPlayed) {
+            return;
+        }
+
+        hasPlayed = true;
+        timeline.play(0);
+    };
+
+    const trigger = ScrollTrigger.create({
         id: `about-animation-${panel.id}`,
         trigger: panel,
-        animation: timeline,
-
-        /*
-         * Start after the section is substantially visible. This prevents the
-         * animation from completing during the section-navigation tween.
-         */
-        start: "top 38%",
-        end: "bottom 62%",
-
-        toggleActions: "play none restart reverse",
+        start: "top 76%",
+        end: "bottom 24%",
         invalidateOnRefresh: true,
         markers: showMarkers,
+        onEnter: play,
+        onEnterBack: play,
     });
+
+    return {
+        play,
+        kill: () => {
+            trigger.kill();
+            timeline.kill();
+        },
+    };
 }
 
 /**
- * Create active-panel tracking for every About section.
+ * Keep the active right-side navigation item synchronized with scrolling.
  */
 function initializeSectionTracking(root, panels, showMarkers) {
-    panels.forEach((panel) => {
+    return panels.map((panel, index) =>
         ScrollTrigger.create({
             id: `about-active-${panel.id}`,
             trigger: panel,
@@ -365,205 +424,58 @@ function initializeSectionTracking(root, panels, showMarkers) {
             invalidateOnRefresh: true,
             markers: showMarkers,
             onEnter: () => {
-                setActiveSection(root, panels, panel.id);
+                setActivePanel(root, panels, index);
             },
             onEnterBack: () => {
-                setActiveSection(root, panels, panel.id);
+                setActivePanel(root, panels, index);
             },
-        });
-    });
-}
-
-/**
- * Add restrained desktop parallax to section background images.
- */
-function initializeParallax(root, showMarkers) {
-    root.querySelectorAll("[data-about-parallax]").forEach(
-        (frame, index) => {
-            const image = frame.querySelector("img");
-
-            if (!(image instanceof HTMLImageElement)) {
-                return;
-            }
-
-            /*
-             * The hero already owns a dedicated parallax animation.
-             */
-            if (frame.closest("#about-hero")) {
-                return;
-            }
-
-            const panel = frame.closest("[data-about-panel]");
-
-            if (!(panel instanceof HTMLElement)) {
-                return;
-            }
-
-            gsap.fromTo(
-                image,
-                {
-                    yPercent: -3,
-                },
-                {
-                    ease: "none",
-                    yPercent: 3,
-                    scrollTrigger: {
-                        id: `about-parallax-${panel.id}-${index}`,
-                        trigger: panel,
-                        start: "top bottom",
-                        end: "bottom top",
-                        scrub: true,
-                        invalidateOnRefresh: true,
-                        markers: showMarkers,
-                    },
-                },
-            );
-        },
+        }),
     );
 }
 
 /**
- * Bind all internal About links to exact header-aware navigation.
+ * Add restrained desktop parallax to non-hero section backgrounds.
  */
-function bindSectionLinks(root, panels, reducedMotion) {
-    const links = [
-        ...root.querySelectorAll('a[href^="#"]'),
-    ];
-
-    const cleanupCallbacks = [];
-    let activeTween = null;
-
-    /**
-     * Navigate one panel beneath the fixed compact header.
-     */
-    const navigateToPanel = (
-        panel,
-        {
-            updateHistory = true,
-        } = {},
-    ) => {
-        if (!(panel instanceof HTMLElement)) {
+function initializeParallax(root, showMarkers) {
+    root.querySelectorAll("[data-about-parallax]").forEach((frame, index) => {
+        if (frame.closest("#about-hero")) {
             return;
         }
 
-        activeTween?.kill();
-        activeTween = null;
-
-        const targetHash = `#${panel.id}`;
-        const offsetY =
-            panel.id === "about-hero"
-                ? 0
-                : getHeaderOffset(root);
+        const image = frame.querySelector("img");
+        const panel = frame.closest("[data-about-panel]");
 
         if (
-            updateHistory &&
-            window.location.hash !== targetHash
+            !(image instanceof HTMLImageElement) ||
+            !(panel instanceof HTMLElement)
         ) {
-            window.history.pushState(
-                null,
-                "",
-                targetHash,
-            );
-        }
-
-        setActiveSection(root, panels, panel.id);
-        setNavigationState(root, "navigating");
-
-        /**
-         * Restore trigger synchronization after navigation settles.
-         */
-        const settleNavigation = () => {
-            activeTween = null;
-            setNavigationState(root, "ready");
-            ScrollTrigger.update();
-            updateTriggerCount(root);
-        };
-
-        if (reducedMotion) {
-            window.scrollTo({
-                top: getPanelScrollPosition(root, panel),
-                behavior: "auto",
-            });
-
-            settleNavigation();
-
             return;
         }
 
-        activeTween = gsap.to(window, {
-            duration: sectionNavigationDuration,
-            ease: "power3.inOut",
-            overwrite: "auto",
-            scrollTo: {
-                y: panel,
-                offsetY,
-                autoKill: true,
+        gsap.fromTo(
+            image,
+            {
+                yPercent: -3,
             },
-            onComplete: settleNavigation,
-            onInterrupt: settleNavigation,
-        });
-    };
-
-    links.forEach((link) => {
-        const targetPanel = getPanelFromHash(
-            panels,
-            link.getAttribute("href") ?? "",
+            {
+                ease: "none",
+                yPercent: 3,
+                scrollTrigger: {
+                    id: `about-parallax-${panel.id}-${index}`,
+                    trigger: panel,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                    markers: showMarkers,
+                },
+            },
         );
-
-        if (!targetPanel) {
-            return;
-        }
-
-        /**
-         * Replace the native anchor jump with header-aware navigation.
-         */
-        const handleClick = (event) => {
-            event.preventDefault();
-            navigateToPanel(targetPanel);
-        };
-
-        link.addEventListener("click", handleClick);
-
-        cleanupCallbacks.push(() => {
-            link.removeEventListener(
-                "click",
-                handleClick,
-            );
-        });
     });
-
-    /**
-     * Restore the correct section when browser history changes.
-     */
-    const handlePopState = () => {
-        const panel =
-            getPanelFromHash(panels) ?? panels[0];
-
-        navigateToPanel(panel, {
-            updateHistory: false,
-        });
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    cleanupCallbacks.push(() => {
-        window.removeEventListener(
-            "popstate",
-            handlePopState,
-        );
-
-        activeTween?.kill();
-    });
-
-    return () => {
-        cleanupCallbacks
-            .reverse()
-            .forEach((callback) => callback());
-    };
 }
 
 /**
- * Restore all animation targets to their final accessible state.
+ * Restore every animated target to its accessible final state.
  */
 function setReducedMotionState(root, panels) {
     gsap.set(
@@ -577,8 +489,7 @@ function setReducedMotionState(root, panels) {
         ),
         {
             autoAlpha: 1,
-            clearProps:
-                "clipPath,transform,willChange",
+            clearProps: "clipPath,transform,willChange",
         },
     );
 
@@ -588,56 +499,7 @@ function setReducedMotionState(root, panels) {
 }
 
 /**
- * Refresh trigger geometry and preserve direct hash alignment.
- */
-function refreshLayout(root, panels) {
-    if (
-        root.dataset.aboutSectionNavigation ===
-        "navigating"
-    ) {
-        return;
-    }
-
-    ScrollTrigger.refresh();
-
-    const hashPanel = getPanelFromHash(panels);
-
-    if (hashPanel) {
-        window.scrollTo({
-            top: getPanelScrollPosition(
-                root,
-                hashPanel,
-            ),
-            behavior: "auto",
-        });
-
-        setActiveSection(
-            root,
-            panels,
-            hashPanel.id,
-        );
-
-        ScrollTrigger.update();
-        updateTriggerCount(root);
-
-        return;
-    }
-
-    const closestPanel = getClosestPanel(panels);
-
-    if (closestPanel) {
-        setActiveSection(
-            root,
-            panels,
-            closestPanel.id,
-        );
-    }
-
-    updateTriggerCount(root);
-}
-
-/**
- * Initialize the complete About-page animation experience.
+ * Initialize the complete About-page animation and section-navigation system.
  */
 export function initAboutExperience(
     root = document.querySelector("[data-about-page]"),
@@ -652,14 +514,15 @@ export function initAboutExperience(
         return () => {};
     }
 
-    const showMarkers = new URLSearchParams(
-        window.location.search,
-    ).has("debug-scroll");
+    const showMarkers = new URLSearchParams(window.location.search).has(
+        "debug-scroll",
+    );
 
     document.documentElement.classList.add(
         "about-section-navigation-active",
     );
 
+    root.dataset.aboutSnapCount = "0";
     setNavigationState(root, "initializing");
 
     const media = gsap.matchMedia();
@@ -668,30 +531,40 @@ export function initAboutExperience(
         {
             desktop: desktopQuery,
             reducedMotion: reducedMotionQuery,
+            shortViewport: shortViewportQuery,
         },
         (mediaContext) => {
             const {
                 desktop = false,
                 reducedMotion = false,
-            } = mediaContext.conditions;
+                shortViewport = false,
+            } = mediaContext.conditions ?? {};
 
+            const cleanupCallbacks = [];
+            const revealControllers = new Map();
             let disposed = false;
+            let activeIndex = getClosestPanelIndex(panels);
+            let activeTween = null;
+            let isAnimating = false;
+            let isGestureLocked = false;
+            let wheelIsActive = false;
+            let accumulatedWheelDelta = 0;
+            let gestureReleaseTimer = null;
 
             const animationContext = gsap.context(() => {
-                initializeSectionTracking(
+                const activeTriggers = initializeSectionTracking(
                     root,
                     panels,
                     showMarkers,
                 );
 
-                if (reducedMotion) {
-                    setReducedMotionState(
-                        root,
-                        panels,
-                    );
+                cleanupCallbacks.push(() => {
+                    activeTriggers.forEach((trigger) => trigger.kill());
+                });
 
-                    root.dataset.aboutMotion =
-                        "reduced";
+                if (reducedMotion) {
+                    setReducedMotionState(root, panels);
+                    root.dataset.aboutMotion = "reduced";
 
                     return;
                 }
@@ -699,130 +572,366 @@ export function initAboutExperience(
                 initializeHero(root);
 
                 panels.slice(1).forEach((panel) => {
-                    initializePanelAnimation(
-                        panel,
-                        showMarkers,
-                    );
+                    const controller = createPanelReveal(panel, showMarkers);
+
+                    revealControllers.set(panel.id, controller);
+                    cleanupCallbacks.push(controller.kill);
                 });
 
                 if (desktop) {
-                    initializeParallax(
-                        root,
-                        showMarkers,
-                    );
+                    initializeParallax(root, showMarkers);
                 }
 
                 root.dataset.aboutMotion = "ready";
             }, root);
 
-            const removeSectionLinks =
-                bindSectionLinks(
-                    root,
-                    panels,
-                    reducedMotion,
-                );
-
-            const initialPanel =
-                getPanelFromHash(panels) ??
-                getClosestPanel(panels);
-
-            if (initialPanel) {
-                setActiveSection(
-                    root,
-                    panels,
-                    initialPanel.id,
-                );
-            }
-
             /**
-             * Calculate trigger positions after the current frame commits.
+             * Update the active panel and start its reveal immediately.
              */
-            const refreshFrame =
-                window.requestAnimationFrame(() => {
-                    if (disposed) {
-                        return;
-                    }
+            const activatePanel = (index) => {
+                activeIndex = Math.max(0, Math.min(index, panels.length - 1));
+                setActivePanel(root, panels, activeIndex);
 
-                    refreshLayout(root, panels);
-                    setNavigationState(root, "ready");
-                });
+                const panel = panels[activeIndex];
 
-            /**
-             * Recalculate after responsive images settle.
-             */
-            const handleWindowLoad = () => {
-                if (!disposed) {
-                    refreshLayout(root, panels);
+                if (panel) {
+                    revealControllers.get(panel.id)?.play();
                 }
             };
 
-            window.addEventListener(
-                "load",
-                handleWindowLoad,
-                {
-                    once: true,
-                },
-            );
+            /**
+             * Return navigation to its ready state after a tween settles.
+             */
+            const settleNavigation = (completedSnap = false) => {
+                isAnimating = false;
+                activeTween = null;
+
+                if (completedSnap) {
+                    recordCompletedSnap(root);
+                }
+
+                setNavigationState(root, "ready");
+                ScrollTrigger.update();
+                updateTriggerCount(root);
+
+                if (!wheelIsActive) {
+                    isGestureLocked = false;
+                }
+            };
 
             /**
-             * Recalculate after web-font metrics settle.
+             * Scroll to one panel and keep animation, active state, and history aligned.
              */
-            document.fonts?.ready
-                ?.then(() => {
-                    if (!disposed) {
-                        refreshLayout(root, panels);
+            const navigateToPanel = (
+                targetIndex,
+                {
+                    updateHistory = false,
+                    recordSnap = false,
+                } = {},
+            ) => {
+                const panel = panels[targetIndex];
+
+                if (!(panel instanceof HTMLElement)) {
+                    return;
+                }
+
+                activeTween?.kill();
+                activeTween = null;
+
+                if (updateHistory) {
+                    const targetHash = `#${panel.id}`;
+
+                    if (window.location.hash !== targetHash) {
+                        window.history.pushState(null, "", targetHash);
                     }
-                })
-                .catch(() => {
-                    if (!disposed) {
-                        setNavigationState(
-                            root,
-                            "ready",
-                        );
+                }
+
+                activatePanel(targetIndex);
+                setNavigationState(root, "navigating");
+
+                if (reducedMotion) {
+                    window.scrollTo({
+                        behavior: "auto",
+                        left: 0,
+                        top: getPanelScrollPosition(panel),
+                    });
+
+                    settleNavigation(recordSnap);
+
+                    return;
+                }
+
+                isAnimating = true;
+
+                activeTween = gsap.to(window, {
+                    duration: sectionTransitionDuration,
+                    ease: "power3.out",
+                    overwrite: "auto",
+                    scrollTo: {
+                        autoKill: false,
+                        y: getPanelScrollPosition(panel),
+                    },
+                    onComplete: () => {
+                        settleNavigation(recordSnap);
+                    },
+                    onInterrupt: () => {
+                        settleNavigation(false);
+                    },
+                });
+            };
+
+            /**
+             * Bind all About-page hash links to the shared navigation function.
+             */
+            root.querySelectorAll('a[href^="#"]').forEach((link) => {
+                const targetPanel = getPanelFromHash(
+                    panels,
+                    link.getAttribute("href") ?? "",
+                );
+
+                if (!targetPanel) {
+                    return;
+                }
+
+                const targetIndex = panels.indexOf(targetPanel);
+                const handleClick = (event) => {
+                    event.preventDefault();
+                    navigateToPanel(targetIndex, {
+                        updateHistory: true,
+                    });
+                };
+
+                link.addEventListener("click", handleClick);
+
+                cleanupCallbacks.push(() => {
+                    link.removeEventListener("click", handleClick);
+                });
+            });
+
+            /**
+             * Restore the requested panel when browser history changes.
+             */
+            const handlePopState = () => {
+                const panel = getPanelFromHash(panels) ?? panels[0];
+                const panelIndex = panels.indexOf(panel);
+
+                navigateToPanel(panelIndex);
+            };
+
+            window.addEventListener("popstate", handlePopState);
+            cleanupCallbacks.push(() => {
+                window.removeEventListener("popstate", handlePopState);
+            });
+
+            const canSnap =
+                desktop &&
+                !reducedMotion &&
+                !shortViewport &&
+                panels.length > 1;
+
+            if (canSnap) {
+                document.documentElement.classList.add(
+                    "about-section-snap-active",
+                );
+
+                /**
+                 * Release one wheel gesture only after its momentum settles.
+                 */
+                const scheduleGestureRelease = () => {
+                    wheelIsActive = true;
+
+                    if (gestureReleaseTimer !== null) {
+                        window.clearTimeout(gestureReleaseTimer);
                     }
+
+                    gestureReleaseTimer = window.setTimeout(() => {
+                        wheelIsActive = false;
+                        accumulatedWheelDelta = 0;
+                        gestureReleaseTimer = null;
+
+                        if (!isAnimating) {
+                            isGestureLocked = false;
+                        }
+                    }, wheelGestureReleaseDelay);
+                };
+
+                /**
+                 * Convert one desktop wheel gesture into one adjacent section.
+                 */
+                const handleWheel = (event) => {
+                    if (
+                        event.defaultPrevented ||
+                        event.ctrlKey ||
+                        !isAboutRegionActive(root)
+                    ) {
+                        return;
+                    }
+
+                    const deltaY = normalizeWheelDelta(event);
+
+                    if (
+                        Math.abs(event.deltaX) > Math.abs(deltaY) ||
+                        Math.abs(deltaY) < 0.5
+                    ) {
+                        return;
+                    }
+
+                    if (hasScrollableAncestor(event.target, root, deltaY)) {
+                        return;
+                    }
+
+                    if (isAnimating || isGestureLocked) {
+                        event.preventDefault();
+                        scheduleGestureRelease();
+
+                        return;
+                    }
+
+                    activeIndex = getClosestPanelIndex(panels);
+
+                    const direction = deltaY > 0 ? 1 : -1;
+                    const movingBeforeFirst =
+                        activeIndex === 0 && direction < 0;
+                    const movingAfterFinal =
+                        activeIndex === panels.length - 1 && direction > 0;
+
+                    if (movingBeforeFirst || movingAfterFinal) {
+                        accumulatedWheelDelta = 0;
+
+                        return;
+                    }
+
+                    event.preventDefault();
+                    scheduleGestureRelease();
+
+                    accumulatedWheelDelta += deltaY;
+
+                    if (
+                        Math.abs(accumulatedWheelDelta) <
+                        wheelActivationThreshold
+                    ) {
+                        return;
+                    }
+
+                    const targetIndex =
+                        activeIndex +
+                        (accumulatedWheelDelta > 0 ? 1 : -1);
+
+                    accumulatedWheelDelta = 0;
+                    isGestureLocked = true;
+
+                    navigateToPanel(targetIndex, {
+                        recordSnap: true,
+                    });
+                };
+
+                window.addEventListener("wheel", handleWheel, {
+                    passive: false,
                 });
 
-            return () => {
+                cleanupCallbacks.push(() => {
+                    window.removeEventListener("wheel", handleWheel);
+                    document.documentElement.classList.remove(
+                        "about-section-snap-active",
+                    );
+                });
+            }
+
+            /**
+             * Refresh trigger geometry after layout-affecting resources settle.
+             */
+            const refreshLayout = ({ alignHash = false } = {}) => {
+                if (disposed || isAnimating) {
+                    return;
+                }
+
+                setNavigationState(root, "initializing");
+                ScrollTrigger.refresh();
+
+                const hashPanel = alignHash
+                    ? getPanelFromHash(panels)
+                    : null;
+
+                if (hashPanel) {
+                    const hashIndex = panels.indexOf(hashPanel);
+
+                    window.scrollTo({
+                        behavior: "auto",
+                        left: 0,
+                        top: getPanelScrollPosition(hashPanel),
+                    });
+
+                    activatePanel(hashIndex);
+                    ScrollTrigger.update();
+                } else {
+                    activatePanel(getClosestPanelIndex(panels));
+                }
+
+                updateTriggerCount(root);
+                setNavigationState(root, "ready");
+            };
+
+            const refreshFrame = window.requestAnimationFrame(() => {
+                refreshLayout({
+                    alignHash: true,
+                });
+            });
+
+            const handleWindowLoad = () => {
+                refreshLayout();
+            };
+
+            window.addEventListener("load", handleWindowLoad, {
+                once: true,
+            });
+
+            document.fonts?.ready
+                ?.then(() => {
+                    refreshLayout();
+                })
+                .catch(() => {
+                    setNavigationState(root, "ready");
+                });
+
+            cleanupCallbacks.push(() => {
                 disposed = true;
+                window.cancelAnimationFrame(refreshFrame);
+                window.removeEventListener("load", handleWindowLoad);
 
-                window.cancelAnimationFrame(
-                    refreshFrame,
-                );
+                if (gestureReleaseTimer !== null) {
+                    window.clearTimeout(gestureReleaseTimer);
+                }
 
-                window.removeEventListener(
-                    "load",
-                    handleWindowLoad,
-                );
+                activeTween?.kill();
+            });
 
-                removeSectionLinks();
+            return () => {
+                cleanupCallbacks.reverse().forEach((callback) => callback());
                 animationContext.revert();
             };
         },
     );
 
     /**
-     * Remove every About-specific handler and state value.
+     * Remove every About-specific handler, trigger, tween, and state value.
      */
     const cleanup = () => {
         media.revert();
 
         document.documentElement.classList.remove(
             "about-section-navigation-active",
+            "about-section-snap-active",
         );
 
         delete root.dataset.aboutSectionNavigation;
         delete root.dataset.aboutActiveSection;
         delete root.dataset.aboutMotion;
         delete root.dataset.aboutTriggerCount;
+        delete root.dataset.aboutSnapCount;
 
         panels.forEach((panel) => {
-            panel.removeAttribute(
-                "data-about-active",
-            );
-
-            panel.removeAttribute(
-                "data-about-animation-state",
-            );
+            panel.removeAttribute("data-about-active");
+            panel.removeAttribute("data-about-animation-state");
         });
     };
 
