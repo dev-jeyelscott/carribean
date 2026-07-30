@@ -8,12 +8,10 @@ use Illuminate\Database\Seeder;
 class SiteSettingSeeder extends Seeder
 {
     /**
-     * Seed coherent Coast & Cay development settings for Santa Monica,
-     * California.
+     * Seed a complete, editable Coast & Cay development configuration.
      *
-     * These values are safe development defaults. The restaurant's exact
-     * street address, contact details, operating hours, delivery boundary,
-     * and accountant-approved tax rate must be confirmed before production.
+     * Contact details and external links remain safe placeholders. Replace them
+     * with client-approved production values before launch.
      */
     public function run(): void
     {
@@ -30,8 +28,7 @@ class SiteSettingSeeder extends Seeder
     }
 
     /**
-     * Return editable California-based development defaults grouped for the
-     * public website, ordering flow, SEO, and customer notifications.
+     * Return public-site, ordering, SEO, and notification defaults.
      *
      * @return list<array{
      *     key: string,
@@ -53,8 +50,17 @@ class SiteSettingSeeder extends Seeder
                 'group' => 'general',
             ],
             [
+                'key' => 'footer_description',
+                'value' => 'A neighborhood Caribbean kitchen serving grilled jerk dishes, slow-cooked favorites, fresh seafood, and easygoing hospitality near the coast.',
+                'group' => 'general',
+            ],
+            [
                 'key' => 'opening_hours',
-                'value' => 'Mon–Thu 11:00 AM–9:00 PM; Fri–Sat 11:00 AM–10:00 PM; Sun 11:00 AM–9:00 PM',
+                'value' => <<<'TEXT'
+Monday–Thursday: 11:30 AM–9:00 PM
+Friday–Saturday: 11:30 AM–10:00 PM
+Sunday: 11:30 AM–8:00 PM
+TEXT,
                 'group' => 'general',
             ],
 
@@ -70,15 +76,19 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'address',
-                'value' => 'Santa Monica, CA 90401',
+                'value' => 'Downtown Santa Monica, CA 90401',
                 'group' => 'contact',
             ],
             [
                 'key' => 'map_link',
-                'value' => 'https://www.google.com/maps/search/?api=1&query=Santa+Monica%2C+CA+90401',
+                'value' => 'https://www.google.com/maps/search/?api=1&query=Downtown+Santa+Monica%2C+CA+90401',
                 'group' => 'contact',
             ],
 
+            /*
+             * Do not invent public social handles. Add verified restaurant
+             * profiles through Filament when the client supplies them.
+             */
             [
                 'key' => 'facebook_url',
                 'value' => null,
@@ -97,18 +107,18 @@ class SiteSettingSeeder extends Seeder
 
             [
                 'key' => 'meta_title',
-                'value' => 'Coast & Cay | Caribbean Restaurant in Santa Monica, California',
+                'value' => 'Coast & Cay | Caribbean Restaurant in Santa Monica',
                 'group' => 'seo',
             ],
             [
                 'key' => 'meta_description',
-                'value' => 'Upscale Caribbean dining in Santa Monica with warm hospitality, California coastal ease, pickup, and local delivery.',
+                'value' => 'Caribbean cooking in Santa Monica, with jerk from the grill, slow-cooked favorites, seafood, pickup, and local delivery.',
                 'group' => 'seo',
             ],
 
             [
                 'key' => 'notification_recipient_email',
-                'value' => 'restaurant@coastandcay.test',
+                'value' => 'orders@coastandcay.test',
                 'group' => 'mail',
             ],
 
@@ -119,12 +129,12 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'online_orders_closed_message',
-                'value' => 'Online ordering is temporarily paused. You may continue browsing the menu and keep existing items in your cart.',
+                'value' => 'Online ordering is paused for the moment. You can still browse the menu, or call the restaurant for current availability.',
                 'group' => 'ordering',
             ],
             [
                 'key' => 'accepted_delivery_zip_codes',
-                'value' => '90401, 90402, 90403, 90404, 90405',
+                'value' => '90401, 90402, 90403, 90404, 90405, 90291, 90292, 90066, 90230',
                 'group' => 'ordering',
             ],
             [
@@ -149,17 +159,17 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'cash_on_delivery_enabled',
-                'value' => '0',
+                'value' => '1',
                 'group' => 'ordering',
             ],
             [
                 'key' => 'pickup_instructions',
-                'value' => 'Collect your order from the Coast & Cay Santa Monica location after receiving the ready-for-pickup confirmation. Bring your order number.',
+                'value' => 'We will email you when the order is ready. Bring the order number to the pickup counter; payment is due at pickup when cash is selected.',
                 'group' => 'ordering',
             ],
             [
                 'key' => 'delivery_instructions',
-                'value' => 'Local delivery is available within approved Santa Monica ZIP codes. A valid ZIP code and the configured minimum merchandise total are required.',
+                'value' => 'Local delivery is available to the listed ZIP codes with a $35.00 food-and-drink minimum and a $7.50 delivery fee. Enter a complete address and any gate or building instructions at checkout.',
                 'group' => 'ordering',
             ],
         ];

@@ -76,6 +76,9 @@ class MenuSeeder extends Seeder
     /**
      * Return the complete Coast & Cay development menu catalogue.
      *
+     * Existing names remain stable so repeated seeding updates records instead
+     * of creating duplicate slugs.
+     *
      * @return list<MenuCategoryData>
      */
     private function categories(): array
@@ -83,44 +86,48 @@ class MenuSeeder extends Seeder
         return [
             [
                 'name' => 'Small Plates',
-                'description' => 'Caribbean starters designed for sharing around the table.',
+                'description' => 'A few things for the middle of the table, from crisp fritters to warm bara and curried channa.',
                 'sort_order' => 1,
                 'items' => [
                     $this->item(
                         name: 'Jerk Chicken Spring Rolls',
-                        description: 'Crispy rolls filled with jerk-seasoned chicken and vegetables, served with mango-lime dipping sauce.',
+                        description: 'Crisp pastry filled with jerk chicken, cabbage, carrot, and scallion, with mango-lime dipping sauce.',
                         priceCents: 1300,
                         sortOrder: 1,
+                        allergenInformation: 'Contains wheat, soy, and egg.',
                     ),
                     $this->item(
                         name: 'Saltfish Fritters',
-                        description: 'Golden cod fritters with scallions, herbs, peppers, and citrus aioli.',
+                        description: 'Salted cod fritters with scallion, thyme, sweet pepper, and lime aioli.',
                         priceCents: 1200,
                         sortOrder: 2,
+                        allergenInformation: 'Contains fish and egg.',
                     ),
                     $this->item(
                         name: 'Coconut Curry Shrimp',
-                        description: 'Seared shrimp simmered in coconut curry with peppers, herbs, and grilled bread.',
+                        description: 'Shrimp cooked in coconut curry with tomato, sweet pepper, fresh herbs, and grilled coco bread.',
                         priceCents: 1600,
                         sortOrder: 3,
+                        allergenInformation: 'Contains shellfish and wheat.',
                     ),
                     $this->item(
                         name: 'Trini Doubles',
-                        description: 'Curried chickpeas between soft bara, finished with tamarind, cucumber chutney, and pepper sauce.',
+                        description: 'Two soft bara with curried channa, tamarind sauce, cucumber chutney, and house pepper sauce.',
                         priceCents: 1100,
                         sortOrder: 4,
                         dietaryLabels: ['Vegan'],
+                        allergenInformation: 'Contains wheat.',
                     ),
                 ],
             ],
             [
                 'name' => 'Signature Entrées',
-                'description' => 'Comforting island classics prepared with a polished California dining touch.',
+                'description' => 'Grilled, braised, and curry dishes served with the sides that belong beside them.',
                 'sort_order' => 2,
                 'items' => [
                     $this->item(
                         name: 'Island Jerk Chicken',
-                        description: 'Flame-grilled jerk chicken with rice and peas, sweet plantains, and pineapple slaw.',
+                        description: 'Jerk-marinated chicken from the grill with rice and peas, sweet plantains, pineapple slaw, and pan gravy.',
                         priceCents: 2400,
                         sortOrder: 1,
                         isFeatured: true,
@@ -166,32 +173,32 @@ class MenuSeeder extends Seeder
                     ),
                     $this->item(
                         name: 'Oxtail Braised in Red Wine',
-                        description: 'Slow-braised oxtail with butter beans, rich island gravy, and coconut rice.',
+                        description: 'Oxtail braised with butter beans, thyme, allspice, and red wine, served with coconut rice and rich gravy.',
                         priceCents: 3200,
                         sortOrder: 2,
                         isFeatured: true,
                     ),
                     $this->item(
                         name: 'Brown Stew Chicken',
-                        description: 'Caribbean-spiced chicken braised with tomatoes, peppers, thyme, and caramelized onions.',
+                        description: 'Bone-in chicken browned and simmered with tomato, onion, sweet pepper, thyme, and ginger, with steamed rice.',
                         priceCents: 2300,
                         sortOrder: 3,
                     ),
                     $this->item(
                         name: 'Curry Goat',
-                        description: 'Tender goat slowly cooked with Caribbean curry, potatoes, herbs, and warm spices.',
+                        description: 'Goat cooked slowly with Caribbean curry, potato, scallion, thyme, and Scotch bonnet, with rice and peas.',
                         priceCents: 2900,
                         sortOrder: 4,
                     ),
                     $this->item(
                         name: 'Cuban Mojo Pork',
-                        description: 'Citrus-and-garlic roasted pork with black beans, rice, and pickled red onions.',
+                        description: 'Citrus-garlic roasted pork with black beans, white rice, pickled red onion, and pan juices.',
                         priceCents: 2600,
                         sortOrder: 5,
                     ),
                     $this->item(
                         name: 'Caribbean Short Rib',
-                        description: 'Slow-braised beef short rib with tamarind glaze, root-vegetable mash, and crispy shallots.',
+                        description: 'Braised beef short rib with tamarind glaze, roasted root-vegetable mash, greens, and crisp shallots.',
                         priceCents: 3400,
                         sortOrder: 6,
                     ),
@@ -199,28 +206,31 @@ class MenuSeeder extends Seeder
             ],
             [
                 'name' => 'From the Sea',
-                'description' => 'Fresh seafood plates inspired by the islands and the California coast.',
+                'description' => 'Fish and shellfish with bright pickles, coconut sauces, citrus, and plenty of fresh herbs.',
                 'sort_order' => 3,
                 'items' => [
                     $this->item(
                         name: 'Escovitch Red Snapper',
-                        description: 'Crispy whole snapper topped with spicy pickled peppers, carrots, onions, and citrus.',
+                        description: 'Crisp whole snapper with escovitch peppers, carrot, onion, vinegar, and lime, served with festival bread.',
                         priceCents: 3800,
                         sortOrder: 1,
                         isFeatured: true,
+                        allergenInformation: 'Contains fish and wheat.',
                     ),
                     $this->item(
                         name: 'Rum-Glazed Salmon',
-                        description: 'Pan-seared salmon with dark-rum glaze, coconut rice, and seasonal vegetables.',
+                        description: 'Pan-seared salmon with a dark-rum glaze, coconut rice, market vegetables, and charred lime.',
                         priceCents: 3000,
                         sortOrder: 2,
+                        allergenInformation: 'Contains fish.',
                     ),
                     $this->item(
                         name: 'Caribbean Seafood Curry',
-                        description: 'Shrimp, fish, and mussels in fragrant coconut curry with herbs and steamed rice.',
+                        description: 'Shrimp, fish, and mussels in coconut curry with tomato, ginger, herbs, and steamed rice.',
                         priceCents: 3500,
                         sortOrder: 3,
                         isFeatured: true,
+                        allergenInformation: 'Contains fish and shellfish.',
                         optionGroups: [
                             $this->optionGroup(
                                 name: 'Spice Level',
@@ -250,20 +260,21 @@ class MenuSeeder extends Seeder
                     ),
                     $this->item(
                         name: 'Grilled Mahi-Mahi',
-                        description: 'Citrus-marinated mahi-mahi with mango salsa, roasted plantains, and lime butter.',
+                        description: 'Citrus-marinated mahi-mahi with mango salsa, roasted plantains, seasonal greens, and lime butter.',
                         priceCents: 3100,
                         sortOrder: 4,
+                        allergenInformation: 'Contains fish and milk.',
                     ),
                 ],
             ],
             [
                 'name' => 'Vegetarian & Plant-Based',
-                'description' => 'Colorful plant-forward dishes layered with Caribbean spices and produce.',
+                'description' => 'Vegetable-led dishes with the same curries, herbs, peppers, and careful seasoning as the rest of the menu.',
                 'sort_order' => 4,
                 'items' => [
                     $this->item(
                         name: 'Ital Coconut Curry',
-                        description: 'Pumpkin, chickpeas, callaloo, and seasonal vegetables in a fragrant coconut broth.',
+                        description: 'Pumpkin, chickpeas, callaloo, sweet potato, and seasonal vegetables in coconut broth with brown rice.',
                         priceCents: 2200,
                         sortOrder: 1,
                         isFeatured: true,
@@ -271,17 +282,19 @@ class MenuSeeder extends Seeder
                     ),
                     $this->item(
                         name: 'Jerk Cauliflower Steak',
-                        description: 'Roasted jerk cauliflower with coconut rice, pineapple salsa, and herb sauce.',
+                        description: 'Roasted jerk cauliflower with coconut rice, pineapple salsa, charred scallion sauce, and toasted seeds.',
                         priceCents: 2100,
                         sortOrder: 2,
                         dietaryLabels: ['Vegan'],
+                        allergenInformation: 'Contains sesame.',
                     ),
                     $this->item(
                         name: 'Caribbean Rasta Pasta',
-                        description: 'Creamy spiced pasta with colorful bell peppers, scallions, herbs, and plant-based Parmesan.',
+                        description: 'Penne in a creamy pepper sauce with bell peppers, scallion, thyme, and Parmesan.',
                         priceCents: 2000,
                         sortOrder: 3,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat and milk. Protein add-ons may contain fish or shellfish.',
                         optionGroups: [
                             $this->optionGroup(
                                 name: 'Protein',
@@ -302,33 +315,34 @@ class MenuSeeder extends Seeder
             ],
             [
                 'name' => 'Sides',
-                'description' => 'Classic accompaniments prepared to complete any island meal.',
+                'description' => 'The staples that round out a plate, available separately for sharing or adding on.',
                 'sort_order' => 5,
                 'items' => [
                     $this->item(
                         name: 'Rice and Peas',
-                        description: 'Coconut rice cooked with red kidney beans, thyme, and island spices.',
+                        description: 'Long-grain rice cooked with red kidney beans, coconut milk, scallion, thyme, and allspice.',
                         priceCents: 700,
                         sortOrder: 1,
                         dietaryLabels: ['Vegan'],
                     ),
                     $this->item(
                         name: 'Sweet Fried Plantains',
-                        description: 'Ripe plantains fried until golden and caramelized.',
+                        description: 'Ripe plantains fried until caramelized at the edges and soft in the center.',
                         priceCents: 700,
                         sortOrder: 2,
                         dietaryLabels: ['Vegan'],
                     ),
                     $this->item(
                         name: 'Festival Bread',
-                        description: 'Lightly sweet Jamaican fried dumplings with a crisp exterior.',
+                        description: 'Lightly sweet Jamaican fried dumplings, crisp outside and tender inside.',
                         priceCents: 700,
                         sortOrder: 3,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat.',
                     ),
                     $this->item(
                         name: 'Callaloo Greens',
-                        description: 'Tender leafy greens cooked with coconut milk, garlic, peppers, and herbs.',
+                        description: 'Leafy greens cooked with coconut milk, garlic, scallion, thyme, and sweet pepper.',
                         priceCents: 800,
                         sortOrder: 4,
                         dietaryLabels: ['Vegan'],
@@ -337,72 +351,77 @@ class MenuSeeder extends Seeder
             ],
             [
                 'name' => 'Desserts',
-                'description' => 'Tropical house-made sweets for a memorable finish.',
+                'description' => 'House desserts with rum, coconut, mango, guava, and plenty of warm spice.',
                 'sort_order' => 6,
                 'items' => [
                     $this->item(
                         name: 'Rum Cake',
-                        description: 'Moist Caribbean dark-rum cake with warm caramel sauce and vanilla cream.',
+                        description: 'Dark-rum cake with brown-sugar caramel, vanilla cream, and toasted pecans.',
                         priceCents: 1200,
                         sortOrder: 1,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat, egg, milk, and tree nuts.',
                     ),
                     $this->item(
                         name: 'Coconut Bread Pudding',
-                        description: 'Coconut custard bread pudding with toasted coconut and tropical-fruit compote.',
+                        description: 'Warm coconut custard bread pudding with toasted coconut and pineapple compote.',
                         priceCents: 1100,
                         sortOrder: 2,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat, egg, and milk.',
                     ),
                     $this->item(
                         name: 'Mango Passionfruit Cheesecake',
-                        description: 'Creamy cheesecake with mango, passionfruit, and a spiced biscuit crust.',
+                        description: 'Baked cheesecake with mango, passionfruit curd, and a spiced biscuit crust.',
                         priceCents: 1200,
                         sortOrder: 3,
                         isFeatured: true,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat, egg, and milk.',
                     ),
                     $this->item(
                         name: 'Guava Tres Leches',
-                        description: 'Soft milk-soaked sponge layered with guava cream and fresh berries.',
+                        description: 'Milk-soaked sponge with guava cream, fresh berries, and lime zest.',
                         priceCents: 1200,
                         sortOrder: 4,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains wheat, egg, and milk.',
                     ),
                 ],
             ],
             [
                 'name' => 'Island Drinks',
-                'description' => 'Refreshing non-alcoholic drinks inspired by Caribbean fruits and spices.',
+                'description' => 'Cold, alcohol-free drinks made with hibiscus, ginger, citrus, tropical fruit, and island spice.',
                 'sort_order' => 7,
                 'items' => [
                     $this->item(
                         name: 'Sorrel Ginger Cooler',
-                        description: 'Hibiscus, ginger, citrus, and warm island spices served over ice.',
+                        description: 'Hibiscus steeped with fresh ginger, orange peel, clove, and cinnamon, served over ice.',
                         priceCents: 700,
                         sortOrder: 1,
                         dietaryLabels: ['Vegan'],
                     ),
                     $this->item(
                         name: 'Pineapple Mint Limeade',
-                        description: 'Fresh pineapple, lime, mint, and sparkling water.',
+                        description: 'Pineapple, fresh lime, mint, cane sugar, and sparkling water.',
                         priceCents: 700,
                         sortOrder: 2,
                         dietaryLabels: ['Vegan'],
                     ),
                     $this->item(
                         name: 'Caribbean Fruit Punch',
-                        description: 'Guava, mango, pineapple, orange, and fresh lime.',
+                        description: 'Guava, mango, pineapple, orange, lime, and a dash of aromatic bitters.',
                         priceCents: 700,
                         sortOrder: 3,
                         dietaryLabels: ['Vegan'],
                     ),
                     $this->item(
                         name: 'Sea Moss Vanilla Shake',
-                        description: 'Creamy sea moss drink blended with vanilla, cinnamon, and nutmeg.',
+                        description: 'Sea moss blended with milk, vanilla, cinnamon, nutmeg, and a little condensed milk.',
                         priceCents: 900,
                         sortOrder: 4,
                         dietaryLabels: ['Vegetarian'],
+                        allergenInformation: 'Contains milk.',
                     ),
                 ],
             ],
@@ -423,6 +442,7 @@ class MenuSeeder extends Seeder
         int $sortOrder,
         bool $isFeatured = false,
         array $dietaryLabels = [],
+        ?string $allergenInformation = null,
         array $optionGroups = [],
     ): array {
         return [
@@ -432,7 +452,7 @@ class MenuSeeder extends Seeder
             'sort_order' => $sortOrder,
             'is_featured' => $isFeatured,
             'dietary_labels' => $dietaryLabels,
-            'allergen_information' => null,
+            'allergen_information' => $allergenInformation,
             'option_groups' => $optionGroups,
         ];
     }
@@ -548,7 +568,7 @@ class MenuSeeder extends Seeder
             'menu_category_id' => $category->id,
             'slug' => $itemSlug,
             'image_path' => $imagePath,
-            'image_alt_text' => $itemData['name'].' plated at Coast & Cay.',
+            'image_alt_text' => 'A plated serving of '.$itemData['name'].' from the Coast & Cay menu.',
             'is_visible' => true,
             'is_available' => true,
             'is_purchasable' => true,

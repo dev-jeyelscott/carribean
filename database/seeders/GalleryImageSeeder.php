@@ -30,7 +30,7 @@ class GalleryImageSeeder extends Seeder
     ];
 
     /**
-     * Seed reusable Coast & Cay gallery placeholders.
+     * Seed a complete set of natural gallery captions and alt text.
      */
     public function run(): void
     {
@@ -38,34 +38,7 @@ class GalleryImageSeeder extends Seeder
 
         $disk->makeDirectory(self::IMAGE_STORAGE_DIRECTORY);
 
-        $images = [
-            [
-                'title' => 'Coast & Cay Signature Dish',
-                'alt_text' => 'A colorful Caribbean-inspired signature dish plated at Coast & Cay',
-                'image' => 'product-image-01.png',
-                'category' => 'dish',
-                'sort_order' => 1,
-                'is_visible' => true,
-            ],
-            [
-                'title' => 'Island Flavor Collection',
-                'alt_text' => 'A vibrant selection of Caribbean-inspired food prepared at Coast & Cay',
-                'image' => 'product-image-02.png',
-                'category' => 'dish',
-                'sort_order' => 2,
-                'is_visible' => true,
-            ],
-            [
-                'title' => 'Caribbean Dining Experience',
-                'alt_text' => 'An inviting Coast & Cay dish presented with warm island-inspired styling',
-                'image' => 'product-image-03.png',
-                'category' => 'ambiance',
-                'sort_order' => 3,
-                'is_visible' => true,
-            ],
-        ];
-
-        foreach ($images as $imageData) {
+        foreach ($this->images() as $imageData) {
             $imagePath = $this->storeSeedImage(
                 disk: $disk,
                 sourceFilename: $imageData['image'],
@@ -81,10 +54,69 @@ class GalleryImageSeeder extends Seeder
                     'image_path' => $imagePath,
                     'category' => $imageData['category'],
                     'sort_order' => $imageData['sort_order'],
-                    'is_visible' => $imageData['is_visible'],
+                    'is_visible' => true,
                 ],
             );
         }
+    }
+
+    /**
+     * Return gallery records matched to the bundled development images.
+     *
+     * @return list<array{
+     *     title: string,
+     *     alt_text: string,
+     *     image: string,
+     *     category: string,
+     *     sort_order: int
+     * }>
+     */
+    private function images(): array
+    {
+        return [
+            [
+                'title' => 'Jerk Chicken Dinner',
+                'alt_text' => 'A plated Caribbean chicken dinner with rice, vegetables, and house sauce',
+                'image' => 'product-image-01.png',
+                'category' => 'dish',
+                'sort_order' => 1,
+            ],
+            [
+                'title' => 'Small Plates for the Table',
+                'alt_text' => 'A selection of Caribbean small plates arranged for sharing',
+                'image' => 'product-image-02.png',
+                'category' => 'dish',
+                'sort_order' => 2,
+            ],
+            [
+                'title' => 'Coconut Curry and Rice',
+                'alt_text' => 'A bowl of coconut curry served with rice and fresh herbs',
+                'image' => 'product-image-03.png',
+                'category' => 'dish',
+                'sort_order' => 3,
+            ],
+            [
+                'title' => 'Something Sweet After Dinner',
+                'alt_text' => 'A house dessert plated with fruit and sauce',
+                'image' => 'product-image-04.png',
+                'category' => 'dish',
+                'sort_order' => 4,
+            ],
+            [
+                'title' => 'Sorrel, Ginger, and Citrus',
+                'alt_text' => 'A chilled red sorrel drink served over ice with citrus',
+                'image' => 'product-image-05.png',
+                'category' => 'drink',
+                'sort_order' => 5,
+            ],
+            [
+                'title' => 'Dinner at Coast & Cay',
+                'alt_text' => 'A warmly lit restaurant table prepared for an evening meal',
+                'image' => 'product-image-06.png',
+                'category' => 'ambiance',
+                'sort_order' => 6,
+            ],
+        ];
     }
 
     /**
