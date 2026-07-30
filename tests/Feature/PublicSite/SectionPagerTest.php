@@ -22,13 +22,17 @@ test('the about page renders the reusable section pager', function (): void {
             'data-section-pager-context="about"',
             false,
         )
+        ->assertSee(
+            'data-section-pager-enhancer="about"',
+            false,
+        )
         ->assertSee('data-about-section-link', false)
         ->assertSee('href="#about-hero"', false)
         ->assertSee('href="#island-roots"', false)
         ->assertSee('href="#invitation"', false);
 });
 
-test('the gallery renders the shared pager and section targets', function (): void {
+test('the gallery renders a snapping shared pager and full screen targets', function (): void {
     Page::query()->create([
         'slug' => 'gallery',
         'title' => 'Gallery',
@@ -47,6 +51,10 @@ test('the gallery renders the shared pager and section targets', function (): vo
         )
         ->assertSee(
             'data-section-pager-enhancer="shared"',
+            false,
+        )
+        ->assertSee(
+            'data-section-pager-snap="true"',
             false,
         )
         ->assertSee('data-gallery-section-link', false)

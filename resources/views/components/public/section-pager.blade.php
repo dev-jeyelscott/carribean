@@ -4,12 +4,12 @@
     'label' => 'Page sections',
     'context' => 'page',
     'enhancer' => 'shared',
+    'snap' => null,
 ])
 
 @php
     /*
-     * Normalize the supplied section definitions so the component only renders
-     * valid hash links with human-readable labels.
+     * Normalize section definitions so only valid same-page targets render.
      */
     $pagerItems = collect($items)
         ->filter(
@@ -29,12 +29,19 @@
         ->values();
 
     /*
-     * Fall back to the first valid section when the caller does not explicitly
-     * provide an initial active section.
+     * Use the first valid section when no explicit initial section is supplied.
      */
     $activeSection = filled($current)
         ? ltrim((string) $current, '#')
         : data_get($pagerItems->first(), 'id');
+
+    /*
+     * Gallery uses About-style desktop section transitions by default.
+     * Other future consumers remain opt-in.
+     */
+    $snapEnabled = is_bool($snap)
+        ? $snap
+        : $context === 'gallery';
 @endphp
 
 @if ($pagerItems->isNotEmpty())
@@ -43,6 +50,7 @@
         data-section-pager
         data-section-pager-context="{{ $context }}"
         data-section-pager-enhancer="{{ $enhancer }}"
+        data-section-pager-snap="{{ $snapEnabled ? 'true' : 'false' }}"
         data-section-pager-state="loading"
         aria-label="{{ $label }}">
         <ul class="about-section-nav__list">

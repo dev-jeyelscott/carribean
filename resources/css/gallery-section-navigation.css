@@ -1,0 +1,223 @@
+/*
+ * Gallery section-navigation geometry
+ *
+ * Desktop panels use the same visible viewport contract as the About page:
+ * the hero fills the complete viewport and later panels fill the area below
+ * the compact fixed header.
+ */
+
+html:has([data-gallery-page]),
+html.section-pager-navigation-active {
+    scroll-behavior: auto;
+    scroll-padding-top: 0;
+}
+
+.gallery-page {
+    --gallery-viewport-height: 100vh;
+    --gallery-header-height: 80px;
+
+    position: relative;
+    width: 100%;
+}
+
+@supports (height: 100svh) {
+    .gallery-page {
+        --gallery-viewport-height: 100svh;
+    }
+}
+
+@supports (height: 100dvh) {
+    .gallery-page {
+        --gallery-viewport-height: 100dvh;
+    }
+}
+
+/*
+ * Remove competing native anchor offsets. The shared GSAP navigation
+ * calculates one exact destination for every panel.
+ */
+.gallery-page [data-gallery-panel] {
+    width: 100%;
+    scroll-margin-top: 0;
+}
+
+.gallery-page [data-gallery-panel][data-gallery-active="true"] {
+    z-index: 1;
+}
+
+/*
+ * Apply rendering hints only while Gallery motion is active.
+ */
+.gallery-page[data-gallery-motion-state="ready"]
+    [data-gallery-hero-image]
+    img,
+.gallery-page[data-gallery-motion-state="ready"]
+    .gallery-cta__background
+    img,
+.gallery-page[data-gallery-motion-state="ready"]
+    [data-gallery-item]
+    img {
+    will-change: transform;
+}
+
+/*
+ * Exact full-screen sections for desktop devices capable of deliberate wheel
+ * navigation. Short displays and touch devices retain normal document flow.
+ */
+@media (min-width: 1024px) and (min-height: 720px) and (pointer: fine) {
+    #gallery-hero {
+        height: var(--gallery-viewport-height);
+        min-height: var(--gallery-viewport-height);
+        max-height: var(--gallery-viewport-height);
+    }
+
+    .gallery-page
+        [data-gallery-panel]:not(#gallery-hero) {
+        height: calc(
+            var(--gallery-viewport-height) -
+            var(--gallery-header-height)
+        );
+        min-height: calc(
+            var(--gallery-viewport-height) -
+            var(--gallery-header-height)
+        );
+        max-height: calc(
+            var(--gallery-viewport-height) -
+            var(--gallery-header-height)
+        );
+        overflow: hidden;
+    }
+
+    /*
+     * Fit the editorial story inside one visible panel without relying on the
+     * previous section's remaining viewport space.
+     */
+    .gallery-signature {
+        padding-block: 0;
+    }
+
+    .gallery-signature__grid {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        align-items: center;
+        padding-block: clamp(1.75rem, 4dvh, 3.25rem);
+    }
+
+    .gallery-signature__title {
+        font-size: clamp(3rem, 7dvh, 5.75rem);
+    }
+
+    .gallery-signature__copy {
+        font-size: clamp(1rem, 2dvh, 1.2rem);
+        line-height: 1.75;
+    }
+
+    .gallery-chapters {
+        margin-top: clamp(1.5rem, 3dvh, 2.5rem);
+    }
+
+    .gallery-chapter {
+        padding-block: clamp(0.75rem, 1.8dvh, 1.15rem);
+    }
+
+    /*
+     * The collection panel remains one viewport high. Its longer contact sheet
+     * scrolls inside the panel, allowing the outer wheel navigation to move to
+     * the next section only after this inner region reaches its boundary.
+     */
+    .gallery-collection {
+        padding-block: 0;
+    }
+
+    .gallery-collection__inner {
+        height: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-block: clamp(1.75rem, 4dvh, 3rem);
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color:
+            rgb(242 199 107 / 62%)
+            rgb(255 255 255 / 8%);
+    }
+
+    .gallery-collection__inner::-webkit-scrollbar {
+        width: 0.55rem;
+    }
+
+    .gallery-collection__inner::-webkit-scrollbar-track {
+        background: rgb(255 255 255 / 8%);
+    }
+
+    .gallery-collection__inner::-webkit-scrollbar-thumb {
+        border-radius: var(--radius-pill);
+        background: rgb(242 199 107 / 62%);
+    }
+
+    .gallery-collection__header {
+        padding-bottom: clamp(1.5rem, 3dvh, 2.5rem);
+    }
+
+    .gallery-collection__layout {
+        padding-top: clamp(1.5rem, 3dvh, 2.5rem);
+    }
+
+    .gallery-collection__title {
+        font-size: clamp(3rem, 7dvh, 5.75rem);
+    }
+
+    .gallery-film-index {
+        top: 1rem;
+    }
+
+    /*
+     * Keep the final invitation fully visible below the compact header.
+     */
+    .gallery-cta__copy {
+        width: 100%;
+        padding-block: clamp(2rem, 5dvh, 4rem);
+    }
+
+    .gallery-cta__title {
+        font-size: clamp(3.25rem, 8dvh, 6.5rem);
+    }
+}
+
+/*
+ * Phones, tablets, touch devices, and short displays keep natural scrolling.
+ */
+@media (max-width: 1023px), (max-height: 719px), (pointer: coarse) {
+    .gallery-page {
+        --gallery-header-height: 76px;
+    }
+
+    .gallery-page [data-gallery-panel] {
+        height: auto;
+        max-height: none;
+        min-height: var(--gallery-viewport-height);
+        overflow: visible;
+    }
+
+    .gallery-collection__inner {
+        height: auto;
+        overflow: visible;
+        overscroll-behavior: auto;
+    }
+}
+
+/*
+ * Ensure reduced-motion visitors never receive hidden content or retained
+ * rendering hints.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .gallery-page [data-gallery-reveal],
+    .gallery-page [data-gallery-stack-card],
+    .gallery-page [data-gallery-item],
+    .gallery-page [data-gallery-panel] img {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+}
