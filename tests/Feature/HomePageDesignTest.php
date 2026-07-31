@@ -7,8 +7,11 @@ test('homepage renders the approved Caribbean restaurant sections', function ():
         ->assertOk()
         ->assertSeeText('Taste the Caribbean.')
         ->assertSeeText('Feel the Islands.')
-        ->assertSeeText('Featured Dishes')
-        ->assertSeeText('Rooted in Tradition.')
+        ->assertSeeText("Chef's favorites")
+        ->assertSeeText('A little taste of the islands.')
+        ->assertSeeText(
+            'Rooted in the Caribbean. At home on the coast.',
+        )
         ->assertSeeText('Find your next favorite')
         ->assertSeeText('Food, warmth, and coastal evenings.')
         ->assertSeeText('Ready for good food and island vibes?')

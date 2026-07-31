@@ -104,13 +104,25 @@ test('menu and cart opt into the transparent public header', function (): void {
         resource_path('views/pages/menu.blade.php'),
     );
 
+    $menuHero = File::get(
+        resource_path(
+            'views/components/public/menu-hero.blade.php',
+        ),
+    );
+
     $cart = File::get(
         resource_path('views/pages/cart.blade.php'),
     );
 
     expect($menu)
         ->toContain(':header-overlay="true"')
-        ->toContain('menu-header-scrim');
+        ->toContain('<x-public.menu-hero');
+
+    expect($menuHero)
+        ->toContain('data-public-hero')
+        ->toContain('data-menu-hero')
+        ->toContain('data-menu-hero-depth')
+        ->toContain('bg-[linear-gradient');
 
     expect($cart)
         ->toContain(':header-overlay="true"')

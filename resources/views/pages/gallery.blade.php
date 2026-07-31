@@ -83,6 +83,7 @@
 
     <div
         data-gallery-page
+        data-gallery-motion
         data-gallery-motion-state="loading"
         class="gallery-page">
         <x-public.section-pager
@@ -94,6 +95,7 @@
         {{-- Cinematic full-screen gallery introduction. --}}
         <section
             id="gallery-hero"
+            data-public-hero
             data-gallery-panel
             data-gallery-hero
             class="gallery-hero"
@@ -120,7 +122,10 @@
             <div class="gallery-hero__grain" aria-hidden="true"></div>
 
             <div class="public-container gallery-hero__grid">
-                <div data-gallery-hero-copy class="gallery-hero__copy">
+                <div
+                    data-gallery-hero-copy
+                    data-gsap="hero-content"
+                    class="gallery-hero__copy">
                     <p data-gallery-reveal class="gallery-hero__kicker">
                         The Coast & Cay visual journal
                     </p>

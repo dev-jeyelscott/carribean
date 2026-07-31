@@ -20,13 +20,17 @@ test('development seeders use the Coast and Cay scope and brand voice', function
         ->toContain('online-order support')
         ->not->toContain('Le Jardin')
         ->not->toContain('Reservation Request')
-        ->not->toContain('Order Inquiry');
+        ->not->toContain('Order Inquiry')
+        ->not->toContain('private-event');
 
     expect($gallerySeeder)
-        ->toContain('Coast & Cay Signature Dish')
-        ->toContain('Island Flavor Collection')
-        ->toContain('Caribbean Dining Experience')
-        ->not->toContain('fine-dining');
+        ->toContain('Jerk Chicken Dinner')
+        ->toContain('Small Plates for the Table')
+        ->toContain('Coconut Curry and Rice')
+        ->toContain('Sorrel, Ginger, and Citrus')
+        ->toContain('Dinner at Coast & Cay')
+        ->not->toContain('fine-dining')
+        ->not->toContain('Le Jardin');
 
     expect($databaseSeeder)
         ->toContain('PageSeeder::class')
@@ -60,6 +64,8 @@ test('active public views do not expose retired workflow copy', function (): voi
             ->not->toContain('Order Inquiry')
             ->not->toContain('Banquet Hall')
             ->not->toContain('private-event')
-            ->not->toContain('private dining');
+            ->not->toContain('private dining')
+            ->not->toContain('Reserve a Table')
+            ->not->toContain('#reservation');
     }
 });

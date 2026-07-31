@@ -180,13 +180,14 @@ test('site setting updates and deletes invalidate cached public values', functio
         ->toBe('Fallback Restaurant Name');
 });
 
-test('gallery page opts into the shared public motion runtime', function (): void {
+test('gallery page opts into its dedicated progressive motion runtime', function (): void {
     $this->get(route('gallery'))
         ->assertOk()
-        ->assertSee('data-home-motion', false)
+        ->assertSee('data-gallery-page', false)
         ->assertSee('data-gallery-motion', false)
-        ->assertSee('data-gsap="hero-content"', false)
-        ->assertSee('data-gsap="gallery"', false);
+        ->assertSee('data-gallery-hero', false)
+        ->assertSee('data-gallery-section', false)
+        ->assertSee('data-gallery-dialog', false);
 });
 
 test('shared public settings keep malformed public links out of rendered pages', function (): void {
@@ -234,7 +235,10 @@ test('contact hero uses managed responsive image derivatives', function (): void
         ->assertDontSee('data-contact-hero-fallback', false)
         ->assertSee('/storage/gallery/variants/contact-dining-room-hero.jpg', false)
         ->assertSee('srcset=', false)
-        ->assertSee('sizes="100vw"', false)
+        ->assertSee(
+            'sizes="(min-width: 1024px) 54vw, 100vw"',
+            false,
+        )
         ->assertSee('loading="eager"', false)
         ->assertSee('fetchpriority="high"', false)
         ->assertSee('Elegant dining room prepared for evening service');

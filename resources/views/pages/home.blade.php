@@ -48,6 +48,7 @@
         data-home-section-pager
         class="home-section-pager relative">
         <x-public.homepage-hero
+            :show-journal="$hasPublishedPosts"
             eyebrow="Bold flavors. Warm hospitality."
             title="Taste the Caribbean."
             accent-title="Feel the Islands."

@@ -10,6 +10,9 @@ beforeEach(function (): void {
     Storage::fake('public');
 });
 
+/**
+ * Store one valid Gallery image for HTTP rendering tests.
+ */
 function storeGalleryPageTestImage(string $filename): string
 {
     $path = UploadedFile::fake()
@@ -25,8 +28,10 @@ test('gallery page presents visible Coast and Cay images without retired copy', 
     GalleryImage::query()->create([
         'title' => 'Coastal Dining Room',
         'alt_text' => 'Warm island-inspired dining room',
-        'image_path' => storeGalleryPageTestImage('coastal-dining-room.jpg'),
-        'category' => 'Ambiance',
+        'image_path' => storeGalleryPageTestImage(
+            'coastal-dining-room.jpg',
+        ),
+        'category' => 'ambiance',
         'sort_order' => 1,
         'is_visible' => true,
     ]);
@@ -34,20 +39,26 @@ test('gallery page presents visible Coast and Cay images without retired copy', 
     GalleryImage::query()->create([
         'title' => 'Island Jerk Chicken',
         'alt_text' => 'Island jerk chicken with rice and peas',
-        'image_path' => storeGalleryPageTestImage('island-jerk-chicken.jpg'),
-        'category' => 'Cuisine',
+        'image_path' => storeGalleryPageTestImage(
+            'island-jerk-chicken.jpg',
+        ),
+        'category' => 'dish',
         'sort_order' => 2,
         'is_visible' => true,
     ]);
 
     $this->get(route('gallery'))
         ->assertOk()
-        ->assertSee('id="gallery-collection"', false)
-        ->assertSee('data-home-motion', false)
+        ->assertSee('data-gallery-page', false)
         ->assertSee('data-gallery-motion', false)
-        ->assertSee('data-gsap="hero-image"', false)
-        ->assertSeeText('A taste of the island')
-        ->assertSeeText('Food, hospitality, and coastal moments')
+        ->assertSee('data-public-hero', false)
+        ->assertSee('data-gallery-collection', false)
+        ->assertSee('data-gallery-dialog', false)
+        ->assertSee('data-gsap="hero-content"', false)
+        ->assertSeeText('An Island, Framed.')
+        ->assertSeeText(
+            'A visual rhythm of flavor, place, and welcome.',
+        )
         ->assertSeeText('Coastal Dining Room')
         ->assertSeeText('Island Jerk Chicken')
         ->assertDontSeeText('Le Jardin')
@@ -55,19 +66,26 @@ test('gallery page presents visible Coast and Cay images without retired copy', 
         ->assertDontSeeText('private-event');
 });
 
-test('gallery page bounds visible images with simple pagination', function (): void {
-    foreach (range(1, 14) as $index) {
-        GalleryImage::query()->create([
-            'title' => sprintf('Coast and Cay Moment %02d', $index),
-            'alt_text' => "Coast and Cay moment {$index}",
-            'image_path' => "gallery/coast-and-cay-{$index}.jpg",
-            'category' => $index % 2 === 0 ? 'Cuisine' : 'Ambiance',
-            'sort_order' => $index,
-            'is_visible' => true,
-        ]);
+test('gallery page limits each editorial volume to five images', function (): void {
+    foreach (range(1, 7) as $index) {
+        GalleryImage::withoutEvents(
+            fn (): GalleryImage => GalleryImage::query()->create([
+                'title' => sprintf(
+                    'Coast and Cay Moment %02d',
+                    $index,
+                ),
+                'alt_text' => "Coast and Cay moment {$index}",
+                'image_path' => "gallery/coast-and-cay-{$index}.jpg",
+                'category' => $index % 2 === 0
+                    ? 'dish'
+                    : 'ambiance',
+                'sort_order' => $index,
+                'is_visible' => true,
+            ]),
+        );
     }
 
-    $expectedFirstPageTitles = collect(range(1, 12))
+    $expectedFirstPageTitles = collect(range(1, 5))
         ->map(
             fn (int $index): string => sprintf(
                 'Coast and Cay Moment %02d',
@@ -80,20 +98,30 @@ test('gallery page bounds visible images with simple pagination', function (): v
         ->assertOk()
         ->assertViewHas(
             'galleryImages',
-            function (Paginator $galleryImages) use ($expectedFirstPageTitles): bool {
-                return $galleryImages->perPage() === 12
+            function (
+                Paginator $galleryImages,
+            ) use ($expectedFirstPageTitles): bool {
+                return $galleryImages->perPage() === 5
                     && $galleryImages->currentPage() === 1
-                    && $galleryImages->getCollection()->pluck('title')->all()
-                        === $expectedFirstPageTitles;
+                    && $galleryImages
+                        ->getCollection()
+                        ->pluck('title')
+                        ->all() === $expectedFirstPageTitles;
             },
         )
         ->assertSeeText('Coast and Cay Moment 01')
-        ->assertSeeText('Coast and Cay Moment 12')
-        ->assertDontSeeText('Coast and Cay Moment 13')
+        ->assertSeeText('Coast and Cay Moment 05')
+        ->assertDontSeeText('Coast and Cay Moment 06')
         ->assertSee('rel="next"', false);
+
+    $this->get(route('gallery', ['page' => 2]))
+        ->assertOk()
+        ->assertSeeText('Coast and Cay Moment 06')
+        ->assertSeeText('Coast and Cay Moment 07')
+        ->assertDontSeeText('Coast and Cay Moment 05');
 });
 
-test('gallery page renders sanitized rich editor content', function (): void {
+test('gallery page renders sanitized managed editorial copy', function (): void {
     Page::query()->create([
         'slug' => 'gallery',
         'title' => 'Gallery',
@@ -103,16 +131,23 @@ test('gallery page renders sanitized rich editor content', function (): void {
 
     $this->get(route('gallery'))
         ->assertOk()
-        ->assertSee('<strong>Caribbean hospitality</strong>', false)
+        ->assertSeeText(
+            'Every image reflects Caribbean hospitality',
+        )
         ->assertSeeText('Managed through the CMS.')
-        ->assertDontSee('onclick=', false);
+        ->assertDontSee('<strong>', false)
+        ->assertDontSee('onclick=', false)
+        ->assertDontSee('alert(1)', false);
 });
 
-test('gallery page uses a scope-safe empty state', function (): void {
+test('gallery page uses the current scope-safe empty state', function (): void {
     $this->get(route('gallery'))
         ->assertOk()
-        ->assertSeeText('Our gallery is currently being curated.')
-        ->assertSeeText('Contact Us')
+        ->assertSeeText(
+            'No visible gallery moments match this collection yet.',
+        )
+        ->assertSeeText('Contact the Team')
         ->assertDontSeeText('Le Jardin')
-        ->assertDontSeeText('Private Celebrations');
+        ->assertDontSeeText('Private Celebrations')
+        ->assertDontSeeText('Reservation Request');
 });

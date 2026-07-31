@@ -10,6 +10,7 @@
     'primaryUrl' => null,
     'secondaryLabel' => null,
     'secondaryUrl' => null,
+    'showJournal' => false,
 ])
 
 @php
@@ -24,10 +25,8 @@
     $heroFallbackUrl = asset('images/heroes/coast-cay-home-hero.png');
 
     /*
-     * Define every homepage section once for the reusable right-side pager.
-     *
-     * The shared pager owns link interaction and active-dot state only.
-     * Existing homepage GSAP navigation remains responsible for wheel snapping.
+     * Define the homepage section pager from sections that will actually
+     * render. Journal is included only while published content exists.
      */
     $homeNavigation = [
         [
@@ -50,14 +49,18 @@
             'id' => 'gallery-preview',
             'label' => 'Gallery',
         ],
-        [
+    ];
+
+    if ($showJournal) {
+        $homeNavigation[] = [
             'id' => 'journal',
             'label' => 'Journal',
-        ],
-        [
-            'id' => 'visit',
-            'label' => 'Visit',
-        ],
+        ];
+    }
+
+    $homeNavigation[] = [
+        'id' => 'visit',
+        'label' => 'Visit',
     ];
 @endphp
 

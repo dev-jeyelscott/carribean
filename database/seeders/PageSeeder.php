@@ -154,10 +154,10 @@ HTML,
             [
                 'slug' => 'contact',
                 'title' => 'Questions, Orders, and Directions',
-                'excerpt' => 'Send a note about the menu, an existing order, accessibility, a reservation request, or anything you need before visiting.',
+                'excerpt' => 'Send a note about the menu, an existing online order, accessibility, directions, or anything you need before visiting.',
                 'content' => 'For time-sensitive order questions, call the restaurant and have your order number ready. General messages are answered during business hours.',
                 'meta_title' => 'Contact Coast & Cay',
-                'meta_description' => 'Contact Coast & Cay for order support, menu questions, directions, reservation requests, and restaurant information.',
+                'meta_description' => 'Contact Coast & Cay for online-order support, menu questions, accessibility, directions, and restaurant information.',
                 'is_published' => true,
             ],
         ];

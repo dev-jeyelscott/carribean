@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\PublicSite;
 
 use App\Http\Controllers\Controller;
+use App\Models\BlogPost;
 use App\Models\GalleryImage;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
@@ -61,7 +62,6 @@ class HomeController extends Controller
                 ->where('slug', 'home')
                 ->where('is_published', true)
                 ->first(),
-
             'featuredCategories' => $featuredCategories,
             'featuredMenuItems' => $featuredMenuItems,
             'galleryImages' => $this->galleryPreviewImages(
@@ -71,6 +71,9 @@ class HomeController extends Controller
             ),
             'heroImage' => $heroImage,
             'storyImage' => $storyImage,
+            'hasPublishedPosts' => BlogPost::query()
+                ->published()
+                ->exists(),
         ]);
     }
 

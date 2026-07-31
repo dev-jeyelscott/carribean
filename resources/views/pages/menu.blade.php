@@ -5,6 +5,10 @@
     <div
         data-menu-page
         class="menu-page-shell min-h-screen">
+        <x-public.menu-hero
+            :page="$page"
+            :image="$heroItem" />
+
         <div
             class="menu-page-atmosphere"
             aria-hidden="true">

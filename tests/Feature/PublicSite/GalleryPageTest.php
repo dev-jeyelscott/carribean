@@ -132,7 +132,7 @@ test('each gallery volume is limited to five viewport frames', function (): void
     expect(
         substr_count(
             $firstVolume->getContent(),
-            'data-gallery-open',
+            'data-gallery-item',
         ),
     )->toBe(5);
 
@@ -148,7 +148,7 @@ test('each gallery volume is limited to five viewport frames', function (): void
     expect(
         substr_count(
             $secondVolume->getContent(),
-            'data-gallery-open',
+            'data-gallery-item',
         ),
     )->toBe(2);
 });

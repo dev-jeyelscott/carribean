@@ -1,6 +1,6 @@
 <x-layouts.public
     :title="$page?->meta_title ?: 'Contact | Coast & Cay'"
-    :description="$page?->meta_description ?: 'Contact Coast & Cay for reservations, restaurant information, online-order support, directions, and private-event inquiries.'"
+    :description="$page?->meta_description ?: 'Contact Coast & Cay for restaurant information, online-order support, directions, accessibility, and general questions.'"
     :header-overlay="true">
     @php
     /*
@@ -52,6 +52,7 @@
         {{-- Full-screen welcome hero --}}
         <section
             id="contact-hero"
+            data-public-hero
             data-gsap="section"
             aria-labelledby="contact-hero-heading"
             class="contact-panel bg-brand-cream">
@@ -94,9 +95,9 @@
                                 data-gsap-reveal
                                 class="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <a
-                                    href="{{ route('home') }}#reservation"
+                                    href="{{ route('menu') }}"
                                     class="public-button-primary justify-center">
-                                    Reserve a Table
+                                    Explore the Menu
                                 </a>
 
                                 <a
@@ -124,6 +125,7 @@
                                 img-class="absolute inset-0 size-full object-cover" />
                             @else
                             <div
+                                data-contact-hero-fallback
                                 class="absolute inset-0
                                         bg-[radial-gradient(circle_at_72%_25%,rgba(242,199,107,0.28),transparent_25%),linear-gradient(135deg,#5a8f96,#0c342b_68%)]"
                                 aria-hidden="true">
@@ -706,9 +708,9 @@
                             data-gsap-reveal
                             class="mt-8 flex flex-col gap-3 sm:flex-row">
                             <a
-                                href="{{ route('home') }}#reservation"
+                                href="{{ route('menu') }}"
                                 class="public-button-primary justify-center">
-                                Reserve a Table
+                                Explore the Menu
                             </a>
 
                             <a
@@ -739,14 +741,15 @@
                                 sm:px-7">
                             <details class="contact-faq-item">
                                 <summary>
-                                    Do I need a reservation?
+                                    Do you welcome walk-ins?
                                 </summary>
                                 <p
                                     class="pb-5 pr-10 text-sm leading-7
                                         text-brand-muted">
-                                    Walk-ins may be welcomed when space permits,
-                                    but reservations are recommended for
-                                    weekends and larger parties.
+                                    Walk-ins are welcome when space permits.
+                                    Contact the restaurant before arriving with
+                                    a large group or when accessibility support
+                                    is required.
                                 </p>
                             </details>
 

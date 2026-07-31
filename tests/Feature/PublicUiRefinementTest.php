@@ -32,7 +32,7 @@ test('homepage reuses the shared accessible section pager', function (): void {
         ->toContain("'id' => 'visit'");
 });
 
-test('contact hero refresh enhances the existing conversion structure', function (): void {
+test('contact hero refresh enhances the current conversion structure', function (): void {
     $contactPage = File::get(
         resource_path('views/pages/contact.blade.php'),
     );
@@ -42,9 +42,12 @@ test('contact hero refresh enhances the existing conversion structure', function
     );
 
     expect($contactPage)
-        ->toContain('Reserve a Table')
+        ->toContain('Explore the Menu')
         ->toContain('Send an Inquiry')
-        ->toContain('contact-quick-card');
+        ->toContain('contact-quick-card')
+        ->not->toContain('Reserve a Table')
+        ->not->toContain('#reservation')
+        ->not->toContain('private-event');
 
     expect($contactStyles)
         ->toContain('#contact-hero')
@@ -94,12 +97,14 @@ test('customer authentication uses the branded interactive shell', function (): 
         ->toContain('@media (prefers-reduced-motion: reduce)');
 });
 
-test('theme imports the new scoped experience styles', function (): void {
+test('theme imports the scoped experience styles', function (): void {
     $theme = File::get(
         resource_path('css/theme.css'),
     );
 
     expect($theme)
         ->toContain('@import "./auth.css";')
-        ->toContain('@import "./contact-hero-refresh.css";');
+        ->toContain(
+            '@import "./contact-hero-refresh.css";',
+        );
 });
