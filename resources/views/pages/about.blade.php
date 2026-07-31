@@ -275,26 +275,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <a
-                            href="#island-roots"
-                            data-about-reveal
-                            class="absolute bottom-8 left-5 inline-flex items-center
-                    gap-3 text-[0.65rem] font-semibold uppercase
-                    tracking-[0.2em] text-canvas/72 transition
-                    hover:text-sun sm:left-8 lg:left-10"
-                            aria-label="Scroll to the Coast and Cay story">
-                            <span
-                                class="flex h-9 w-5 items-start justify-center
-                        rounded-full border border-canvas/35 p-1">
-                                <span
-                                    class="mt-0.5 block size-1.5 rounded-full
-                            bg-coral">
-                                </span>
-                            </span>
-
-                            Scroll
-                        </a>
                     </section>
 
                     {{-- Island roots and restaurant story --}}

@@ -58,6 +58,7 @@
         'resources/css/public.css',
         'resources/css/public-header.css',
         'resources/js/app.js',
+        'resources/js/public-scroll-navigation.js',
     ])
 
     @livewireStyles
@@ -94,6 +95,8 @@
             ])>
             {{ $slot }}
         </main>
+
+        <x-public.scroll-identifier />
 
         <x-public.footer />
     </div>

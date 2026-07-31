@@ -1,14 +1,9 @@
 /*
- * Menu-only page width.
+ * Menu-page layout refinements
  *
- * Preserve comfortable mobile gutters while allowing the desktop menu to use
- * approximately 94% of the available viewport.
+ * The Menu page now uses the same public-container width and horizontal
+ * gutters as the homepage and all other public pages.
  */
-[data-menu-page] .public-container {
-    width: calc(100% - 2rem);
-    max-width: none;
-    padding-inline: 0;
-}
 
 html.menu-category-snap-active {
     scroll-behavior: auto;
@@ -24,20 +19,16 @@ html.menu-category-snap-active {
     isolation: isolate;
 }
 
-@media (min-width: 640px) {
-    [data-menu-page] .public-container {
-        width: calc(100% - 3rem);
-    }
-}
-
+/*
+ * Do not override .public-container width here.
+ *
+ * Shared horizontal gutters are controlled by the global public design system,
+ * keeping Menu aligned with Home, About, Gallery, Journal, and Contact.
+ */
 @media (min-width: 1024px) {
-    [data-menu-page] .public-container {
-        width: 94%;
-    }
-
     [data-menu-catalog] > .public-container.grid {
         grid-template-columns: 18rem minmax(0, 1fr);
-        gap: clamp(2rem, 2.5vw, 2.75rem);
+        gap: clamp(2rem, 3vw, 3.5rem);
     }
 
     [data-menu-sidebar] {
