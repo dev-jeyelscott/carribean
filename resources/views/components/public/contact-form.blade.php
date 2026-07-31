@@ -219,7 +219,7 @@
                     'Menu or dietary question',
                     'Online order support',
                     'Directions or accessibility',
-                    'Private event inquiry',
+                    'Restaurant hours or visit question',
                     'Website feedback',
                 ] as $subject)
                     <option

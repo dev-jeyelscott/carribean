@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Storage;
 test('gallery image seeder stores upload-like images idempotently', function (): void {
     Storage::fake('public');
 
+    $expectedImageCount = 6;
+
+    /*
+     * Run the seeder once and capture its database and storage state.
+     */
     $this->seed(GalleryImageSeeder::class);
 
     $firstSeededPaths = GalleryImage::query()
@@ -15,13 +20,32 @@ test('gallery image seeder stores upload-like images idempotently', function ():
         ->all();
 
     expect($firstSeededPaths)
-        ->toHaveCount(3)
-        ->each->toMatch('/^gallery\/[a-f0-9]{64}\.(?:jpg|png|webp)$/');
+        ->toHaveCount($expectedImageCount)
+        ->each
+        ->toMatch(
+            '/^gallery\/[a-f0-9]{64}\.(?:jpg|png|webp)$/',
+        );
 
-    Storage::disk('public')->assertExists($firstSeededPaths);
+    /*
+     * Every bundled image should produce one unique content-addressed source
+     * path in public storage.
+     */
+    expect(
+        array_values(array_unique($firstSeededPaths)),
+    )->toHaveCount($expectedImageCount);
 
-    $firstStoredFiles = Storage::disk('public')->allFiles('gallery');
+    Storage::disk('public')->assertExists(
+        $firstSeededPaths,
+    );
 
+    $firstStoredFiles = Storage::disk('public')
+        ->allFiles('gallery');
+
+    sort($firstStoredFiles);
+
+    /*
+     * Running the seeder again must reuse the same records and stored files.
+     */
     $this->seed(GalleryImageSeeder::class);
 
     $secondSeededPaths = GalleryImage::query()
@@ -29,7 +53,15 @@ test('gallery image seeder stores upload-like images idempotently', function ():
         ->pluck('image_path')
         ->all();
 
-    expect($secondSeededPaths)->toBe($firstSeededPaths);
-    expect(Storage::disk('public')->allFiles('gallery'))->toBe($firstStoredFiles);
-    expect(GalleryImage::query()->count())->toBe(3);
+    $secondStoredFiles = Storage::disk('public')
+        ->allFiles('gallery');
+
+    sort($secondStoredFiles);
+
+    expect($secondSeededPaths)
+        ->toBe($firstSeededPaths)
+        ->and($secondStoredFiles)
+        ->toBe($firstStoredFiles)
+        ->and(GalleryImage::query()->count())
+        ->toBe($expectedImageCount);
 });
