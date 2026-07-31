@@ -76,12 +76,8 @@ final class AboutController extends Controller
             ], is_int(...))),
         );
 
-        $usedImageIds = array_values(array_filter([
-            $heroImage?->getKey(),
-            $storyImage?->getKey(),
-            $heritageImage?->getKey(),
-            $closingImage?->getKey(),
-        ], is_int(...)));
+        /** @var Collection<int, GalleryImage> $experienceImages */
+        $experienceImages = new Collection;
 
         return view('pages.about', [
             'page' => $page,
@@ -90,6 +86,10 @@ final class AboutController extends Controller
             'heritageImage' => $heritageImage,
             'closingImage' => $closingImage,
 
+            /*
+             * Values retain restrained supporting photography while the
+             * redesigned How We Work section becomes fully typography-led.
+             */
             'valueImages' => $this->imageSet(
                 images: $images,
                 preferredCategories: [
@@ -102,18 +102,7 @@ final class AboutController extends Controller
                 count: 4,
             ),
 
-            'experienceImages' => $this->imageSet(
-                images: $images,
-                preferredCategories: [
-                    'guests',
-                    'team',
-                    'ambiance',
-                    'interior',
-                    'dish',
-                ],
-                excludedIds: $usedImageIds,
-                count: 4,
-            ),
+            'experienceImages' => $experienceImages,
         ]);
     }
 
@@ -149,8 +138,7 @@ final class AboutController extends Controller
     }
 
     /**
-     * Build a fixed-size image collection and repeat safe fallbacks when the
-     * development gallery does not yet contain enough unique photographs.
+     * Build a fixed-size image collection with safe fallbacks.
      *
      * @param  Collection<int, GalleryImage>  $images
      * @param  list<string>  $preferredCategories
@@ -206,6 +194,8 @@ final class AboutController extends Controller
             }
         }
 
-        return $result->take($count)->values();
+        return $result
+            ->take($count)
+            ->values();
     }
 }

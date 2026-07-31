@@ -10,12 +10,14 @@ use Illuminate\View\Component;
 final class BlogPreview extends Component
 {
     /**
+     * The latest public journal entries displayed by the component.
+     *
      * @var Collection<int, BlogPost>
      */
     public Collection $posts;
 
     /**
-     * Load a maximum of three current Blog posts for the homepage.
+     * Load the latest published journal entries.
      */
     public function __construct()
     {
@@ -27,20 +29,10 @@ final class BlogPreview extends Component
     }
 
     /**
-     * Avoid rendering an empty homepage section.
-     */
-    public function shouldRender(): bool
-    {
-        return $this->posts->isNotEmpty();
-    }
-
-    /**
-     * Render the conditional homepage Blog preview.
+     * Render the reusable homepage journal preview.
      */
     public function render(): View
     {
-        return view(
-            'components.public.blog-preview',
-        );
+        return view('components.public.blog-preview');
     }
 }

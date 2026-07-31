@@ -1,14 +1,11 @@
 <x-layouts.public
     :title="$page?->meta_title ?: 'Menu'"
-    :description="$page?->meta_description ?: 'Explore Caribbean-inspired dishes crafted with island soul, fresh ingredients, and coastal ease.'"
+    :description="$page?->meta_description
+        ?: 'Explore Caribbean-inspired dishes crafted with island soul, fresh ingredients, and coastal ease.'"
     :header-overlay="true">
     <div
         data-menu-page
         class="menu-page-shell min-h-screen">
-        <x-public.menu-hero
-            :page="$page"
-            :image="$heroItem" />
-
         <div
             class="menu-page-atmosphere"
             aria-hidden="true">

@@ -1,0 +1,208 @@
+/*
+ * Menu page refresh
+ *
+ * The catalogue now starts directly beneath the shared transparent header.
+ * Existing menu cards, Livewire behavior, modal behavior, and navigation
+ * remain unchanged.
+ */
+
+html:has([data-menu-page]) {
+    background: var(--color-primary-deep);
+}
+
+.menu-page-shell {
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: clip;
+    background:
+        radial-gradient(
+            circle at 12% 7%,
+            rgb(242 199 107 / 13%),
+            transparent 25rem
+        ),
+        radial-gradient(
+            circle at 91% 22%,
+            rgb(32 111 124 / 20%),
+            transparent 31rem
+        ),
+        radial-gradient(
+            circle at 40% 72%,
+            rgb(230 110 80 / 8%),
+            transparent 35rem
+        ),
+        linear-gradient(
+            180deg,
+            var(--color-primary-deep) 0%,
+            #104238 46%,
+            #082b24 100%
+        );
+    color: var(--color-canvas);
+}
+
+.menu-page-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(
+            rgb(255 249 240 / 3%) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgb(255 249 240 / 3%) 1px,
+            transparent 1px
+        );
+    background-size: 4.5rem 4.5rem;
+    mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 82%
+    );
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.menu-catalog-shell {
+    position: relative;
+    z-index: 1;
+    padding-top: clamp(7rem, 10vw, 9rem);
+}
+
+.menu-page-shell .menu-section {
+    color: var(--color-canvas);
+}
+
+.menu-page-shell .menu-section + .menu-section {
+    border-top-color: rgb(255 249 240 / 11%);
+}
+
+.menu-page-shell .menu-section:nth-of-type(even)::before {
+    background:
+        radial-gradient(
+            circle at 90% 15%,
+            rgb(242 199 107 / 9%),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 10% 86%,
+            rgb(32 111 124 / 14%),
+            transparent 32%
+        );
+}
+
+.menu-page-shell [data-menu-section-heading] .text-primary {
+    color: var(--color-sun);
+}
+
+.menu-page-shell [data-menu-section-heading] .text-primary-deep {
+    color: var(--color-canvas);
+}
+
+.menu-page-shell [data-menu-section-heading] .text-muted,
+.menu-page-shell [data-menu-carousel-status] {
+    color: rgb(255 249 240 / 66%);
+}
+
+.menu-page-shell [data-menu-section-rule] {
+    background: rgb(255 249 240 / 15%);
+}
+
+.menu-page-shell [data-menu-carousel-next] {
+    border-color: rgb(255 255 255 / 8%);
+    background: var(--color-coral);
+    color: white;
+}
+
+.menu-page-shell [data-menu-carousel-next]:hover {
+    background: var(--color-coral-deep);
+}
+
+.menu-page-shell [data-menu-carousel-progress] {
+    background: var(--color-sun);
+}
+
+.menu-page-shell [data-menu-closing] {
+    border-top-color: rgb(255 249 240 / 12%);
+}
+
+.menu-page-shell [data-menu-closing] > svg {
+    color: var(--color-sun);
+}
+
+.menu-page-shell [data-menu-closing] .text-primary-deep {
+    color: var(--color-canvas);
+}
+
+.menu-page-shell [data-menu-closing] .text-muted {
+    color: rgb(255 249 240 / 66%);
+}
+
+/*
+ * Keep the desktop menu navigation light and legible against the dark page.
+ */
+.menu-page-shell .menu-glass-panel {
+    border-color: rgb(255 255 255 / 17%);
+    background: rgb(255 253 249 / 94%);
+    box-shadow:
+        0 30px 80px rgb(3 20 17 / 32%),
+        0 4px 18px rgb(3 20 17 / 16%);
+}
+
+/*
+ * Mobile navigation becomes a compact dark glass surface below the shared
+ * header instead of introducing a white band across the green page.
+ */
+.menu-page-shell [data-menu-mobile-categories] {
+    border-color: rgb(255 249 240 / 10%);
+    background: rgb(8 43 36 / 90%);
+    box-shadow: 0 16px 40px rgb(3 20 17 / 18%);
+}
+
+.menu-page-shell
+    [data-menu-navigation-position="mobile"] {
+    border-color: rgb(255 249 240 / 12%);
+    background: rgb(255 249 240 / 7%);
+    color: var(--color-canvas);
+}
+
+.menu-page-shell
+    [data-menu-navigation-position="mobile"]
+    .menu-category-dot {
+    background: rgb(255 249 240 / 38%);
+}
+
+.menu-page-shell
+    [data-menu-navigation-position="mobile"][aria-current="true"] {
+    border-color: transparent;
+    background: var(--color-coral);
+    color: white;
+}
+
+/*
+ * Preserve the white menu cards as elevated ordering surfaces.
+ */
+.menu-page-shell .menu-card {
+    box-shadow:
+        0 26px 65px rgb(3 20 17 / 24%),
+        0 3px 12px rgb(3 20 17 / 14%);
+}
+
+@media (max-width: 1023px) {
+    .menu-catalog-shell {
+        padding-top: 5.5rem;
+    }
+
+    .menu-page-shell .menu-section {
+        padding-block: 3.75rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-page-shell,
+    .menu-page-atmosphere {
+        background-attachment: initial;
+    }
+}

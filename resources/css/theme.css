@@ -2,14 +2,18 @@
 @import "./auth.css";
 @import "./menu.css";
 @import "./menu-page-enhancements.css";
+@import "./menu-refresh.css";
 @import "./about.css";
+@import "./about-refresh.css";
 @import "./gallery.css";
+@import "./gallery-section-navigation.css";
 @import "./contact.css";
 @import "./contact-form.css";
 @import "./contact-experience.css";
 @import "./homepage-experience.css";
 @import "./contact-hero-refresh.css";
 @import "./public-page-refresh.css";
+@import "./public-scroll-navigation.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
