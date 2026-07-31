@@ -2,35 +2,27 @@
     'label' => 'Scroll',
 ])
 
-@php
-    /*
-     * Display the shared scroll identifier only on immersive public pages.
-     * Standard transactional and account pages retain normal document flow.
-     */
-    $isVisible = request()->routeIs([
-        'menu',
-        'about',
-        'gallery',
-        'blog.index',
-        'blog.show',
-        'contact.create',
-    ]);
-@endphp
+{{--
+    Render the control for every public layout.
 
-@if ($isVisible)
-    <button
-        type="button"
-        data-public-scroll-identifier
-        class="public-scroll-identifier"
-        aria-label="Scroll to the next page section">
-        <span
-            class="public-scroll-identifier__track"
-            aria-hidden="true">
-            <span class="public-scroll-identifier__dot"></span>
-        </span>
+    JavaScript determines whether the current page has another navigable
+    section. This avoids coupling reusable presentation to route names and
+    supports new public pages without changing this component.
+--}}
+<button
+    type="button"
+    data-public-scroll-identifier
+    data-scroll-state="loading"
+    class="public-scroll-identifier"
+    aria-label="Scroll to the next page section"
+    aria-hidden="true">
+    <span
+        class="public-scroll-identifier__track"
+        aria-hidden="true">
+        <span class="public-scroll-identifier__dot"></span>
+    </span>
 
-        <span class="public-scroll-identifier__label">
-            {{ $label }}
-        </span>
-    </button>
-@endif
+    <span class="public-scroll-identifier__label">
+        {{ $label }}
+    </span>
+</button>

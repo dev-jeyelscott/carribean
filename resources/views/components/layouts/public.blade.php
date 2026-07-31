@@ -12,10 +12,7 @@
 
 @php
     /*
-     * Header overlap controls document spacing only.
-     *
-     * Homepage and immersive hero pages render behind the fixed header.
-     * Standard content pages retain a safe header offset.
+     * Determine whether the fixed header overlays the current page content.
      */
     $isHomepage = request()->routeIs('home');
 
@@ -24,8 +21,8 @@
         : $isHomepage;
 
     /*
-     * All public pages use the homepage-inspired transparent navigation by
-     * default. A page may explicitly request the solid fallback when needed.
+     * Public pages use the transparent homepage navigation unless a page
+     * explicitly requests the solid variant.
      */
     $headerUsesTransparentSurface = is_bool($headerTransparent)
         ? $headerTransparent
@@ -96,7 +93,18 @@
             {{ $slot }}
         </main>
 
-        <x-public.scroll-identifier />
+        {{--
+            Fixed controls are mounted outside main and outside page-specific
+            animation roots. They can therefore remain viewport-fixed above
+            every page section.
+        --}}
+        <div
+            data-public-fixed-navigation
+            class="public-fixed-navigation">
+            <div data-public-section-pager-portal></div>
+
+            <x-public.scroll-identifier />
+        </div>
 
         <x-public.footer />
     </div>
