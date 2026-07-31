@@ -2,7 +2,7 @@
  * About page editorial experience
  *
  * Every section remains server-rendered and readable without JavaScript.
- * GSAP progressively enhances navigation, reveals, and image movement.
+ * GSAP progressively enhances reveals, image movement, and section transitions.
  */
 
 /*
@@ -10,8 +10,7 @@
  * Remove the shared document scroll inset so native and enhanced navigation
  * never apply two competing offsets.
  */
-html:has([data-about-page]),
-html.about-section-navigation-active {
+html:has([data-about-page]) {
     scroll-behavior: auto;
     scroll-padding-top: 0;
 }
@@ -72,98 +71,6 @@ html.about-section-navigation-active {
 .about-page[data-about-motion="ready"] [data-about-parallax] img,
 .about-page[data-about-motion="ready"] [data-about-image-reveal] img {
     will-change: transform;
-}
-
-/*
- * Desktop section navigation
- */
-.about-section-nav {
-    position: fixed;
-    top: 50%;
-    right: 1.25rem;
-    z-index: 40;
-    display: none;
-    transform: translateY(-50%);
-}
-
-.about-section-nav__list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.55rem;
-    border: 1px solid rgb(255 255 255 / 12%);
-    border-radius: var(--radius-pill);
-    background: rgb(3 19 16 / 76%);
-    box-shadow: var(--shadow-panel);
-    backdrop-filter: blur(18px);
-}
-
-.about-section-nav__link {
-    position: relative;
-    display: flex;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-pill);
-    color: white;
-    transition:
-        background 240ms var(--ease-island),
-        color 240ms var(--ease-island),
-        transform 240ms var(--ease-island);
-}
-
-.about-section-nav__link:hover {
-    background: rgb(255 255 255 / 10%);
-}
-
-.about-section-nav__dot {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: var(--radius-pill);
-    background: rgb(255 255 255 / 44%);
-    transition:
-        width 240ms var(--ease-island),
-        height 240ms var(--ease-island),
-        background 240ms var(--ease-island);
-}
-
-.about-section-nav__label {
-    position: absolute;
-    top: 50%;
-    right: calc(100% + 0.75rem);
-    width: max-content;
-    padding: 0.45rem 0.7rem;
-    border-radius: 0.55rem;
-    background: rgb(3 19 16 / 92%);
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    opacity: 0;
-    pointer-events: none;
-    transform: translate(0.4rem, -50%);
-    transition:
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
-.about-section-nav__link:hover .about-section-nav__label,
-.about-section-nav__link:focus-visible .about-section-nav__label {
-    opacity: 1;
-    transform: translate(0, -50%);
-}
-
-.about-section-nav__link[aria-current="location"] {
-    background: var(--color-coral);
-    color: white;
-}
-
-.about-section-nav__link[aria-current="location"]
-    .about-section-nav__dot {
-    width: 0.65rem;
-    height: 0.65rem;
-    background: white;
 }
 
 /*
@@ -234,12 +141,6 @@ html.about-section-navigation-active {
     min-height: 0;
 }
 
-@media (min-width: 1280px) {
-    .about-section-nav {
-        display: block;
-    }
-}
-
 /*
  * Exact desktop section viewport.
  *
@@ -278,6 +179,15 @@ html.about-section-navigation-active {
     #island-roots > .grid > div:last-child {
         height: 100%;
         min-height: 0;
+    }
+
+    /*
+     * Keep the story quote completely visible inside the image column.
+     */
+    #island-roots .about-quote-card {
+        left: clamp(1.5rem, 3vw, 3rem);
+        max-width: min(22rem, calc(100% - 3rem));
+        transform: none;
     }
 
     #island-roots h2 {
@@ -321,7 +231,9 @@ html.about-section-navigation-active {
     .about-value-card {
         height: clamp(20rem, 43dvh, 23rem);
         min-height: 0;
-        grid-template-rows: minmax(0, 1fr) clamp(7.5rem, 15dvh, 9rem);
+        grid-template-rows:
+            minmax(0, 1fr)
+            clamp(7.5rem, 15dvh, 9rem);
     }
 
     .about-value-card__image {
@@ -390,10 +302,7 @@ html.about-section-navigation-active {
  * Reduced-motion visitors receive the complete readable final state.
  */
 @media (prefers-reduced-motion: reduce) {
-    .about-value-card,
-    .about-section-nav__link,
-    .about-section-nav__dot,
-    .about-section-nav__label {
+    .about-value-card {
         transition: none;
     }
 

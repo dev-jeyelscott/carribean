@@ -12,7 +12,7 @@
 
 @php
     /*
-     * Determine whether the fixed header overlays the current page content.
+     * Determine whether the fixed public header overlays the current page.
      */
     $isHomepage = request()->routeIs('home');
 
@@ -21,8 +21,8 @@
         : $isHomepage;
 
     /*
-     * Public pages use the transparent homepage navigation unless a page
-     * explicitly requests the solid variant.
+     * Public pages use the transparent homepage-style navigation unless a
+     * page explicitly requests the solid surface.
      */
     $headerUsesTransparentSurface = is_bool($headerTransparent)
         ? $headerTransparent
@@ -55,7 +55,6 @@
         'resources/css/public.css',
         'resources/css/public-header.css',
         'resources/js/app.js',
-        'resources/js/public-scroll-navigation.js',
     ])
 
     @livewireStyles
@@ -92,19 +91,6 @@
             ])>
             {{ $slot }}
         </main>
-
-        {{--
-            Fixed controls are mounted outside main and outside page-specific
-            animation roots. They can therefore remain viewport-fixed above
-            every page section.
-        --}}
-        <div
-            data-public-fixed-navigation
-            class="public-fixed-navigation">
-            <div data-public-section-pager-portal></div>
-
-            <x-public.scroll-identifier />
-        </div>
 
         <x-public.footer />
     </div>

@@ -56,29 +56,6 @@
     $activeCollectionTitle = $selectedCategory !== null
     ? str($selectedCategory)->headline()->toString()
     : 'The complete contact sheet';
-
-    /*
-    * Define the Gallery section pager independently from gallery content
-    * categories. Each target maps to one complete editorial page section.
-    */
-    $galleryNavigation = [
-    [
-    'id' => 'gallery-hero',
-    'label' => 'Introduction',
-    ],
-    [
-    'id' => 'gallery-signature',
-    'label' => 'Visual story',
-    ],
-    [
-    'id' => 'gallery-collection',
-    'label' => 'Collection',
-    ],
-    [
-    'id' => 'gallery-invitation',
-    'label' => 'Your visit',
-    ],
-    ];
     @endphp
 
     <div
@@ -86,12 +63,6 @@
         data-gallery-motion
         data-gallery-motion-state="loading"
         class="gallery-page">
-        <x-public.section-pager
-            :items="$galleryNavigation"
-            current="gallery-hero"
-            label="Gallery page sections"
-            context="gallery"
-            enhancer="shared" />
         {{-- Cinematic full-screen gallery introduction. --}}
         <section
             id="gallery-hero"

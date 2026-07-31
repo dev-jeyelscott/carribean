@@ -145,33 +145,6 @@
                 ->take(4)
                 ->values();
                 }
-
-                $aboutNavigation = [
-                [
-                'id' => 'about-hero',
-                'label' => 'Introduction',
-                ],
-                [
-                'id' => 'island-roots',
-                'label' => 'Our story',
-                ],
-                [
-                'id' => 'values',
-                'label' => 'Our values',
-                ],
-                [
-                'id' => 'heritage',
-                'label' => 'Our heritage',
-                ],
-                [
-                'id' => 'experience',
-                'label' => 'Guest experience',
-                ],
-                [
-                'id' => 'invitation',
-                'label' => 'Your invitation',
-                ],
-                ];
                 @endphp
 
                 <div
@@ -179,12 +152,6 @@
                     data-about-active-section="about-hero"
                     data-about-motion="loading"
                     class="about-page">
-                    <x-public.section-pager
-                        :items="$aboutNavigation"
-                        current="about-hero"
-                        label="About page sections"
-                        context="about"
-                        enhancer="about" />
 
                     {{-- Full-screen About hero --}}
                     <section

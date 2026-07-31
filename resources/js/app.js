@@ -33,10 +33,7 @@ if (document.querySelector("[data-reveal]")) {
             initPublicReveals();
         })
         .catch((error) => {
-            console.error(
-                "Unable to initialize public reveals.",
-                error,
-            );
+            console.error("Unable to initialize public reveals.", error);
         });
 }
 
@@ -51,9 +48,7 @@ const publicPageMotionRoot = document.querySelector(
 if (publicPageMotionRoot) {
     import("./public-page-experience")
         .then(({ initPublicPageExperience }) => {
-            initPublicPageExperience(
-                publicPageMotionRoot,
-            );
+            initPublicPageExperience(publicPageMotionRoot);
         })
         .catch((error) => {
             console.error(
@@ -77,23 +72,16 @@ if (publicMotionRoot) {
             initPublicAnimations(publicMotionRoot);
         })
         .catch((error) => {
-            console.error(
-                "Unable to initialize public animations.",
-                error,
-            );
+            console.error("Unable to initialize public animations.", error);
         });
 }
 
-const homepagePagerRoot = document.querySelector(
-    "[data-home-section-pager]",
-);
+const homepagePagerRoot = document.querySelector("[data-home-section-pager]");
 
 if (homepagePagerRoot) {
     import("./homepage-section-navigation")
         .then(({ initHomepageSectionNavigation }) => {
-            initHomepageSectionNavigation(
-                homepagePagerRoot,
-            );
+            initHomepageSectionNavigation(homepagePagerRoot);
         })
         .catch((error) => {
             console.error(
@@ -103,9 +91,7 @@ if (homepagePagerRoot) {
         });
 }
 
-const menuPageRoot = document.querySelector(
-    "[data-menu-page]",
-);
+const menuPageRoot = document.querySelector("[data-menu-page]");
 
 if (menuPageRoot) {
     import("./menu-experience")
@@ -113,10 +99,7 @@ if (menuPageRoot) {
             initMenuExperience(menuPageRoot);
         })
         .catch((error) => {
-            console.error(
-                "Unable to initialize the menu experience.",
-                error,
-            );
+            console.error("Unable to initialize the menu experience.", error);
         });
 
     import("./menu-category-scroll")
@@ -131,9 +114,7 @@ if (menuPageRoot) {
         });
 }
 
-const aboutPageRoot = document.querySelector(
-    "[data-about-page]",
-);
+const aboutPageRoot = document.querySelector("[data-about-page]");
 
 if (aboutPageRoot) {
     import("./about-experience")
@@ -148,9 +129,7 @@ if (aboutPageRoot) {
         });
 }
 
-const contactPageRoot = document.querySelector(
-    "[data-contact-page]",
-);
+const contactPageRoot = document.querySelector("[data-contact-page]");
 
 if (contactPageRoot) {
     import("./contact-experience")
@@ -165,30 +144,7 @@ if (contactPageRoot) {
         });
 }
 
-const sharedSectionPagers = [
-    ...document.querySelectorAll(
-        '[data-section-pager][data-section-pager-enhancer="shared"]',
-    ),
-];
-
-if (sharedSectionPagers.length > 0) {
-    import("./section-pager")
-        .then(({ initSectionPager }) => {
-            sharedSectionPagers.forEach((pager) => {
-                initSectionPager(pager);
-            });
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize shared section navigation.",
-                error,
-            );
-        });
-}
-
-const galleryPageRoot = document.querySelector(
-    "[data-gallery-page]",
-);
+const galleryPageRoot = document.querySelector("[data-gallery-page]");
 
 if (galleryPageRoot) {
     import("./gallery-experience")

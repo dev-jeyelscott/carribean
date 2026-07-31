@@ -4,29 +4,6 @@
     :header-overlay="true">
     @php
     /*
-    * Define the shared dotted navigation entries once so labels and
-    * section identifiers cannot drift apart.
-    */
-    $contactNavigation = [
-    [
-    'id' => 'contact-hero',
-    'label' => 'Welcome',
-    ],
-    [
-    'id' => 'contact-message',
-    'label' => 'Send a message',
-    ],
-    [
-    'id' => 'contact-visit',
-    'label' => 'Visit us',
-    ],
-    [
-    'id' => 'contact-welcome',
-    'label' => 'Plan your visit',
-    ],
-    ];
-
-    /*
     * Resolve editable restaurant details with development-safe fallbacks.
     */
     $restaurantPhone = $settings['phone'] ?? '(310) 438-2673';
@@ -41,13 +18,6 @@
         data-contact-page
         data-home-motion
         class="contact-page">
-        <x-public.section-pager
-            :items="$contactNavigation"
-            current="contact-hero"
-            label="Contact page sections"
-            context="contact"
-            enhancer="shared"
-            :snap="true" />
 
         {{-- Full-screen welcome hero --}}
         <section
