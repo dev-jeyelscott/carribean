@@ -1,5 +1,7 @@
 @import "tailwindcss" source(none);
 @import "./theme.css";
+@import "./gallery-section-navigation.css";
+@import "./public-scroll-navigation.css";
 
 @source "../views/pages/**/*.blade.php";
 @source "../views/components/public/**/*.blade.php";
@@ -138,8 +140,7 @@
  * This unlayered selector intentionally outranks the existing Tailwind
  * negative-margin utility in the homepage template.
  */
-[data-home-motion]
-    > section[aria-label="Restaurant highlights"] {
+[data-home-motion] > section[aria-label="Restaurant highlights"] {
     margin-top: 0;
     padding-top: clamp(2.5rem, 5vw, 4.5rem);
     padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
@@ -188,13 +189,12 @@ body[data-page="home"] header {
     inset-inline: 0;
     top: 0;
     border-color: transparent;
-    background:
-        linear-gradient(
-            to bottom,
-            rgb(3 19 16 / 76%),
-            rgb(3 19 16 / 28%),
-            transparent
-        );
+    background: linear-gradient(
+        to bottom,
+        rgb(3 19 16 / 76%),
+        rgb(3 19 16 / 28%),
+        transparent
+    );
     box-shadow: none;
     backdrop-filter: none;
 }
@@ -221,17 +221,11 @@ body[data-page="home"]
     color: var(--color-sun);
 }
 
-body[data-page="home"]
-    header
-    > .public-container
-    [class*="bg-surface"] {
+body[data-page="home"] header > .public-container [class*="bg-surface"] {
     background-color: rgb(255 255 255 / 10%);
 }
 
-body[data-page="home"]
-    header
-    > .public-container
-    [class*="border-primary"] {
+body[data-page="home"] header > .public-container [class*="border-primary"] {
     border-color: rgb(255 255 255 / 28%);
 }
 
