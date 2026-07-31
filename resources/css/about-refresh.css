@@ -327,3 +327,577 @@
         transition: none;
     }
 }
+
+
+/*
+ * Island roots editorial refinement
+ *
+ * Preserve the existing CMS content and GSAP hooks while balancing the
+ * editorial panel, photograph, quote, and supporting story cards.
+ */
+#island-roots {
+    --story-gap: clamp(1rem, 2.4vw, 2.75rem);
+    --story-radius: clamp(1.5rem, 2.2vw, 2.5rem);
+    --story-image-left: clamp(1.75rem, 3vw, 3.25rem);
+    --story-image-right: clamp(0.5rem, 1vw, 1rem);
+    --story-image-block: clamp(2.5rem, 5vh, 4rem);
+
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            circle at 7% 18%,
+            rgb(230 110 80 / 17%),
+            transparent 22rem
+        ),
+        radial-gradient(
+            circle at 94% 84%,
+            rgb(32 111 124 / 18%),
+            transparent 28rem
+        ),
+        linear-gradient(
+            135deg,
+            var(--color-primary-deep),
+            var(--color-primary)
+        );
+}
+
+/*
+ * Restrained circular detail on the left.
+ */
+#island-roots::before {
+    position: absolute;
+    top: clamp(5rem, 11vh, 8rem);
+    left: clamp(-8rem, -5vw, -4rem);
+    width: clamp(11rem, 17vw, 18rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(255 249 240 / 7%);
+    border-radius: 9999px;
+    box-shadow:
+        0 0 0 2rem rgb(255 249 240 / 2%),
+        0 0 0 4.25rem rgb(255 249 240 / 1.25%);
+    content: "";
+    pointer-events: none;
+}
+
+/*
+ * The oversized word remains atmospheric instead of becoming a competing
+ * headline.
+ */
+#island-roots::after {
+    position: absolute;
+    right: 0;
+    bottom: 0.5rem;
+    color: rgb(255 249 240 / 2.5%);
+    content: "ROOTS";
+    font-family: var(--font-display);
+    font-size: clamp(6rem, 10vw, 11rem);
+    font-weight: 600;
+    letter-spacing: -0.055em;
+    line-height: 0.75;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/*
+ * Give the image more visual weight than the content panel.
+ */
+#island-roots > .grid {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 108rem);
+    margin-inline: auto;
+    grid-template-columns:
+        minmax(0, 0.78fr)
+        minmax(0, 1.22fr);
+    gap: 0;
+    padding: var(--story-gap);
+}
+
+/*
+ * Editorial content column.
+ */
+#island-roots > .grid > div:first-child {
+    position: relative;
+    z-index: 3;
+    min-width: 0;
+    padding: 0;
+}
+
+#island-roots .max-w-xl {
+    position: relative;
+    width: min(100%, 42rem);
+    max-width: none;
+    margin-right: clamp(-2.25rem, -2vw, -1.25rem);
+    margin-left: auto;
+    overflow: hidden;
+    border: 1px solid rgb(22 83 68 / 10%);
+    border-radius: var(--story-radius);
+    background:
+        linear-gradient(
+            145deg,
+            rgb(255 253 249 / 99%),
+            rgb(248 238 225 / 97%)
+        );
+    padding: clamp(1.5rem, 2.7vw, 2.75rem);
+    color: var(--color-ink);
+    box-shadow:
+        0 30px 80px rgb(3 20 17 / 25%),
+        0 7px 20px rgb(3 20 17 / 11%);
+}
+
+/*
+ * Small editorial index.
+ */
+#island-roots .max-w-xl::before {
+    position: absolute;
+    top: clamp(1.35rem, 2vw, 1.85rem);
+    right: clamp(1.35rem, 2vw, 1.85rem);
+    color: rgb(22 83 68 / 44%);
+    content: "02 / OUR STORY";
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    pointer-events: none;
+}
+
+#island-roots .public-eyebrow {
+    max-width: calc(100% - 8rem);
+    color: var(--color-coral-deep);
+}
+
+#island-roots h2 {
+    max-width: 10ch;
+    margin-top: clamp(0.8rem, 1.7vh, 1.25rem);
+    color: var(--color-primary-deep);
+    font-size: clamp(2.75rem, 4.4vw, 4.6rem);
+    line-height: 0.96;
+    text-wrap: balance;
+}
+
+#island-roots h2 + div {
+    width: clamp(4.5rem, 7vw, 6.5rem);
+    height: 0.18rem;
+    margin-top: clamp(1rem, 2vh, 1.45rem);
+    background:
+        linear-gradient(
+            90deg,
+            var(--color-coral),
+            var(--color-sun)
+        );
+}
+
+/*
+ * Primary story copy receives a restrained editorial rule.
+ */
+#island-roots .max-w-xl > p.mt-7 {
+    max-width: 34rem;
+    margin-top: clamp(1rem, 2.1vh, 1.5rem);
+    border-left: 2px solid rgb(230 110 80 / 46%);
+    padding-left: clamp(1rem, 1.5vw, 1.3rem);
+    color: var(--color-ink);
+    font-size: clamp(0.925rem, 1vw, 1.025rem);
+    line-height: 1.74;
+}
+
+#island-roots .max-w-xl > p.mt-5 {
+    max-width: 34rem;
+    margin-top: clamp(0.75rem, 1.6vh, 1.05rem);
+    color: var(--color-muted);
+    font-size: clamp(0.85rem, 0.95vw, 0.975rem);
+    line-height: 1.68;
+}
+
+/*
+ * Supporting values receive additional breathing room and a quieter surface.
+ */
+#island-roots .max-w-xl > div.mt-10 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1vw, 1rem);
+    margin-top: clamp(1.35rem, 2.6vh, 1.9rem);
+    border-top: 0;
+    padding-top: 0;
+}
+
+#island-roots .max-w-xl > div.mt-10 article {
+    min-width: 0;
+    min-height: clamp(8.25rem, 14vh, 9.25rem);
+    border: 1px solid rgb(22 83 68 / 9%);
+    border-radius: clamp(1rem, 1.4vw, 1.25rem);
+    background: rgb(255 255 255 / 58%);
+    padding: clamp(1rem, 1.4vw, 1.25rem);
+    transition:
+        border-color 260ms var(--ease-island),
+        box-shadow 260ms var(--ease-island),
+        transform 260ms var(--ease-island);
+}
+
+#island-roots .max-w-xl > div.mt-10 article:hover {
+    border-color: rgb(230 110 80 / 22%);
+    box-shadow: 0 15px 32px rgb(12 52 43 / 8%);
+    transform: translateY(-0.18rem);
+}
+
+#island-roots .max-w-xl > div.mt-10 article > p:first-child {
+    color: var(--color-coral-deep);
+    font-size: clamp(1.45rem, 1.9vw, 1.85rem);
+    line-height: 1;
+}
+
+#island-roots .max-w-xl > div.mt-10 article h3 {
+    margin-top: 0.85rem;
+    color: var(--color-primary-deep);
+    font-size: 0.7rem;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+}
+
+#island-roots .max-w-xl > div.mt-10 article > p:last-child {
+    margin-top: 0.55rem;
+    color: var(--color-muted);
+    font-size: 0.71rem;
+    line-height: 1.58;
+}
+
+/*
+ * Photography column.
+ */
+#island-roots > .grid > div:last-child {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+/*
+ * Align the image eyebrow with the actual left edge of the image frame.
+ */
+#island-roots > .grid > div:last-child::before {
+    position: absolute;
+    top: clamp(0.65rem, 1.5vh, 1rem);
+    left: var(--story-image-left);
+    z-index: 5;
+    color: rgb(255 249 240 / 66%);
+    content: "CARIBBEAN WARMTH / CALIFORNIA EASE";
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.19em;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+/*
+ * Restrained coral glow behind the lower image corner.
+ */
+#island-roots > .grid > div:last-child::after {
+    position: absolute;
+    right: -2rem;
+    bottom: 0;
+    z-index: -1;
+    width: clamp(9rem, 14vw, 15rem);
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    background:
+        radial-gradient(
+            circle,
+            rgb(230 110 80 / 24%),
+            rgb(230 110 80 / 3%) 66%,
+            transparent 72%
+        );
+    content: "";
+    pointer-events: none;
+}
+
+/*
+ * Image and overlay share the same shape and inset.
+ */
+#island-roots [data-about-image-reveal],
+#island-roots [data-about-image-reveal] + div {
+    top: var(--story-image-block);
+    right: var(--story-image-right);
+    bottom: var(--story-image-block);
+    left: var(--story-image-left);
+    border-radius:
+        clamp(1.5rem, 2vw, 2.25rem)
+        clamp(3.75rem, 6vw, 6rem)
+        clamp(1.5rem, 2vw, 2.25rem)
+        clamp(1.5rem, 2vw, 2.25rem);
+}
+
+#island-roots [data-about-image-reveal] {
+    z-index: 1;
+    border: 1px solid rgb(255 249 240 / 14%);
+    box-shadow:
+        0 30px 75px rgb(3 20 17 / 30%),
+        0 0 0 0.65rem rgb(255 249 240 / 3%);
+}
+
+#island-roots [data-about-image-reveal] img {
+    filter:
+        saturate(0.88)
+        contrast(1.035)
+        brightness(0.91);
+}
+
+#island-roots [data-about-image-reveal] + div {
+    z-index: 2;
+    background:
+        linear-gradient(
+            90deg,
+            rgb(12 52 43 / 25%),
+            transparent 50%
+        ),
+        linear-gradient(
+            0deg,
+            rgb(12 52 43 / 54%),
+            transparent 56%
+        );
+}
+
+/*
+ * Keep the quote fully within the photograph. It must never cross beneath the
+ * cream story panel.
+ */
+#island-roots .about-quote-card {
+    right: clamp(1.75rem, 2.8vw, 3rem);
+    bottom: clamp(3.5rem, 6.5vh, 5.25rem);
+    left: auto;
+    z-index: 5;
+    width: min(22rem, calc(100% - 7rem));
+    max-width: none;
+    border: 1px solid rgb(255 249 240 / 50%);
+    border-radius: clamp(1.2rem, 1.6vw, 1.6rem);
+    background: rgb(255 249 240 / 94%);
+    padding: clamp(1.25rem, 1.8vw, 1.7rem);
+    color: var(--color-primary-deep);
+    box-shadow: 0 20px 48px rgb(3 20 17 / 27%);
+    transform: none;
+}
+
+@supports (backdrop-filter: blur(1rem)) {
+    #island-roots .about-quote-card {
+        background: rgb(255 249 240 / 86%);
+        backdrop-filter: blur(1rem) saturate(1.04);
+    }
+}
+
+#island-roots .about-quote-card > p:first-child {
+    color: var(--color-coral-deep);
+}
+
+#island-roots .about-quote-card > p:last-child {
+    margin-top: 0.2rem;
+    color: var(--color-primary-deep);
+    font-size: clamp(1.2rem, 1.7vw, 1.65rem);
+    line-height: 1.18;
+}
+
+/*
+ * Exact full-screen desktop composition.
+ */
+@media (min-width: 1024px) and (min-height: 720px) and (pointer: fine) {
+    #island-roots > .grid,
+    #island-roots > .grid > div:first-child,
+    #island-roots > .grid > div:last-child {
+        height: 100%;
+        min-height: 0;
+    }
+
+    #island-roots .max-w-xl {
+        padding: clamp(1.4rem, 2.7vh, 2.45rem);
+    }
+
+    #island-roots h2 {
+        font-size: clamp(2.6rem, 5.2dvh, 3.85rem);
+    }
+
+    #island-roots .max-w-xl > p.mt-7 {
+        font-size: clamp(0.85rem, 1.7dvh, 0.975rem);
+        line-height: 1.67;
+    }
+
+    #island-roots .max-w-xl > p.mt-5 {
+        font-size: clamp(0.8rem, 1.6dvh, 0.925rem);
+        line-height: 1.62;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article {
+        min-height: clamp(7.5rem, 14dvh, 8.75rem);
+    }
+}
+
+/*
+ * Medium desktop widths receive a slightly smaller overlap.
+ */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    #island-roots > .grid {
+        grid-template-columns:
+            minmax(0, 0.84fr)
+            minmax(0, 1.16fr);
+    }
+
+    #island-roots .max-w-xl {
+        margin-right: -1.25rem;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 {
+        gap: 0.6rem;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article {
+        padding: 0.9rem;
+    }
+
+    #island-roots .about-quote-card {
+        right: 1.5rem;
+        width: min(19rem, calc(100% - 5rem));
+    }
+}
+
+/*
+ * Short desktop screens return to natural document height.
+ */
+@media (min-width: 1024px) and (max-height: 719px) {
+    #island-roots > .grid {
+        min-height: 44rem;
+        padding-block: 2rem;
+    }
+
+    #island-roots .max-w-xl {
+        margin-right: -1.25rem;
+    }
+}
+
+/*
+ * Tablet layout stacks content and photography.
+ */
+@media (max-width: 1023px) {
+    #island-roots > .grid {
+        min-height: 0;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    #island-roots > .grid > div:first-child,
+    #island-roots > .grid > div:last-child {
+        height: auto;
+    }
+
+    #island-roots .max-w-xl {
+        width: 100%;
+        margin-right: 0;
+        padding: clamp(1.5rem, 5vw, 2.65rem);
+    }
+
+    #island-roots h2 {
+        max-width: 12ch;
+        font-size: clamp(2.65rem, 8vw, 4.5rem);
+    }
+
+    #island-roots > .grid > div:last-child {
+        min-height: clamp(34rem, 72svh, 44rem);
+    }
+
+    #island-roots > .grid > div:last-child::before {
+        top: 0.3rem;
+        left: 1.5rem;
+    }
+
+    #island-roots [data-about-image-reveal],
+    #island-roots [data-about-image-reveal] + div {
+        top: 1.6rem;
+        right: 0;
+        bottom: 1rem;
+        left: 0;
+    }
+
+    #island-roots .about-quote-card {
+        right: 1.5rem;
+        bottom: 2rem;
+        left: auto;
+        width: min(21rem, calc(100% - 3rem));
+    }
+}
+
+/*
+ * Mobile supporting values become compact horizontal rows.
+ */
+@media (max-width: 639px) {
+    #island-roots::after {
+        display: none;
+    }
+
+    #island-roots .max-w-xl::before {
+        position: static;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    #island-roots .public-eyebrow {
+        max-width: none;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article {
+        display: grid;
+        min-height: 0;
+        grid-template-columns: 2.75rem minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 0.85rem;
+        padding: 1rem;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article > p:first-child {
+        grid-row: 1 / 3;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article h3,
+    #island-roots .max-w-xl > div.mt-10 article > p:last-child {
+        grid-column: 2;
+    }
+
+    #island-roots .max-w-xl > div.mt-10 article h3 {
+        margin-top: 0;
+    }
+
+    #island-roots > .grid > div:last-child {
+        min-height: 34rem;
+    }
+
+    #island-roots > .grid > div:last-child::before {
+        left: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+
+    #island-roots [data-about-image-reveal],
+    #island-roots [data-about-image-reveal] + div {
+        top: 2.25rem;
+        bottom: 0;
+        border-radius: 1.4rem 3.25rem 1.4rem 1.4rem;
+    }
+
+    #island-roots .about-quote-card {
+        right: 1rem;
+        bottom: 1.25rem;
+        left: 1rem;
+        width: auto;
+        padding: 1.1rem;
+    }
+}
+
+/*
+ * Reduced-motion visitors retain the complete static design.
+ */
+@media (prefers-reduced-motion: reduce) {
+    #island-roots .max-w-xl > div.mt-10 article,
+    #island-roots .max-w-xl > div.mt-10 article:hover {
+        transform: none;
+        transition: none;
+    }
+}
