@@ -1,7 +1,5 @@
 @import "tailwindcss" source(none);
 @import "./theme.css";
-@import "./gallery-section-navigation.css";
-@import "./public-scroll-navigation.css";
 
 @source "../views/pages/**/*.blade.php";
 @source "../views/components/public/**/*.blade.php";
