@@ -1,120 +1,120 @@
 @props([
-    'order',
-    'showAccountNavigation' => false,
-    'backUrl' => '#',
-    'backLabel' => 'Go back',
-    'canConfirmReceived' => false,
+'order',
+'showAccountNavigation' => false,
+'backUrl' => '#',
+'backLabel' => 'Go back',
+'canConfirmReceived' => false,
 ])
 
 @php
-    /*
-     * Resolve the immutable fulfillment snapshot used by the customer-facing
-     * page. Internal order notes are intentionally never rendered here.
-     */
-    $deliveryAddress = $order->addresses->firstWhere(
-        'type',
-        'delivery',
-    );
+/*
+* Resolve the immutable fulfillment snapshot used by the customer-facing
+* page. Internal order notes are intentionally never rendered here.
+*/
+$deliveryAddress = $order->addresses->firstWhere(
+'type',
+'delivery',
+);
 
-    $isDelivery = $order->fulfillment_method
-        === \App\Enums\FulfillmentMethod::Delivery;
+$isDelivery = $order->fulfillment_method
+=== \App\Enums\FulfillmentMethod::Delivery;
 
-    /*
-     * Build the expected customer journey from the order's fulfillment type.
-     * Exceptional terminal states are displayed separately from this journey.
-     */
-    $statusFlow = $isDelivery
-        ? [
-            \App\Enums\OrderStatus::PendingConfirmation,
-            \App\Enums\OrderStatus::Confirmed,
-            \App\Enums\OrderStatus::Preparing,
-            \App\Enums\OrderStatus::OutForDelivery,
-            \App\Enums\OrderStatus::Delivered,
-            \App\Enums\OrderStatus::Completed,
-        ]
-        : [
-            \App\Enums\OrderStatus::PendingConfirmation,
-            \App\Enums\OrderStatus::Confirmed,
-            \App\Enums\OrderStatus::Preparing,
-            \App\Enums\OrderStatus::ReadyForPickup,
-            \App\Enums\OrderStatus::PickedUp,
-            \App\Enums\OrderStatus::Completed,
-        ];
+/*
+* Build the expected customer journey from the order's fulfillment type.
+* Exceptional terminal states are displayed separately from this journey.
+*/
+$statusFlow = $isDelivery
+? [
+\App\Enums\OrderStatus::PendingConfirmation,
+\App\Enums\OrderStatus::Confirmed,
+\App\Enums\OrderStatus::Preparing,
+\App\Enums\OrderStatus::OutForDelivery,
+\App\Enums\OrderStatus::Delivered,
+\App\Enums\OrderStatus::Completed,
+]
+: [
+\App\Enums\OrderStatus::PendingConfirmation,
+\App\Enums\OrderStatus::Confirmed,
+\App\Enums\OrderStatus::Preparing,
+\App\Enums\OrderStatus::ReadyForPickup,
+\App\Enums\OrderStatus::PickedUp,
+\App\Enums\OrderStatus::Completed,
+];
 
-    $currentStepIndex = array_search(
-        $order->status,
-        $statusFlow,
-        true,
-    );
+$currentStepIndex = array_search(
+$order->status,
+$statusFlow,
+true,
+);
 
-    $isExceptionalStatus = in_array(
-        $order->status,
-        [
-            \App\Enums\OrderStatus::Rejected,
-            \App\Enums\OrderStatus::Cancelled,
-        ],
-        true,
-    );
+$isExceptionalStatus = in_array(
+$order->status,
+[
+\App\Enums\OrderStatus::Rejected,
+\App\Enums\OrderStatus::Cancelled,
+],
+true,
+);
 
-    $placedAt = $order->placed_at ?? $order->created_at;
+$placedAt = $order->placed_at ?? $order->created_at;
 
-    $latestHistory = $order->statusHistories->last();
+$latestHistory = $order->statusHistories->last();
 
-    $lastUpdatedAt = $latestHistory?->created_at
-        ?? $placedAt;
+$lastUpdatedAt = $latestHistory?->created_at
+?? $placedAt;
 
-    /*
-     * Provide a concise next-step explanation instead of exposing raw enum
-     * values or operational terminology.
-     */
-    $statusDescription = match ($order->status) {
-        \App\Enums\OrderStatus::PendingConfirmation =>
-            'The restaurant received your order and is reviewing it now.',
+/*
+* Provide a concise next-step explanation instead of exposing raw enum
+* values or operational terminology.
+*/
+$statusDescription = match ($order->status) {
+\App\Enums\OrderStatus::PendingConfirmation =>
+'The restaurant received your order and is reviewing it now.',
 
-        \App\Enums\OrderStatus::Confirmed =>
-            'Your order has been accepted and will move into preparation soon.',
+\App\Enums\OrderStatus::Confirmed =>
+'Your order has been accepted and will move into preparation soon.',
 
-        \App\Enums\OrderStatus::Preparing =>
-            'The kitchen is preparing your order.',
+\App\Enums\OrderStatus::Preparing =>
+'The kitchen is preparing your order.',
 
-        \App\Enums\OrderStatus::ReadyForPickup =>
-            'Your order is ready. You may now collect it from the restaurant.',
+\App\Enums\OrderStatus::ReadyForPickup =>
+'Your order is ready. You may now collect it from the restaurant.',
 
-        \App\Enums\OrderStatus::OutForDelivery =>
-            'Your order has left the restaurant and is on its way.',
+\App\Enums\OrderStatus::OutForDelivery =>
+'Your order has left the restaurant and is on its way.',
 
-        \App\Enums\OrderStatus::PickedUp =>
-            'The order has been collected. Confirm receipt when convenient.',
+\App\Enums\OrderStatus::PickedUp =>
+'The order has been collected. Confirm receipt when convenient.',
 
-        \App\Enums\OrderStatus::Delivered =>
-            'The order has been delivered. Confirm receipt when convenient.',
+\App\Enums\OrderStatus::Delivered =>
+'The order has been delivered. Confirm receipt when convenient.',
 
-        \App\Enums\OrderStatus::Completed =>
-            'This order has been completed. Thank you for dining with us.',
+\App\Enums\OrderStatus::Completed =>
+'This order has been completed. Thank you for dining with us.',
 
-        \App\Enums\OrderStatus::Rejected =>
-            'The restaurant was unable to accept this order.',
+\App\Enums\OrderStatus::Rejected =>
+'The restaurant was unable to accept this order.',
 
-        \App\Enums\OrderStatus::Cancelled =>
-            'This order has been cancelled.',
-    };
+\App\Enums\OrderStatus::Cancelled =>
+'This order has been cancelled.',
+};
 
-    /*
-     * Explain the customer's payment state independently from fulfillment.
-     */
-    $paymentDescription = match ($order->payment_status) {
-        \App\Enums\PaymentStatus::Pending =>
-            'Payment will be collected using the selected payment method.',
+/*
+* Explain the customer's payment state independently from fulfillment.
+*/
+$paymentDescription = match ($order->payment_status) {
+\App\Enums\PaymentStatus::Pending =>
+'Payment will be collected using the selected payment method.',
 
-        \App\Enums\PaymentStatus::Paid =>
-            'Payment has been received.',
+\App\Enums\PaymentStatus::Paid =>
+'Payment has been received.',
 
-        \App\Enums\PaymentStatus::Failed =>
-            'The payment was not completed. Contact the restaurant for help.',
+\App\Enums\PaymentStatus::Failed =>
+'The payment was not completed. Contact the restaurant for help.',
 
-        \App\Enums\PaymentStatus::Refunded =>
-            'The recorded payment has been refunded.',
-    };
+\App\Enums\PaymentStatus::Refunded =>
+'The recorded payment has been refunded.',
+};
 @endphp
 
 <div
@@ -163,23 +163,23 @@
 
                     <div class="order-detail-hero__meta mt-7">
                         @if ($placedAt)
-                            <span>
-                                <svg
-                                    aria-hidden="true"
-                                    viewBox="0 0 24 24"
-                                    class="size-4 fill-none stroke-current"
-                                    stroke-width="1.8">
-                                    <circle cx="12" cy="12" r="9" />
-                                    <path
-                                        stroke-linecap="round"
-                                        d="M12 7v5l3 2" />
-                                </svg>
+                        <span>
+                            <svg
+                                aria-hidden="true"
+                                viewBox="0 0 24 24"
+                                class="size-4 fill-none stroke-current"
+                                stroke-width="1.8">
+                                <circle cx="12" cy="12" r="9" />
+                                <path
+                                    stroke-linecap="round"
+                                    d="M12 7v5l3 2" />
+                            </svg>
 
-                                Placed
-                                <time datetime="{{ $placedAt->toIso8601String() }}">
-                                    {{ $placedAt->format('M j, Y \a\t g:i A') }}
-                                </time>
-                            </span>
+                            Placed
+                            <time datetime="{{ $placedAt->toIso8601String() }}">
+                                {{ $placedAt->format('M j, Y \a\t g:i A') }}
+                            </time>
+                        </span>
                         @endif
 
                         <span>
@@ -236,13 +236,13 @@
                         </p>
 
                         @if ($lastUpdatedAt)
-                            <p class="mt-4 text-sm text-white/60">
-                                Updated
-                                <time
-                                    datetime="{{ $lastUpdatedAt->toIso8601String() }}">
-                                    {{ $lastUpdatedAt->diffForHumans() }}
-                                </time>
-                            </p>
+                        <p class="mt-4 text-sm text-white/60">
+                            Updated
+                            <time
+                                datetime="{{ $lastUpdatedAt->toIso8601String() }}">
+                                {{ $lastUpdatedAt->diffForHumans() }}
+                            </time>
+                        </p>
                         @endif
                     </div>
 
@@ -278,19 +278,19 @@
     <div class="order-detail-shell">
         <div class="public-container max-w-[86rem]">
             @if ($showAccountNavigation)
-                <div class="order-detail-account-navigation">
-                    <x-account.navigation />
-                </div>
+            <div class="order-detail-account-navigation">
+                <x-account.navigation />
+            </div>
             @endif
 
             @if (session()->has('order_status'))
-                <div
-                    role="status"
-                    aria-live="polite"
-                    class="mb-4 rounded-2xl border border-primary/20
+            <div
+                role="status"
+                aria-live="polite"
+                class="mb-4 rounded-2xl border border-primary/20
                         bg-primary/10 px-5 py-4 font-semibold text-primary-deep">
-                    {{ session('order_status') }}
-                </div>
+                {{ session('order_status') }}
+            </div>
             @endif
 
             {{-- Current status and payment summary --}}
@@ -332,34 +332,34 @@
                     </div>
 
                     @if ($canConfirmReceived)
-                        <div
-                            class="mt-6 border-t border-primary/10 pt-6">
-                            <p class="text-sm leading-7 text-muted">
-                                Your order has been fulfilled. Confirm that you
-                                received it to complete the order now.
-                            </p>
+                    <div
+                        class="mt-6 border-t border-primary/10 pt-6">
+                        <p class="text-sm leading-7 text-muted">
+                            Your order has been fulfilled. Confirm that you
+                            received it to complete the order now.
+                        </p>
 
-                            <button
-                                type="button"
-                                wire:click="confirmReceived"
-                                wire:loading.attr="disabled"
-                                wire:target="confirmReceived"
-                                class="public-button-primary mt-5
+                        <button
+                            type="button"
+                            wire:click="confirmReceived"
+                            wire:loading.attr="disabled"
+                            wire:target="confirmReceived"
+                            class="public-button-primary mt-5
                                     disabled:cursor-not-allowed
                                     disabled:opacity-60">
-                                <span
-                                    wire:loading.remove
-                                    wire:target="confirmReceived">
-                                    Confirm received
-                                </span>
+                            <span
+                                wire:loading.remove
+                                wire:target="confirmReceived">
+                                Confirm received
+                            </span>
 
-                                <span
-                                    wire:loading
-                                    wire:target="confirmReceived">
-                                    Confirming…
-                                </span>
-                            </button>
-                        </div>
+                            <span
+                                wire:loading
+                                wire:target="confirmReceived">
+                                Confirming…
+                            </span>
+                        </button>
+                    </div>
                     @endif
                 </article>
 
@@ -413,90 +413,90 @@
 
             {{-- Visual fulfillment journey --}}
             @if ($isExceptionalStatus)
-                <div
-                    class="order-detail-exception"
-                    role="status">
-                    <p class="font-semibold text-coral-deep">
-                        {{ $order->status->label() }}
-                    </p>
+            <div
+                class="order-detail-exception"
+                role="status">
+                <p class="font-semibold text-coral-deep">
+                    {{ $order->status->label() }}
+                </p>
 
-                    <p class="mt-2 text-sm leading-7 text-muted">
-                        Review the update history below for the latest
-                        restaurant message. Contact the restaurant when you
-                        need further assistance.
-                    </p>
-                </div>
+                <p class="mt-2 text-sm leading-7 text-muted">
+                    Review the update history below for the latest
+                    restaurant message. Contact the restaurant when you
+                    need further assistance.
+                </p>
+            </div>
             @else
-                <section
-                    class="order-detail-card order-detail-progress"
-                    aria-labelledby="order-progress-heading">
-                    <div class="order-detail-progress__header">
-                        <div>
-                            <p class="order-detail-overview-label">
-                                Fulfillment journey
-                            </p>
-
-                            <h2
-                                id="order-progress-heading"
-                                class="mt-2 font-display text-3xl
-                                    text-primary-deep">
-                                Where your order is now
-                            </h2>
-                        </div>
-
-                        <p class="max-w-md text-sm leading-6 text-muted">
-                            Restaurant updates appear here as your order moves
-                            through each stage.
+            <section
+                class="order-detail-card order-detail-progress"
+                aria-labelledby="order-progress-heading">
+                <div class="order-detail-progress__header">
+                    <div>
+                        <p class="order-detail-overview-label">
+                            Fulfillment journey
                         </p>
+
+                        <h2
+                            id="order-progress-heading"
+                            class="mt-2 font-display text-3xl
+                                    text-primary-deep">
+                            Where your order is now
+                        </h2>
                     </div>
 
-                    <ol
-                        class="order-detail-progress__list"
-                        aria-label="Order fulfillment progress">
-                        @foreach ($statusFlow as $index => $status)
-                            @php
-                                $isComplete = is_int($currentStepIndex)
-                                    && $index < $currentStepIndex;
+                    <p class="max-w-md text-sm leading-6 text-muted">
+                        Restaurant updates appear here as your order moves
+                        through each stage.
+                    </p>
+                </div>
 
-                                $isCurrent = is_int($currentStepIndex)
-                                    && $index === $currentStepIndex;
+                <ol
+                    class="order-detail-progress__list"
+                    aria-label="Order fulfillment progress">
+                    @foreach ($statusFlow as $index => $status)
+                    @php
+                    $isComplete = is_int($currentStepIndex)
+                    && $index < $currentStepIndex;
 
-                                $stepState = $isComplete
-                                    ? 'complete'
-                                    : ($isCurrent ? 'current' : 'upcoming');
-                            @endphp
+                        $isCurrent=is_int($currentStepIndex)
+                        && $index===$currentStepIndex;
 
-                            <li
-                                class="order-detail-progress__step"
-                                data-step-state="{{ $stepState }}"
-                                @if ($isCurrent)
-                                    aria-current="step"
-                                @endif>
-                                <span class="order-detail-progress__marker">
-                                    @if ($isComplete)
-                                        <svg
-                                            aria-hidden="true"
-                                            viewBox="0 0 24 24"
-                                            class="size-4 fill-none
+                        $stepState=$isComplete
+                        ? 'complete'
+                        : ($isCurrent ? 'current' : 'upcoming' );
+                        @endphp
+
+                        <li
+                        class="order-detail-progress__step"
+                        data-step-state="{{ $stepState }}"
+                        @if ($isCurrent)
+                        aria-current="step"
+                        @endif>
+                        <span class="order-detail-progress__marker">
+                            @if ($isComplete)
+                            <svg
+                                aria-hidden="true"
+                                viewBox="0 0 24 24"
+                                class="size-4 fill-none
                                                 stroke-current"
-                                            stroke-width="2">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="m6 12 4 4 8-8" />
-                                        </svg>
-                                    @else
-                                        {{ $index + 1 }}
-                                    @endif
-                                </span>
+                                stroke-width="2">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="m6 12 4 4 8-8" />
+                            </svg>
+                            @else
+                            {{ $index + 1 }}
+                            @endif
+                        </span>
 
-                                <span class="order-detail-progress__label">
-                                    {{ $status->label() }}
-                                </span>
-                            </li>
+                        <span class="order-detail-progress__label">
+                            {{ $status->label() }}
+                        </span>
+                        </li>
                         @endforeach
-                    </ol>
-                </section>
+                </ol>
+            </section>
             @endif
 
             <div class="order-detail-main">
@@ -517,72 +517,72 @@
 
                         <div class="order-detail-items">
                             @foreach ($order->items as $item)
-                                @php
-                                    $selectedOptions = collect(
-                                        $item->selected_options ?? [],
-                                    )->filter(
-                                        fn (mixed $option): bool =>
-                                            is_array($option)
-                                            && filled(
-                                                $option['name'] ?? null,
-                                            ),
-                                    );
-                                @endphp
+                            @php
+                            $selectedOptions = collect(
+                            $item->selected_options ?? [],
+                            )->filter(
+                            fn (mixed $option): bool =>
+                            is_array($option)
+                            && filled(
+                            $option['name'] ?? null,
+                            ),
+                            );
+                            @endphp
 
-                                <article
-                                    class="order-detail-item"
-                                    wire:key="order-item-{{ $item->id }}">
-                                    <div class="flex min-w-0 items-start gap-3">
-                                        <span
-                                            class="order-detail-item__quantity">
-                                            {{ $item->quantity }}
-                                        </span>
+                            <article
+                                class="order-detail-item"
+                                wire:key="order-item-{{ $item->id }}">
+                                <div class="flex min-w-0 items-start gap-3">
+                                    <span
+                                        class="order-detail-item__quantity">
+                                        {{ $item->quantity }}
+                                    </span>
 
-                                        <div class="min-w-0">
-                                            <h3
-                                                class="font-display text-xl
+                                    <div class="min-w-0">
+                                        <h3
+                                            class="font-display text-xl
                                                     leading-tight text-ink">
-                                                {{ $item->name }}
-                                            </h3>
+                                            {{ $item->name }}
+                                        </h3>
 
-                                            @if (filled($item->description))
-                                                <p
-                                                    class="mt-2 line-clamp-2
+                                        @if (filled($item->description))
+                                        <p
+                                            class="mt-2 line-clamp-2
                                                         text-sm leading-6
                                                         text-muted">
-                                                    {{ $item->description }}
-                                                </p>
-                                            @endif
+                                            {{ $item->description }}
+                                        </p>
+                                        @endif
 
-                                            @if ($selectedOptions->isNotEmpty())
-                                                <div
-                                                    class="order-detail-item__options">
-                                                    @foreach (
-                                                        $selectedOptions
-                                                        as $option
-                                                    )
-                                                        <span
-                                                            class="order-detail-item__option">
-                                                            {{ $option[
+                                        @if ($selectedOptions->isNotEmpty())
+                                        <div
+                                            class="order-detail-item__options">
+                                            @foreach (
+                                            $selectedOptions
+                                            as $option
+                                            )
+                                            <span
+                                                class="order-detail-item__option">
+                                                {{ $option[
                                                                 'group_name'
                                                             ] ?? 'Option' }}:
-                                                            {{ $option['name'] }}
-                                                        </span>
-                                                    @endforeach
-                                                </div>
-                                            @endif
+                                                {{ $option['name'] }}
+                                            </span>
+                                            @endforeach
                                         </div>
+                                        @endif
                                     </div>
+                                </div>
 
-                                    <p
-                                        class="order-detail-item__price
+                                <p
+                                    class="order-detail-item__price
                                             font-semibold tabular-nums
                                             text-primary-deep">
-                                        {{ \App\Support\Money::formatUsd(
+                                    {{ \App\Support\Money::formatUsd(
                                             $item->line_total_cents,
                                         ) }}
-                                    </p>
-                                </article>
+                                </p>
+                            </article>
                             @endforeach
                         </div>
                     </section>
@@ -603,42 +603,42 @@
 
                         <ol class="order-detail-timeline">
                             @forelse (
-                                $order->statusHistories->reverse()
-                                as $history
+                            $order->statusHistories->reverse()
+                            as $history
                             )
-                                <li
-                                    class="order-detail-timeline__item"
-                                    wire:key="order-history-{{ $history->id }}">
-                                    <div
-                                        class="flex flex-col gap-1
+                            <li
+                                class="order-detail-timeline__item"
+                                wire:key="order-history-{{ $history->id }}">
+                                <div
+                                    class="flex flex-col gap-1
                                             sm:flex-row sm:items-start
                                             sm:justify-between sm:gap-6">
-                                        <p class="font-semibold text-ink">
-                                            {{ $history->new_status->label() }}
-                                        </p>
+                                    <p class="font-semibold text-ink">
+                                        {{ $history->new_status->label() }}
+                                    </p>
 
-                                        <time
-                                            datetime="{{ $history->created_at->toIso8601String() }}"
-                                            class="shrink-0 text-xs
+                                    <time
+                                        datetime="{{ $history->created_at->toIso8601String() }}"
+                                        class="shrink-0 text-xs
                                                 text-muted">
-                                            {{ $history->created_at->format(
+                                        {{ $history->created_at->format(
                                                 'M j, Y \a\t g:i A',
                                             ) }}
-                                        </time>
-                                    </div>
+                                    </time>
+                                </div>
 
-                                    @if (filled($history->public_note))
-                                        <p
-                                            class="mt-2 max-w-2xl text-sm
+                                @if (filled($history->public_note))
+                                <p
+                                    class="mt-2 max-w-2xl text-sm
                                                 leading-7 text-muted">
-                                            {{ $history->public_note }}
-                                        </p>
-                                    @endif
-                                </li>
+                                    {{ $history->public_note }}
+                                </p>
+                                @endif
+                            </li>
                             @empty
-                                <li class="text-sm text-muted">
-                                    No restaurant updates are available yet.
-                                </li>
+                            <li class="text-sm text-muted">
+                                No restaurant updates are available yet.
+                            </li>
                             @endforelse
                         </ol>
                     </section>
@@ -676,24 +676,24 @@
                             </div>
 
                             @if ($order->discount_cents > 0)
-                                <div class="order-detail-summary__row">
-                                    <dt>
-                                        Discount
-                                        @if (filled($order->coupon_code))
-                                            <span
-                                                class="ml-1 text-xs
+                            <div class="order-detail-summary__row">
+                                <dt>
+                                    Discount
+                                    @if (filled($order->coupon_code))
+                                    <span
+                                        class="ml-1 text-xs
                                                     text-white/50">
-                                                ({{ $order->coupon_code }})
-                                            </span>
-                                        @endif
-                                    </dt>
+                                        ({{ $order->coupon_code }})
+                                    </span>
+                                    @endif
+                                </dt>
 
-                                    <dd>
-                                        −{{ \App\Support\Money::formatUsd(
+                                <dd>
+                                    −{{ \App\Support\Money::formatUsd(
                                             $order->discount_cents,
                                         ) }}
-                                    </dd>
-                                </div>
+                                </dd>
+                            </div>
                             @endif
 
                             <div class="order-detail-summary__row">
@@ -707,15 +707,15 @@
                             </div>
 
                             @if ($order->delivery_cents > 0)
-                                <div class="order-detail-summary__row">
-                                    <dt>Delivery</dt>
+                            <div class="order-detail-summary__row">
+                                <dt>Delivery</dt>
 
-                                    <dd>
-                                        {{ \App\Support\Money::formatUsd(
+                                <dd>
+                                    {{ \App\Support\Money::formatUsd(
                                             $order->delivery_cents,
                                         ) }}
-                                    </dd>
-                                </div>
+                                </dd>
+                            </div>
                             @endif
 
                             <div
@@ -748,65 +748,65 @@
                         </h2>
 
                         @if ($isDelivery && $deliveryAddress)
-                            <address
-                                class="mt-5 not-italic text-sm leading-7
+                        <address
+                            class="mt-5 not-italic text-sm leading-7
                                     text-muted">
-                                <span class="font-semibold text-ink">
-                                    {{ $deliveryAddress->recipient_name }}
-                                </span>
-                                <br>
+                            <span class="font-semibold text-ink">
+                                {{ $deliveryAddress->recipient_name }}
+                            </span>
+                            <br>
 
-                                {{ $deliveryAddress->street_address }}
-
-                                @if (
-                                    filled(
-                                        $deliveryAddress->apartment_or_unit,
-                                    )
-                                )
-                                    <br>
-                                    {{ $deliveryAddress->apartment_or_unit }}
-                                @endif
-
-                                <br>
-
-                                {{ $deliveryAddress->city }},
-                                {{ $deliveryAddress->state }}
-                                {{ $deliveryAddress->postal_code }}
-                            </address>
+                            {{ $deliveryAddress->street_address }}
 
                             @if (
-                                filled(
-                                    $deliveryAddress
-                                        ->delivery_instructions,
-                                )
+                            filled(
+                            $deliveryAddress->apartment_or_unit,
                             )
-                                <div
-                                    class="mt-5 rounded-xl
+                            )
+                            <br>
+                            {{ $deliveryAddress->apartment_or_unit }}
+                            @endif
+
+                            <br>
+
+                            {{ $deliveryAddress->city }},
+                            {{ $deliveryAddress->state }}
+                            {{ $deliveryAddress->postal_code }}
+                        </address>
+
+                        @if (
+                        filled(
+                        $deliveryAddress
+                        ->delivery_instructions,
+                        )
+                        )
+                        <div
+                            class="mt-5 rounded-xl
                                         bg-surface-soft p-4">
-                                    <p
-                                        class="text-[0.65rem] font-bold
+                            <p
+                                class="text-[0.65rem] font-bold
                                             uppercase tracking-[0.14em]
                                             text-muted">
-                                        Delivery instructions
-                                    </p>
-
-                                    <p
-                                        class="mt-2 text-sm leading-6
-                                            text-ink">
-                                        {{ $deliveryAddress
-                                            ->delivery_instructions }}
-                                    </p>
-                                </div>
-                            @endif
-                        @else
-                            <p class="mt-4 text-sm leading-7 text-muted">
-                                Collect this order directly from the restaurant.
-                                Wait until its status is
-                                <strong class="text-ink">
-                                    Ready for Pickup
-                                </strong>
-                                before arriving.
+                                Delivery instructions
                             </p>
+
+                            <p
+                                class="mt-2 text-sm leading-6
+                                            text-ink">
+                                {{ $deliveryAddress
+                                            ->delivery_instructions }}
+                            </p>
+                        </div>
+                        @endif
+                        @else
+                        <p class="mt-4 text-sm leading-7 text-muted">
+                            Collect this order directly from the restaurant.
+                            Wait until its status is
+                            <strong class="text-ink">
+                                Ready for Pickup
+                            </strong>
+                            before arriving.
+                        </p>
                         @endif
                     </section>
 
@@ -889,24 +889,24 @@
                     </details>
 
                     @if (filled($order->customer_note))
-                        <section
-                            class="order-detail-card order-detail-section"
-                            aria-labelledby="order-note-heading">
-                            <p class="order-detail-overview-label">
-                                Your note
-                            </p>
+                    <section
+                        class="order-detail-card order-detail-section"
+                        aria-labelledby="order-note-heading">
+                        <p class="order-detail-overview-label">
+                            Your note
+                        </p>
 
-                            <h2
-                                id="order-note-heading"
-                                class="mt-3 font-display text-2xl
+                        <h2
+                            id="order-note-heading"
+                            class="mt-3 font-display text-2xl
                                     text-primary-deep">
-                                Order instructions
-                            </h2>
+                            Order instructions
+                        </h2>
 
-                            <p class="mt-4 text-sm leading-7 text-muted">
-                                {{ $order->customer_note }}
-                            </p>
-                        </section>
+                        <p class="mt-4 text-sm leading-7 text-muted">
+                            {{ $order->customer_note }}
+                        </p>
+                    </section>
                     @endif
 
                     <section
