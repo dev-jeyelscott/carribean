@@ -5,7 +5,29 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('the about page renders the reusable section pager', function (): void {
+test('the homepage renders the reusable section pager', function (): void {
+    $response = $this->get(route('home'));
+
+    $response
+        ->assertOk()
+        ->assertSee(
+            'data-section-pager-context="home"',
+            false,
+        )
+        ->assertSee(
+            'data-section-pager-enhancer="shared"',
+            false,
+        )
+        ->assertSee(
+            'data-section-pager-snap="false"',
+            false,
+        )
+        ->assertSee('href="#home"', false)
+        ->assertSee('href="#featured"', false)
+        ->assertSee('href="#visit"', false);
+});
+
+test('the about page uses its dedicated full-screen section contract', function (): void {
     Page::query()->create([
         'slug' => 'about',
         'title' => 'About',
@@ -18,21 +40,21 @@ test('the about page renders the reusable section pager', function (): void {
 
     $response
         ->assertOk()
-        ->assertSee(
+        ->assertSee('data-about-page', false)
+        ->assertSee('data-about-panel', false)
+        ->assertSee('id="about-hero"', false)
+        ->assertSee('id="island-roots"', false)
+        ->assertSee('id="values"', false)
+        ->assertSee('id="heritage"', false)
+        ->assertSee('id="experience"', false)
+        ->assertSee('id="invitation"', false)
+        ->assertDontSee(
             'data-section-pager-context="about"',
             false,
-        )
-        ->assertSee(
-            'data-section-pager-enhancer="about"',
-            false,
-        )
-        ->assertSee('data-about-section-link', false)
-        ->assertSee('href="#about-hero"', false)
-        ->assertSee('href="#island-roots"', false)
-        ->assertSee('href="#invitation"', false);
+        );
 });
 
-test('the gallery renders a snapping shared pager and full screen targets', function (): void {
+test('the gallery uses dedicated GSAP panels without the retired fixed pager', function (): void {
     Page::query()->create([
         'slug' => 'gallery',
         'title' => 'Gallery',
@@ -45,22 +67,15 @@ test('the gallery renders a snapping shared pager and full screen targets', func
 
     $response
         ->assertOk()
-        ->assertSee(
-            'data-section-pager-context="gallery"',
-            false,
-        )
-        ->assertSee(
-            'data-section-pager-enhancer="shared"',
-            false,
-        )
-        ->assertSee(
-            'data-section-pager-snap="true"',
-            false,
-        )
-        ->assertSee('data-gallery-section-link', false)
+        ->assertSee('data-gallery-page', false)
+        ->assertSee('data-gallery-motion', false)
+        ->assertSee('data-gallery-panel', false)
         ->assertSee('id="gallery-hero"', false)
         ->assertSee('id="gallery-signature"', false)
         ->assertSee('id="gallery-collection"', false)
         ->assertSee('id="gallery-invitation"', false)
-        ->assertSee('data-gallery-panel', false);
+        ->assertDontSee(
+            'data-section-pager-context="gallery"',
+            false,
+        );
 });

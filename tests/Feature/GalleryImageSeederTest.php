@@ -15,12 +15,17 @@ test('gallery image seeder stores upload-like images idempotently', function ():
         ->all();
 
     expect($firstSeededPaths)
-        ->toHaveCount(3)
-        ->each->toMatch('/^gallery\/[a-f0-9]{64}\.(?:jpg|png|webp)$/');
+        ->toHaveCount(6)
+        ->each->toMatch(
+            '/^gallery\/[a-f0-9]{64}\.(?:jpg|png|webp)$/',
+        );
+
+    expect(array_unique($firstSeededPaths))->toHaveCount(6);
 
     Storage::disk('public')->assertExists($firstSeededPaths);
 
-    $firstStoredFiles = Storage::disk('public')->allFiles('gallery');
+    $firstStoredFiles = Storage::disk('public')
+        ->allFiles('gallery');
 
     $this->seed(GalleryImageSeeder::class);
 
@@ -30,6 +35,10 @@ test('gallery image seeder stores upload-like images idempotently', function ():
         ->all();
 
     expect($secondSeededPaths)->toBe($firstSeededPaths);
-    expect(Storage::disk('public')->allFiles('gallery'))->toBe($firstStoredFiles);
-    expect(GalleryImage::query()->count())->toBe(3);
+
+    expect(
+        Storage::disk('public')->allFiles('gallery'),
+    )->toBe($firstStoredFiles);
+
+    expect(GalleryImage::query()->count())->toBe(6);
 });

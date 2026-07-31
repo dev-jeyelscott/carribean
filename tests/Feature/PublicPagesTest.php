@@ -28,41 +28,87 @@ test('approved public page routes are registered with stable paths', function ()
     ];
 
     foreach ($expectedRoutes as $name => $path) {
-        expect(Route::has($name))->toBeTrue("Expected route [{$name}] to be registered.");
+        expect(Route::has($name))
+            ->toBeTrue(
+                "Expected route [{$name}] to be registered.",
+            );
+
         expect(route($name, [], false))->toBe($path);
     }
 });
 
 test('public pages use an isolated Vite stylesheet without Flux sources', function (): void {
-    $publicLayout = File::get(resource_path('views/components/layouts/public.blade.php'));
-    $publicStyles = File::get(resource_path('css/public.css'));
-    $appStyles = File::get(resource_path('css/app.css'));
-    $viteConfig = File::get(base_path('vite.config.js'));
+    $publicLayout = File::get(
+        resource_path(
+            'views/components/layouts/public.blade.php',
+        ),
+    );
+
+    $publicStyles = File::get(
+        resource_path('css/public.css'),
+    );
+
+    $appStyles = File::get(
+        resource_path('css/app.css'),
+    );
+
+    $viteConfig = File::get(
+        base_path('vite.config.js'),
+    );
 
     expect($publicLayout)
         ->toContain('resources/css/public.css');
-    expect(str_contains($publicLayout, 'resources/css/app.css'))->toBeFalse();
+
+    expect(
+        str_contains(
+            $publicLayout,
+            'resources/css/app.css',
+        ),
+    )->toBeFalse();
 
     expect($publicStyles)
         ->toContain('@import "tailwindcss" source(none);')
-        ->toContain('@source "../views/pages/**/*.blade.php";')
-        ->toContain('@source "../views/components/public/**/*.blade.php";')
-        ->toContain('@source "../views/components/layouts/public.blade.php";')
-        ->toContain('@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";');
-    expect(str_contains($publicStyles, 'livewire/flux'))->toBeFalse();
-    expect(str_contains($publicStyles, 'flux-pro'))->toBeFalse();
+        ->toContain(
+            '@source "../views/pages/**/*.blade.php";',
+        )
+        ->toContain(
+            '@source "../views/components/public/**/*.blade.php";',
+        )
+        ->toContain(
+            '@source "../views/components/layouts/public.blade.php";',
+        )
+        ->toContain(
+            '@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";',
+        );
+
+    expect(
+        str_contains($publicStyles, 'livewire/flux'),
+    )->toBeFalse();
+
+    expect(
+        str_contains($publicStyles, 'flux-pro'),
+    )->toBeFalse();
 
     expect($appStyles)
-        ->toContain('../../vendor/livewire/flux/dist/flux.css')
-        ->toContain('../../vendor/livewire/flux/stubs/**/*.blade.php');
-    expect(str_contains($appStyles, 'flux-pro'))->toBeFalse();
+        ->toContain(
+            '../../vendor/livewire/flux/dist/flux.css',
+        )
+        ->toContain(
+            '../../vendor/livewire/flux/stubs/**/*.blade.php',
+        );
+
+    expect(
+        str_contains($appStyles, 'flux-pro'),
+    )->toBeFalse();
 
     expect($viteConfig)
         ->toContain('"resources/css/app.css"')
         ->toContain('"resources/css/public.css"');
 });
 
-test('approved public pages render successfully', function (string $routeName): void {
+test('approved public pages render successfully', function (
+    string $routeName,
+): void {
     $this->get(route($routeName))->assertOk();
 })->with([
     'home' => 'home',
@@ -76,9 +122,18 @@ test('all public pages share sticky accessible navigation', function (
 ): void {
     $this->get(route($routeName))
         ->assertOk()
-        ->assertSee('class="sticky inset-x-0 top-0 z-50', false)
-        ->assertSee('aria-label="Primary navigation"', false)
-        ->assertSee('aria-label="Mobile navigation"', false)
+        ->assertSee(
+            'class="sticky inset-x-0 top-0 z-50',
+            false,
+        )
+        ->assertSee(
+            'aria-label="Primary navigation"',
+            false,
+        )
+        ->assertSee(
+            'aria-label="Mobile navigation"',
+            false,
+        )
         ->assertDontSee('min-h-[44rem]', false);
 })->with([
     'home' => 'home',
@@ -93,7 +148,10 @@ test('shared public image heroes expose the shared GSAP contract', function (
     $this->get(route($routeName))
         ->assertOk()
         ->assertSee('data-public-hero', false)
-        ->assertSee('data-gsap="hero-content"', false);
+        ->assertSee(
+            'data-gsap="hero-content"',
+            false,
+        );
 })->with([
     'gallery' => 'gallery',
     'contact' => 'contact.create',
@@ -108,15 +166,19 @@ test('homepage exposes its dedicated section-pager hero contract', function (): 
         ->assertSee('data-home-reveal', false);
 });
 
-test('menu page uses its dedicated progressive hero contract', function (): void {
+test('menu page starts directly at its interactive catalogue', function (): void {
     $this->get(route('menu'))
         ->assertOk()
         ->assertSee('data-menu-page', false)
-        ->assertSee('data-menu-hero', false)
-        ->assertSee('data-menu-hero-item', false);
+        ->assertSee('id="menu-catalog"', false)
+        ->assertSee('data-menu-catalog', false)
+        ->assertDontSee('data-menu-hero', false)
+        ->assertDontSee('data-menu-hero-item', false);
 });
 
-test('representative public pages execute one site settings query on a cold cache', function (string $routeName): void {
+test('representative public pages execute one site settings query on a cold cache', function (
+    string $routeName,
+): void {
     foreach (
         [
             'restaurant_name' => 'Shared Query Bistro',
@@ -141,7 +203,12 @@ test('representative public pages execute one site settings query on a cold cach
         ->assertSeeText('Shared Query Bistro');
 
     $siteSettingQueries = collect(DB::getQueryLog())
-        ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'site_settings'));
+        ->filter(
+            fn (array $query): bool => str_contains(
+                strtolower($query['query']),
+                'site_settings',
+            ),
+        );
 
     DB::disableQueryLog();
 
@@ -163,7 +230,9 @@ test('site setting updates and deletes invalidate cached public values', functio
         ->assertOk()
         ->assertSeeText('Original Restaurant Name');
 
-    $setting->update(['value' => 'Updated Restaurant Name']);
+    $setting->update([
+        'value' => 'Updated Restaurant Name',
+    ]);
 
     $this->get(route('menu'))
         ->assertOk()
@@ -176,8 +245,12 @@ test('site setting updates and deletes invalidate cached public values', functio
         ->assertOk()
         ->assertDontSeeText('Updated Restaurant Name');
 
-    expect(SiteSetting::value('restaurant_name', 'Fallback Restaurant Name'))
-        ->toBe('Fallback Restaurant Name');
+    expect(
+        SiteSetting::value(
+            'restaurant_name',
+            'Fallback Restaurant Name',
+        ),
+    )->toBe('Fallback Restaurant Name');
 });
 
 test('gallery page opts into its dedicated progressive motion runtime', function (): void {
@@ -199,7 +272,10 @@ test('shared public settings keep malformed public links out of rendered pages',
 
     $this->get(route('contact.create'))
         ->assertOk()
-        ->assertDontSee('javascript:alert(1)', false)
+        ->assertDontSee(
+            'javascript:alert(1)',
+            false,
+        )
         ->assertDontSeeText('Open location map');
 });
 
@@ -216,8 +292,16 @@ test('contact hero uses managed responsive image derivatives', function (): void
     Storage::fake('public');
 
     $imagePath = UploadedFile::fake()
-        ->image('contact-dining-room.jpg', 2400, 1600)
-        ->storeAs('gallery', 'contact-dining-room.jpg', 'public');
+        ->image(
+            'contact-dining-room.jpg',
+            2400,
+            1600,
+        )
+        ->storeAs(
+            'gallery',
+            'contact-dining-room.jpg',
+            'public',
+        );
 
     expect($imagePath)->toBeString();
 
@@ -232,16 +316,27 @@ test('contact hero uses managed responsive image derivatives', function (): void
 
     $this->get(route('contact.create'))
         ->assertOk()
-        ->assertDontSee('data-contact-hero-fallback', false)
-        ->assertSee('/storage/gallery/variants/contact-dining-room-hero.jpg', false)
+        ->assertDontSee(
+            'data-contact-hero-fallback',
+            false,
+        )
+        ->assertSee(
+            '/storage/gallery/variants/contact-dining-room-hero.jpg',
+            false,
+        )
         ->assertSee('srcset=', false)
         ->assertSee(
             'sizes="(min-width: 1024px) 54vw, 100vw"',
             false,
         )
         ->assertSee('loading="eager"', false)
-        ->assertSee('fetchpriority="high"', false)
-        ->assertSee('Elegant dining room prepared for evening service');
+        ->assertSee(
+            'fetchpriority="high"',
+            false,
+        )
+        ->assertSee(
+            'Elegant dining room prepared for evening service',
+        );
 });
 
 test('contact hero renders its fallback for a stale managed image path', function (): void {
@@ -260,9 +355,20 @@ test('contact hero renders its fallback for a stale managed image path', functio
 
     $this->get(route('contact.create'))
         ->assertOk()
-        ->assertSee('data-contact-hero-fallback', false)
-        ->assertDontSee(Storage::disk('public')->url($missingPath), false)
-        ->assertDontSee('Missing contact hero image', false);
+        ->assertSee(
+            'data-contact-hero-fallback',
+            false,
+        )
+        ->assertDontSee(
+            Storage::disk('public')->url(
+                $missingPath,
+            ),
+            false,
+        )
+        ->assertDontSee(
+            'Missing contact hero image',
+            false,
+        );
 });
 
 test('contact hero prefers an interior image beyond the first six ordered records', function (): void {
@@ -282,7 +388,9 @@ test('contact hero prefers an interior image beyond the first six ordered record
     GalleryImage::query()->create([
         'title' => 'Preferred later interior image',
         'alt_text' => 'Preferred later interior alt',
-        'image_path' => storePublicPageTestImage('preferred-later-interior.jpg'),
+        'image_path' => storePublicPageTestImage(
+            'preferred-later-interior.jpg',
+        ),
         'category' => 'interior',
         'sort_order' => 7,
         'is_visible' => true,
@@ -290,8 +398,14 @@ test('contact hero prefers an interior image beyond the first six ordered record
 
     $this->get(route('contact.create'))
         ->assertOk()
-        ->assertSee('Preferred later interior alt', false)
-        ->assertDontSee('Earlier non-interior alt 1', false);
+        ->assertSee(
+            'Preferred later interior alt',
+            false,
+        )
+        ->assertDontSee(
+            'Earlier non-interior alt 1',
+            false,
+        );
 });
 
 test('contact hero falls back to the first visible ordered image when no interior image exists', function (): void {
@@ -309,7 +423,9 @@ test('contact hero falls back to the first visible ordered image when no interio
     GalleryImage::query()->create([
         'title' => 'First fallback image',
         'alt_text' => 'First fallback alt',
-        'image_path' => storePublicPageTestImage('first-fallback.jpg'),
+        'image_path' => storePublicPageTestImage(
+            'first-fallback.jpg',
+        ),
         'category' => 'dish',
         'sort_order' => 1,
         'is_visible' => true,
@@ -317,12 +433,22 @@ test('contact hero falls back to the first visible ordered image when no interio
 
     $this->get(route('contact.create'))
         ->assertOk()
-        ->assertSee('First fallback alt', false)
-        ->assertDontSee('Second fallback alt', false);
+        ->assertSee(
+            'First fallback alt',
+            false,
+        )
+        ->assertDontSee(
+            'Second fallback alt',
+            false,
+        );
 });
 
-test('public pages do not expose retired inquiry or event workflows', function (string $routeName): void {
-    $response = $this->get(route($routeName))->assertOk();
+test('public pages do not expose retired inquiry or event workflows', function (
+    string $routeName,
+): void {
+    $response = $this->get(
+        route($routeName),
+    )->assertOk();
 
     foreach (
         [
@@ -334,7 +460,9 @@ test('public pages do not expose retired inquiry or event workflows', function (
             'Submit Order Inquiry',
         ] as $retiredLabel
     ) {
-        $response->assertDontSeeText($retiredLabel);
+        $response->assertDontSeeText(
+            $retiredLabel,
+        );
     }
 })->with([
     'home' => 'home',

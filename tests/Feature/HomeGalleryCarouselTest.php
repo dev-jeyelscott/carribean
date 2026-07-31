@@ -18,7 +18,7 @@ test('homepage motion keeps reduced-motion and lifecycle contracts', function ()
         ->not->toContain('initHomeGalleryCarousel');
 });
 
-test('full-screen public section transitions use one timing contract', function (): void {
+test('page-scoped public motion preserves intentional transition contracts', function (): void {
     $homepageMotion = File::get(
         resource_path('js/homepage-section-navigation.js'),
     );
@@ -27,8 +27,8 @@ test('full-screen public section transitions use one timing contract', function 
         resource_path('js/about-experience.js'),
     );
 
-    $sharedPager = File::get(
-        resource_path('js/section-pager.js'),
+    $galleryMotion = File::get(
+        resource_path('js/gallery-experience.js'),
     );
 
     expect($homepageMotion)
@@ -41,10 +41,12 @@ test('full-screen public section transitions use one timing contract', function 
         ->toContain('wheelActivationThreshold = 8')
         ->toContain('wheelGestureReleaseDelay = 140');
 
-    expect($sharedPager)
-        ->toContain('sectionTransitionDuration = 0.48')
-        ->toContain('wheelActivationThreshold = 8')
-        ->toContain('wheelGestureReleaseDelay = 140');
+    expect($galleryMotion)
+        ->toContain('gsap.registerPlugin(ScrollTrigger);')
+        ->toContain('const reducedMotionQuery =')
+        ->toContain('"(prefers-reduced-motion: reduce)"')
+        ->not->toContain('wheelActivationThreshold')
+        ->not->toContain('sectionTransitionDuration = 0.48');
 });
 
 test('homepage uses the reusable menu product card', function (): void {
@@ -104,9 +106,9 @@ test('menu and cart opt into the transparent public header', function (): void {
         resource_path('views/pages/menu.blade.php'),
     );
 
-    $menuHero = File::get(
+    $menuCatalog = File::get(
         resource_path(
-            'views/components/public/menu-hero.blade.php',
+            'views/components/public/menu-catalog.blade.php',
         ),
     );
 
@@ -116,13 +118,14 @@ test('menu and cart opt into the transparent public header', function (): void {
 
     expect($menu)
         ->toContain(':header-overlay="true"')
-        ->toContain('<x-public.menu-hero');
+        ->toContain('<livewire:menu.catalog')
+        ->not->toContain('<x-public.menu-hero');
 
-    expect($menuHero)
-        ->toContain('data-public-hero')
-        ->toContain('data-menu-hero')
-        ->toContain('data-menu-hero-depth')
-        ->toContain('bg-[linear-gradient');
+    expect($menuCatalog)
+        ->toContain('id="menu-catalog"')
+        ->toContain('data-menu-category-link')
+        ->toContain('data-menu-section')
+        ->toContain('data-menu-carousel');
 
     expect($cart)
         ->toContain(':header-overlay="true"')

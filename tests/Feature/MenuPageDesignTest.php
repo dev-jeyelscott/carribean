@@ -29,15 +29,20 @@ test('menu page presents visible orderable items in the Coast and Cay layout', f
     $this->get(route('menu'))
         ->assertOk()
         ->assertSee('data-menu-page', false)
-        ->assertSee('data-menu-hero', false)
         ->assertSee('id="menu-catalog"', false)
         ->assertSee('aria-label="Menu categories"', false)
-        ->assertSee('href="#category-island-favorites"', false)
-        ->assertSee('id="category-island-favorites"', false)
-        ->assertSeeText('Island Favorites, Made to Gather Around')
+        ->assertSee(
+            'href="#category-island-favorites"',
+            false,
+        )
+        ->assertSee(
+            'id="category-island-favorites"',
+            false,
+        )
         ->assertSeeText('Island Favorites')
         ->assertSeeText('Island Jerk Chicken')
         ->assertSeeText('Customize order')
+        ->assertDontSee('data-menu-hero', false)
         ->assertDontSeeText('Submit Order Inquiry')
         ->assertDontSeeText('Request a table');
 });
@@ -46,7 +51,9 @@ test('menu page preserves progressive motion and native content', function (): v
     $this->get(route('menu'))
         ->assertOk()
         ->assertSee('data-menu-page', false)
-        ->assertSee('data-menu-hero-item', false)
+        ->assertSee('data-menu-catalog', false)
+        ->assertSee('data-menu-mobile-categories', false)
+        ->assertSee('data-menu-sidebar', false)
         ->assertSee('data-menu-category-link', false)
         ->assertSee('data-menu-section', false)
         ->assertSee('data-menu-section-heading', false)
@@ -54,6 +61,6 @@ test('menu page preserves progressive motion and native content', function (): v
         ->assertSee('data-menu-carousel', false)
         ->assertSee('data-menu-carousel-track', false)
         ->assertSee('data-menu-closing', false)
-        ->assertSeeText('Explore the selections')
-        ->assertSeeText('Review Your Cart');
+        ->assertSeeText('Review Your Cart')
+        ->assertDontSee('data-menu-hero-item', false);
 });
