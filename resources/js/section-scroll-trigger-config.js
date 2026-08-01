@@ -122,3 +122,17 @@ export const aboutSectionScrollTriggerConfig =
             distance: 42,
         },
     });
+
+/*
+ * Gallery keeps native document scrolling while reusing the homepage media,
+ * reveal trigger, easing, and depth-trigger geometry. Only its established
+ * non-hero reveal distance, duration, and stagger remain page-specific.
+ */
+export const gallerySectionScrollTriggerConfig =
+    createSectionScrollTriggerConfig({
+        reveal: {
+            distance: 42,
+            duration: 0.85,
+            stagger: 0.08,
+        },
+    });

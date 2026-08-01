@@ -64,8 +64,8 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->not->toContain('wheelGestureReleaseDelay = 140');
 
     /*
-     * The About controller now consumes the same reusable profile while
-     * retaining its page-specific 42px content reveal distance.
+     * The About controller consumes the reusable profile while retaining its
+     * page-specific 42px content reveal distance.
      */
     expect($configuration)
         ->toContain('aboutSectionScrollTriggerConfig')
@@ -87,10 +87,27 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->not->toContain('const reducedMotionQuery')
         ->not->toContain('const shortViewportQuery');
 
+    /*
+     * Gallery keeps native scrolling but now consumes the homepage-derived
+     * media, reveal-trigger, and depth-trigger configuration.
+     */
+    expect($configuration)
+        ->toContain('gallerySectionScrollTriggerConfig')
+        ->toContain('duration: 0.85')
+        ->toContain('stagger: 0.08');
+
     expect($galleryMotion)
         ->toContain('gsap.registerPlugin(ScrollTrigger);')
-        ->toContain('const reducedMotionQuery =')
-        ->toContain('"(prefers-reduced-motion: reduce)"')
+        ->toContain('gallerySectionScrollTriggerConfig')
+        ->toContain('mediaQueries.desktop')
+        ->toContain('mediaQueries.reducedMotion')
+        ->toContain('y: reveal.distance')
+        ->toContain('duration: reveal.duration')
+        ->toContain('stagger: reveal.stagger')
+        ->toContain('...reveal.trigger')
+        ->toContain('...depth.trigger')
+        ->not->toContain('const desktopQuery')
+        ->not->toContain('const reducedMotionQuery')
         ->not->toContain('wheelActivationThreshold')
         ->not->toContain('sectionTransitionDuration = 0.48');
 });
