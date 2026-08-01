@@ -15,11 +15,19 @@ use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
+    /**
+     * Display the concise page heading above the operational dashboard.
+     */
     protected static ?string $title = 'Dashboard';
 
     /**
-     * Describe the dashboard while keeping the current Website overview
-     * wording available to existing acceptance coverage.
+     * Preserve the established sidebar navigation wording independently
+     * from the dashboard page heading.
+     */
+    protected static ?string $navigationLabel = 'Website overview';
+
+    /**
+     * Describe the dashboard and clarify that preview analytics are not live.
      */
     public function getSubheading(): ?string
     {
