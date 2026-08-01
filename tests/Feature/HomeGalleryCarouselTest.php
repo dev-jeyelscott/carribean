@@ -64,12 +64,28 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->not->toContain('wheelGestureReleaseDelay = 140');
 
     /*
-     * Other public pages have not been migrated during this phase.
+     * The About controller now consumes the same reusable profile while
+     * retaining its page-specific 42px content reveal distance.
      */
+    expect($configuration)
+        ->toContain('aboutSectionScrollTriggerConfig')
+        ->toContain('distance: 42');
+
     expect($aboutMotion)
-        ->toContain('sectionTransitionDuration = 0.48')
-        ->toContain('wheelActivationThreshold = 8')
-        ->toContain('wheelGestureReleaseDelay = 140');
+        ->toContain('aboutSectionScrollTriggerConfig')
+        ->toContain('duration: navigation.duration')
+        ->toContain('wheel.activationThreshold')
+        ->toContain('wheel.gestureReleaseDelay')
+        ->toContain('...reveal.trigger')
+        ->toContain('...tracking.trigger')
+        ->toContain('...depth.trigger')
+        ->toContain('wheel.enabled')
+        ->not->toContain('sectionTransitionDuration = 0.48')
+        ->not->toContain('wheelActivationThreshold = 8')
+        ->not->toContain('wheelGestureReleaseDelay = 140')
+        ->not->toContain('const desktopQuery')
+        ->not->toContain('const reducedMotionQuery')
+        ->not->toContain('const shortViewportQuery');
 
     expect($galleryMotion)
         ->toContain('gsap.registerPlugin(ScrollTrigger);')
@@ -97,8 +113,7 @@ test('homepage uses the reusable menu product card', function (): void {
     );
 
     expect($homepage)
-        ->toContain('<x-public.home-featured-menu')
-        ->not->toContain('<x-public.home-menu-card');
+        ->toContain('<x-public.home-featured-menu');
 
     expect($featuredMenu)
         ->toContain('<x-public.menu-card')

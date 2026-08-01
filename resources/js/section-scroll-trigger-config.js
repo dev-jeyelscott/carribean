@@ -103,12 +103,22 @@ export function createSectionScrollTriggerConfig(overrides = {}) {
 }
 
 /*
- * Preserve the homepage's current behavior while keeping wheel interception
- * disabled for future page profiles unless they explicitly opt in.
+ * Preserve each page's established motion while sharing the same base
+ * media, navigation, reveal, tracking, and depth configuration.
  */
 export const homepageSectionScrollTriggerConfig =
     createSectionScrollTriggerConfig({
         wheel: {
             enabled: true,
+        },
+    });
+
+export const aboutSectionScrollTriggerConfig =
+    createSectionScrollTriggerConfig({
+        wheel: {
+            enabled: true,
+        },
+        reveal: {
+            distance: 42,
         },
     });

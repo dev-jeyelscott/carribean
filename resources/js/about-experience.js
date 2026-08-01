@@ -1,16 +1,18 @@
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { aboutSectionScrollTriggerConfig } from "./section-scroll-trigger-config";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
-const desktopQuery = "(min-width: 1024px) and (pointer: fine)";
-const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-const shortViewportQuery = "(max-height: 719px)";
-
-const wheelActivationThreshold = 8;
-const wheelGestureReleaseDelay = 140;
-const sectionTransitionDuration = 0.48;
+const {
+    depth,
+    media: mediaQueries,
+    navigation,
+    reveal,
+    tracking,
+    wheel,
+} = aboutSectionScrollTriggerConfig;
 
 /**
  * Return every valid About panel in document order.
@@ -313,7 +315,7 @@ function createPanelReveal(panel, showMarkers) {
 
     gsap.set(revealTargets, {
         autoAlpha: 0,
-        y: 42,
+        y: reveal.distance,
     });
 
     gsap.set(imageFrames, {
@@ -329,7 +331,7 @@ function createPanelReveal(panel, showMarkers) {
     const timeline = gsap.timeline({
         paused: true,
         defaults: {
-            ease: "power3.out",
+            ease: reveal.ease,
         },
         onStart: () => {
             panel.dataset.aboutAnimationState = "active";
@@ -344,8 +346,8 @@ function createPanelReveal(panel, showMarkers) {
             revealTargets,
             {
                 autoAlpha: 1,
-                duration: 0.9,
-                stagger: 0.09,
+                duration: reveal.duration,
+                stagger: reveal.stagger,
                 y: 0,
             },
             0,
@@ -394,9 +396,7 @@ function createPanelReveal(panel, showMarkers) {
     const trigger = ScrollTrigger.create({
         id: `about-animation-${panel.id}`,
         trigger: panel,
-        start: "top 76%",
-        end: "bottom 24%",
-        invalidateOnRefresh: true,
+        ...reveal.trigger,
         markers: showMarkers,
         onEnter: play,
         onEnterBack: play,
@@ -419,9 +419,7 @@ function initializeSectionTracking(root, panels, showMarkers) {
         ScrollTrigger.create({
             id: `about-active-${panel.id}`,
             trigger: panel,
-            start: "top 52%",
-            end: "bottom 48%",
-            invalidateOnRefresh: true,
+            ...tracking.trigger,
             markers: showMarkers,
             onEnter: () => {
                 setActivePanel(root, panels, index);
@@ -463,10 +461,7 @@ function initializeParallax(root, showMarkers) {
                 scrollTrigger: {
                     id: `about-parallax-${panel.id}-${index}`,
                     trigger: panel,
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: true,
-                    invalidateOnRefresh: true,
+                    ...depth.trigger,
                     markers: showMarkers,
                 },
             },
@@ -525,13 +520,13 @@ export function initAboutExperience(
     root.dataset.aboutSnapCount = "0";
     setNavigationState(root, "initializing");
 
-    const media = gsap.matchMedia();
+    const matchMedia = gsap.matchMedia();
 
-    media.add(
+    matchMedia.add(
         {
-            desktop: desktopQuery,
-            reducedMotion: reducedMotionQuery,
-            shortViewport: shortViewportQuery,
+            desktop: mediaQueries.desktop,
+            reducedMotion: mediaQueries.reducedMotion,
+            shortViewport: mediaQueries.shortViewport,
         },
         (mediaContext) => {
             const {
@@ -664,8 +659,8 @@ export function initAboutExperience(
                 isAnimating = true;
 
                 activeTween = gsap.to(window, {
-                    duration: sectionTransitionDuration,
-                    ease: "power3.out",
+                    duration: navigation.duration,
+                    ease: navigation.ease,
                     overwrite: "auto",
                     scrollTo: {
                         autoKill: false,
@@ -724,6 +719,7 @@ export function initAboutExperience(
             });
 
             const canSnap =
+                wheel.enabled &&
                 desktop &&
                 !reducedMotion &&
                 !shortViewport &&
@@ -752,7 +748,7 @@ export function initAboutExperience(
                         if (!isAnimating) {
                             isGestureLocked = false;
                         }
-                    }, wheelGestureReleaseDelay);
+                    }, wheel.gestureReleaseDelay);
                 };
 
                 /**
@@ -808,7 +804,7 @@ export function initAboutExperience(
 
                     if (
                         Math.abs(accumulatedWheelDelta) <
-                        wheelActivationThreshold
+                        wheel.activationThreshold
                     ) {
                         return;
                     }
@@ -916,7 +912,7 @@ export function initAboutExperience(
      * Remove every About-specific handler, trigger, tween, and state value.
      */
     const cleanup = () => {
-        media.revert();
+        matchMedia.revert();
 
         document.documentElement.classList.remove(
             "about-section-navigation-active",
