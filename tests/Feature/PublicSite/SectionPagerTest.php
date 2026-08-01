@@ -5,26 +5,33 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('the homepage renders the reusable section pager', function (): void {
+test('the homepage keeps its section runtime without rendering the visible section pager', function (): void {
     $response = $this->get(route('home'));
 
     $response
         ->assertOk()
+        /*
+         * Retain the homepage GSAP section-navigation runtime hook.
+         */
         ->assertSee(
+            'data-home-section-pager',
+            false,
+        )
+        /*
+         * Do not render the retired right-side homepage navigation.
+         */
+        ->assertDontSee(
             'data-section-pager-context="home"',
             false,
         )
-        ->assertSee(
+        ->assertDontSee(
             'data-section-pager-enhancer="shared"',
             false,
         )
-        ->assertSee(
-            'data-section-pager-snap="false"',
+        ->assertDontSee(
+            'aria-label="Homepage sections"',
             false,
-        )
-        ->assertSee('href="#home"', false)
-        ->assertSee('href="#featured"', false)
-        ->assertSee('href="#visit"', false);
+        );
 });
 
 test('the about page uses its dedicated full-screen section contract', function (): void {

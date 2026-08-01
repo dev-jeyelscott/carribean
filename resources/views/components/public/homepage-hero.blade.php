@@ -23,45 +23,6 @@
     $heroAvifUrl = asset('images/heroes/coast-cay-home-hero.avif');
     $heroWebpUrl = asset('images/heroes/coast-cay-home-hero.webp');
     $heroFallbackUrl = asset('images/heroes/coast-cay-home-hero.png');
-
-    /*
-     * Define the homepage section pager from sections that will actually
-     * render. Journal is included only while published content exists.
-     */
-    $homeNavigation = [
-        [
-            'id' => 'home',
-            'label' => 'Home',
-        ],
-        [
-            'id' => 'featured',
-            'label' => 'Featured dishes',
-        ],
-        [
-            'id' => 'story',
-            'label' => 'Our story',
-        ],
-        [
-            'id' => 'menu-explorer',
-            'label' => 'Explore menu',
-        ],
-        [
-            'id' => 'gallery-preview',
-            'label' => 'Gallery',
-        ],
-    ];
-
-    if ($showJournal) {
-        $homeNavigation[] = [
-            'id' => 'journal',
-            'label' => 'Journal',
-        ];
-    }
-
-    $homeNavigation[] = [
-        'id' => 'visit',
-        'label' => 'Visit',
-    ];
 @endphp
 
 <section
@@ -175,15 +136,6 @@
             </div>
         </div>
     </div>
-
-    <x-public.section-pager
-        :items="$homeNavigation"
-        current="home"
-        label="Homepage sections"
-        context="home"
-        enhancer="shared"
-        :snap="false"
-        class="home-section-nav" />
 
     <a
         href="#featured"
