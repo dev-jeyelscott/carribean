@@ -16,7 +16,7 @@ test('homepage featured menu uses a balanced three-card layout', function (): vo
         ->not->toContain('->take(4)');
 });
 
-test('homepage reuses the shared accessible section pager', function (): void {
+test('homepage hero keeps its scroll control without the visible section pager', function (): void {
     $homepageHero = File::get(
         resource_path(
             'views/components/public/homepage-hero.blade.php',
@@ -24,12 +24,21 @@ test('homepage reuses the shared accessible section pager', function (): void {
     );
 
     expect($homepageHero)
-        ->toContain('<x-public.section-pager')
-        ->toContain('label="Homepage sections"')
-        ->toContain('context="home"')
-        ->toContain(':snap="false"')
-        ->toContain("'id' => 'featured'")
-        ->toContain("'id' => 'visit'");
+        /*
+         * Keep the accessible control that moves visitors to the next
+         * homepage section.
+         */
+        ->toContain('data-home-scroll-link')
+        ->toContain('href="#featured"')
+        ->toContain('Scroll')
+        /*
+         * The retired right-side text navigation must not return.
+         */
+        ->not->toContain('<x-public.section-pager')
+        ->not->toContain('label="Homepage sections"')
+        ->not->toContain('context="home"')
+        ->not->toContain("'id' => 'featured'")
+        ->not->toContain("'id' => 'visit'");
 });
 
 test('contact hero refresh enhances the current conversion structure', function (): void {
