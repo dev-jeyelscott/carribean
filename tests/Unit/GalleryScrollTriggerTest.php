@@ -1,10 +1,34 @@
 <?php
 
-use Illuminate\Support\Facades\File;
+/**
+ * Read a project file without booting the Laravel application.
+ */
+function readGalleryProjectFile(string $relativePath): string
+{
+    $projectRoot = dirname(__DIR__, 2);
+
+    $absolutePath = $projectRoot
+        .DIRECTORY_SEPARATOR
+        .str_replace(
+            '/',
+            DIRECTORY_SEPARATOR,
+            $relativePath,
+        );
+
+    $contents = file_get_contents($absolutePath);
+
+    if ($contents === false) {
+        throw new RuntimeException(
+            "Unable to read project file [{$relativePath}].",
+        );
+    }
+
+    return $contents;
+}
 
 test('gallery blade exposes the complete ScrollTrigger contract', function (): void {
-    $gallery = File::get(
-        resource_path('views/pages/gallery.blade.php'),
+    $gallery = readGalleryProjectFile(
+        'resources/views/pages/gallery.blade.php',
     );
 
     expect($gallery)
@@ -22,16 +46,18 @@ test('gallery blade exposes the complete ScrollTrigger contract', function (): v
 });
 
 test('gallery motion consumes the shared ScrollTrigger configuration', function (): void {
-    $configuration = File::get(
-        resource_path('js/section-scroll-trigger-config.js'),
+    $configuration = readGalleryProjectFile(
+        'resources/js/section-scroll-trigger-config.js',
     );
 
-    $motion = File::get(
-        resource_path('js/gallery-experience.js'),
+    $motion = readGalleryProjectFile(
+        'resources/js/gallery-experience.js',
     );
 
     expect($configuration)
-        ->toContain('motionAllowed: "(prefers-reduced-motion: no-preference)"')
+        ->toContain(
+            'motionAllowed: "(prefers-reduced-motion: no-preference)"',
+        )
         ->toContain('gallerySectionScrollTriggerConfig')
         ->toContain('distance: 42')
         ->toContain('duration: 0.85');
