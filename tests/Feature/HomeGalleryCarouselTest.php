@@ -3,22 +3,33 @@
 use Illuminate\Support\Facades\File;
 
 test('homepage motion keeps reduced-motion and lifecycle contracts', function (): void {
+    $configuration = File::get(
+        resource_path('js/section-scroll-trigger-config.js'),
+    );
+
     $motion = File::get(
         resource_path('js/homepage-section-navigation.js'),
     );
 
+    expect($configuration)
+        ->toContain(
+            'reducedMotion: "(prefers-reduced-motion: reduce)"',
+        );
+
     expect($motion)
         ->toContain('gsap.matchMedia()')
-        ->toContain(
-            'reducedMotionQuery = "(prefers-reduced-motion: reduce)"',
-        )
-        ->toContain('media.revert()')
+        ->toContain('homepageSectionScrollTriggerConfig')
+        ->toContain('matchMedia.revert()')
         ->toContain('import.meta.hot.dispose(cleanup)')
         ->toContain('initializeStoryDepth')
         ->not->toContain('initHomeGalleryCarousel');
 });
 
 test('page-scoped public motion preserves intentional transition contracts', function (): void {
+    $configuration = File::get(
+        resource_path('js/section-scroll-trigger-config.js'),
+    );
+
     $homepageMotion = File::get(
         resource_path('js/homepage-section-navigation.js'),
     );
@@ -31,11 +42,30 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         resource_path('js/gallery-experience.js'),
     );
 
-    expect($homepageMotion)
-        ->toContain('sectionTransitionDuration = 0.48')
-        ->toContain('wheelActivationThreshold = 8')
-        ->toContain('wheelGestureReleaseDelay = 140');
+    /*
+     * The reusable profile owns the homepage transition values.
+     */
+    expect($configuration)
+        ->toContain('duration: 0.48')
+        ->toContain('activationThreshold: 8')
+        ->toContain('gestureReleaseDelay: 140');
 
+    /*
+     * The homepage controller consumes the shared profile rather than
+     * redeclaring its own timing constants.
+     */
+    expect($homepageMotion)
+        ->toContain('homepageSectionScrollTriggerConfig')
+        ->toContain('duration: navigation.duration')
+        ->toContain('wheel.activationThreshold')
+        ->toContain('wheel.gestureReleaseDelay')
+        ->not->toContain('sectionTransitionDuration = 0.48')
+        ->not->toContain('wheelActivationThreshold = 8')
+        ->not->toContain('wheelGestureReleaseDelay = 140');
+
+    /*
+     * Other public pages have not been migrated during this phase.
+     */
     expect($aboutMotion)
         ->toContain('sectionTransitionDuration = 0.48')
         ->toContain('wheelActivationThreshold = 8')

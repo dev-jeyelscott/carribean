@@ -34,7 +34,13 @@ test('homepage exposes accessible navigation and dedicated motion hooks', functi
 });
 
 test('public motion loads dedicated homepage and shared page modules progressively', function (): void {
-    $appEntry = File::get(resource_path('js/app.js'));
+    $appEntry = File::get(
+        resource_path('js/app.js'),
+    );
+
+    $sectionMotionConfiguration = File::get(
+        resource_path('js/section-scroll-trigger-config.js'),
+    );
 
     $homepageModule = File::get(
         resource_path('js/homepage-section-navigation.js'),
@@ -50,10 +56,19 @@ test('public motion loads dedicated homepage and shared page modules progressive
         ->toContain('[data-home-section-pager]')
         ->toContain('import("./homepage-section-navigation")');
 
+    /*
+     * Responsive conditions now belong to the reusable section-motion
+     * configuration rather than the homepage controller.
+     */
+    expect($sectionMotionConfiguration)
+        ->toContain(
+            'reducedMotion: "(prefers-reduced-motion: reduce)"',
+        );
+
     expect($homepageModule)
         ->toContain('gsap.matchMedia()')
+        ->toContain('homepageSectionScrollTriggerConfig')
         ->toContain('querySelectorAll("[data-home-reveal]")')
-        ->toContain('prefers-reduced-motion: reduce')
         ->not->toContain('home-gallery-carousel')
         ->not->toContain('initHomeGalleryCarousel')
         ->not->toContain('animateDeliveryAddress');
