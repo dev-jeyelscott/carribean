@@ -45,39 +45,51 @@ class TopSellingItemsPreview extends Widget
             DashboardAnalytics::class,
         )->topSellingItems($period);
 
+        /**
+         * Build the presentation rows through sequential appends so the
+         * resulting array remains an explicit PHPStan list.
+         *
+         * @var list<array{
+         *     rank: string,
+         *     name: string,
+         *     orders: string,
+         *     revenue: string,
+         *     trend: string
+         * }> $rankedItems
+         */
+        $rankedItems = [];
+
+        foreach ($items as $index => $item) {
+            $rankedItems[] = [
+                'rank' => str_pad(
+                    (string) ($index + 1),
+                    2,
+                    '0',
+                    STR_PAD_LEFT,
+                ),
+
+                'name' => $item['name'],
+
+                'orders' => sprintf(
+                    '%s sold',
+                    number_format(
+                        $item['quantity_sold'],
+                    ),
+                ),
+
+                'revenue' => $this->formatUsd(
+                    $item['revenue_cents'],
+                ),
+
+                'trend' => $this->trendLabel(
+                    $item['change_percent'],
+                ),
+            ];
+        }
+
         return [
             'periodLabel' => $period->label(),
-
-            'items' => array_values(
-                array_map(
-                    fn (
-                        array $item,
-                        int $index,
-                    ): array => [
-                        'rank' => str_pad(
-                            (string) ($index + 1),
-                            2,
-                            '0',
-                            STR_PAD_LEFT,
-                        ),
-                        'name' => $item['name'],
-                        'orders' => sprintf(
-                            '%s sold',
-                            number_format(
-                                $item['quantity_sold'],
-                            ),
-                        ),
-                        'revenue' => $this->formatUsd(
-                            $item['revenue_cents'],
-                        ),
-                        'trend' => $this->trendLabel(
-                            $item['change_percent'],
-                        ),
-                    ],
-                    $items,
-                    array_keys($items),
-                ),
-            ),
+            'items' => $rankedItems,
         ];
     }
 

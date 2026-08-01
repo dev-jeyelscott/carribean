@@ -51,42 +51,81 @@ class RecentOrdersPreview extends Widget
             DashboardAnalytics::class,
         )->recentOrders($period);
 
+        /**
+         * Append rows sequentially so static analysis can guarantee that the
+         * resulting value is a list without relying on Collection key types.
+         *
+         * @var list<array{
+         *     number: string,
+         *     customer: string,
+         *     fulfillment: string,
+         *     total: string,
+         *     status: string,
+         *     status_tone: string,
+         *     time: string,
+         *     url: string
+         * }> $rows
+         */
+        $rows = [];
+
+        foreach ($orders as $order) {
+            $rows[] = $this->presentOrder($order);
+        }
+
         return [
             'periodLabel' => $period->label(),
+            'orders' => $rows,
+        ];
+    }
 
-            'orders' => $orders
-                ->map(
-                    fn (Order $order): array => [
-                        'number' => $order->order_number
-                            ?? 'Order #'.$order->id,
-                        'customer' => $order->customer_name,
-                        'fulfillment' => $order
-                            ->fulfillment_method
-                            ->label(),
-                        'total' => $this->formatUsd(
-                            $order->grand_total_cents,
-                        ),
-                        'status' => $order->status->label(),
-                        'status_tone' => $this->statusTone(
-                            $order->status,
-                        ),
-                        'time' => $order->placed_at->isToday()
-                                ? $order
-                                    ->placed_at
-                                    ->format('g:i A')
-                                : $order
-                                    ->placed_at
-                                    ->format('M j, g:i A'),
-                        'url' => OrderResource::getUrl(
-                            'view',
-                            [
-                                'record' => $order,
-                            ],
-                        ),
-                    ],
-                )
-                ->values()
-                ->all(),
+    /**
+     * Convert one order model into its dashboard table representation.
+     *
+     * @return array{
+     *     number: string,
+     *     customer: string,
+     *     fulfillment: string,
+     *     total: string,
+     *     status: string,
+     *     status_tone: string,
+     *     time: string,
+     *     url: string
+     * }
+     */
+    private function presentOrder(Order $order): array
+    {
+        return [
+            'number' => $order->order_number
+                ?? 'Order #'.$order->id,
+
+            'customer' => $order->customer_name,
+
+            'fulfillment' => $order
+                ->fulfillment_method
+                ->label(),
+
+            'total' => $this->formatUsd(
+                $order->grand_total_cents,
+            ),
+
+            'status' => $order->status->label(),
+
+            'status_tone' => $this->statusTone(
+                $order->status,
+            ),
+
+            'time' => $order->placed_at->isToday()
+                ? $order->placed_at->format('g:i A')
+                : $order->placed_at->format(
+                    'M j, g:i A',
+                ),
+
+            'url' => OrderResource::getUrl(
+                'view',
+                [
+                    'record' => $order,
+                ],
+            ),
         ];
     }
 

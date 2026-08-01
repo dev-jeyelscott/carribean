@@ -145,17 +145,17 @@ final class DashboardAnalytics
             ->first();
 
         $revenueCents = (int) (
-            $row?->revenue_cents ?? 0
+            $row->revenue_cents ?? 0
         );
 
         $paidOrdersCount = (int) (
-            $row?->paid_orders_count ?? 0
+            $row->paid_orders_count ?? 0
         );
 
         return [
             'revenue_cents' => $revenueCents,
             'orders_count' => (int) (
-                $row?->orders_count ?? 0
+                $row->orders_count ?? 0
             ),
             'paid_orders_count' => $paidOrdersCount,
             'average_order_value_cents' => $paidOrdersCount > 0
@@ -165,10 +165,10 @@ final class DashboardAnalytics
                     )
                     : 0,
             'pending_count' => (int) (
-                $row?->pending_count ?? 0
+                $row->pending_count ?? 0
             ),
             'preparing_count' => (int) (
-                $row?->preparing_count ?? 0
+                $row->preparing_count ?? 0
             ),
         ];
     }
