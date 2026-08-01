@@ -2,16 +2,21 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\UsesDashboardPeriod;
+use App\Support\Dashboard\DashboardAnalytics;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 
 class FulfillmentMixPreviewChart extends ChartWidget
 {
+    use UsesDashboardPeriod;
+
     protected static ?int $sort = 6;
 
     protected static bool $isLazy = false;
 
-    protected ?string $heading = 'Orders by fulfillment';
+    protected ?string $heading =
+        'Orders by fulfillment';
 
     protected ?string $pollingInterval = null;
 
@@ -24,15 +29,18 @@ class FulfillmentMixPreviewChart extends ChartWidget
     ];
 
     /**
-     * Describe the fulfillment preview for non-visual consumption.
+     * Describe the selected reporting period.
      */
     public function getDescription(): ?string
     {
-        return 'Sample order mix: 22 pickup orders and 16 delivery orders.';
+        return sprintf(
+            'Pickup and delivery order mix for %s.',
+            $this->dashboardPeriod()->label(),
+        );
     }
 
     /**
-     * Supply static pickup and delivery values.
+     * Return live pickup and delivery counts.
      *
      * @return array{
      *     datasets: list<array<string, mixed>>,
@@ -41,11 +49,20 @@ class FulfillmentMixPreviewChart extends ChartWidget
      */
     protected function getData(): array
     {
+        $counts = app(
+            DashboardAnalytics::class,
+        )->fulfillmentCounts(
+            $this->dashboardPeriod(),
+        );
+
         return [
             'datasets' => [
                 [
                     'label' => 'Orders',
-                    'data' => [22, 16],
+                    'data' => [
+                        $counts['pickup'],
+                        $counts['delivery'],
+                    ],
                     'backgroundColor' => [
                         '#2a8a62',
                         '#e66e50',
@@ -66,7 +83,7 @@ class FulfillmentMixPreviewChart extends ChartWidget
     }
 
     /**
-     * Render the fulfillment mix as a Chart.js doughnut chart.
+     * Render the fulfillment mix as a doughnut chart.
      */
     protected function getType(): string
     {
@@ -74,7 +91,7 @@ class FulfillmentMixPreviewChart extends ChartWidget
     }
 
     /**
-     * Configure accessible, compact chart presentation.
+     * Configure compact responsive chart presentation.
      */
     protected function getOptions(): RawJs
     {

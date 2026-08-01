@@ -2,15 +2,20 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\UsesDashboardPeriod;
+use App\Support\Dashboard\DashboardAnalytics;
 use Filament\Widgets\Widget;
 
 class TopSellingItemsPreview extends Widget
 {
+    use UsesDashboardPeriod;
+
     protected static ?int $sort = 4;
 
     protected static bool $isLazy = false;
 
-    protected string $view = 'filament.widgets.top-selling-items-preview';
+    protected string $view =
+        'filament.widgets.top-selling-items-preview';
 
     protected int|string|array $columnSpan = [
         'default' => 1,
@@ -19,9 +24,10 @@ class TopSellingItemsPreview extends Widget
     ];
 
     /**
-     * Provide presentation-only menu performance rows.
+     * Return top-selling immutable order-item snapshots.
      *
      * @return array{
+     *     periodLabel: string,
      *     items: list<array{
      *         rank: string,
      *         name: string,
@@ -33,44 +39,86 @@ class TopSellingItemsPreview extends Widget
      */
     protected function getViewData(): array
     {
+        $period = $this->dashboardPeriod();
+
+        $items = app(
+            DashboardAnalytics::class,
+        )->topSellingItems($period);
+
         return [
-            'items' => [
-                [
-                    'rank' => '01',
-                    'name' => 'Coconut Curry Snapper',
-                    'orders' => '62 orders',
-                    'revenue' => '$2,842.00',
-                    'trend' => '↑ 18.4%',
-                ],
-                [
-                    'rank' => '02',
-                    'name' => 'Jerk Chicken',
-                    'orders' => '55 orders',
-                    'revenue' => '$2,365.00',
-                    'trend' => '↑ 14.1%',
-                ],
-                [
-                    'rank' => '03',
-                    'name' => 'Plantain Croquettes',
-                    'orders' => '47 orders',
-                    'revenue' => '$1,034.00',
-                    'trend' => '↑ 9.8%',
-                ],
-                [
-                    'rank' => '04',
-                    'name' => 'Dark Rum Cake',
-                    'orders' => '39 orders',
-                    'revenue' => '$936.00',
-                    'trend' => '↑ 6.3%',
-                ],
-                [
-                    'rank' => '05',
-                    'name' => 'Sorrel Cooler',
-                    'orders' => '35 orders',
-                    'revenue' => '$315.00',
-                    'trend' => '↑ 5.1%',
-                ],
-            ],
+            'periodLabel' => $period->label(),
+
+            'items' => array_values(
+                array_map(
+                    fn (
+                        array $item,
+                        int $index,
+                    ): array => [
+                        'rank' => str_pad(
+                            (string) ($index + 1),
+                            2,
+                            '0',
+                            STR_PAD_LEFT,
+                        ),
+                        'name' => $item['name'],
+                        'orders' => sprintf(
+                            '%s sold',
+                            number_format(
+                                $item['quantity_sold'],
+                            ),
+                        ),
+                        'revenue' => $this->formatUsd(
+                            $item['revenue_cents'],
+                        ),
+                        'trend' => $this->trendLabel(
+                            $item['change_percent'],
+                        ),
+                    ],
+                    $items,
+                    array_keys($items),
+                ),
+            ),
         ];
+    }
+
+    /**
+     * Format cents for ranking presentation.
+     */
+    private function formatUsd(int $cents): string
+    {
+        return '$'.number_format(
+            $cents / 100,
+            2,
+        );
+    }
+
+    /**
+     * Format the quantity change against the previous period.
+     */
+    private function trendLabel(
+        ?float $percentage,
+    ): string {
+        if ($percentage === null) {
+            return 'New';
+        }
+
+        if ($percentage > 0) {
+            return sprintf(
+                '↑ %s%%',
+                number_format($percentage, 1),
+            );
+        }
+
+        if ($percentage < 0) {
+            return sprintf(
+                '↓ %s%%',
+                number_format(
+                    abs($percentage),
+                    1,
+                ),
+            );
+        }
+
+        return 'No change';
     }
 }

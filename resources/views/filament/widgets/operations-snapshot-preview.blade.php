@@ -18,7 +18,7 @@
             </div>
 
             <span class="cc-dashboard-card__preview-label">
-                Preview
+                {{ $periodLabel }}
             </span>
         </header>
 

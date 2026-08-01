@@ -2,11 +2,15 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\UsesDashboardPeriod;
+use App\Support\Dashboard\DashboardAnalytics;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 
 class OrderStatusPreviewChart extends ChartWidget
 {
+    use UsesDashboardPeriod;
+
     protected static ?int $sort = 3;
 
     protected static bool $isLazy = false;
@@ -24,15 +28,18 @@ class OrderStatusPreviewChart extends ChartWidget
     ];
 
     /**
-     * Describe the chart values for users who cannot inspect the canvas.
+     * Describe the active reporting period.
      */
     public function getDescription(): ?string
     {
-        return 'Sample totals: 178 completed, 45 processing, 18 pending, and 15 cancelled.';
+        return sprintf(
+            'Order lifecycle distribution for %s.',
+            $this->dashboardPeriod()->label(),
+        );
     }
 
     /**
-     * Supply static status totals for the UI preview.
+     * Return live order-status totals.
      *
      * @return array{
      *     datasets: list<array<string, mixed>>,
@@ -41,11 +48,17 @@ class OrderStatusPreviewChart extends ChartWidget
      */
     protected function getData(): array
     {
+        $statusCounts = app(
+            DashboardAnalytics::class,
+        )->statusCounts(
+            $this->dashboardPeriod(),
+        );
+
         return [
             'datasets' => [
                 [
                     'label' => 'Orders',
-                    'data' => [178, 45, 18, 15],
+                    'data' => $statusCounts['data'],
                     'backgroundColor' => [
                         '#2a8a62',
                         '#f2c76b',
@@ -62,17 +75,12 @@ class OrderStatusPreviewChart extends ChartWidget
                     'hoverOffset' => 5,
                 ],
             ],
-            'labels' => [
-                'Completed',
-                'Processing',
-                'Pending',
-                'Cancelled',
-            ],
+            'labels' => $statusCounts['labels'],
         ];
     }
 
     /**
-     * Render the dataset as a Chart.js doughnut chart.
+     * Render the status distribution as a doughnut chart.
      */
     protected function getType(): string
     {
@@ -80,7 +88,7 @@ class OrderStatusPreviewChart extends ChartWidget
     }
 
     /**
-     * Configure compact responsive doughnut-chart presentation.
+     * Configure compact responsive doughnut presentation.
      */
     protected function getOptions(): RawJs
     {

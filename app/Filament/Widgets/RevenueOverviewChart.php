@@ -2,11 +2,15 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\UsesDashboardPeriod;
+use App\Support\Dashboard\DashboardAnalytics;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 
 class RevenueOverviewChart extends ChartWidget
 {
+    use UsesDashboardPeriod;
+
     protected static ?int $sort = 2;
 
     protected static bool $isLazy = false;
@@ -24,15 +28,21 @@ class RevenueOverviewChart extends ChartWidget
     ];
 
     /**
-     * Explain the temporary chart data in accessible text.
+     * Describe the selected and comparison periods.
      */
     public function getDescription(): ?string
     {
-        return 'Preview data comparing this week with the previous week.';
+        $period = $this->dashboardPeriod();
+
+        return sprintf(
+            'Paid revenue for %s compared with %s.',
+            $period->label(),
+            $period->previous()->label(),
+        );
     }
 
     /**
-     * Supply sample Chart.js line datasets without querying the database.
+     * Return paid revenue grouped by day.
      *
      * @return array{
      *     datasets: list<array<string, mixed>>,
@@ -41,11 +51,20 @@ class RevenueOverviewChart extends ChartWidget
      */
     protected function getData(): array
     {
+        $period = $this->dashboardPeriod();
+
+        $series = app(
+            DashboardAnalytics::class,
+        )->revenueSeries($period);
+
         return [
             'datasets' => [
                 [
-                    'label' => 'This week',
-                    'data' => [680, 995, 910, 1420, 1160, 1585, 1640],
+                    'label' => 'Selected period',
+                    'data' => array_map(
+                        static fn (int $cents): float => round($cents / 100, 2),
+                        $series['current'],
+                    ),
                     'borderColor' => '#5fc08a',
                     'backgroundColor' => 'rgba(95, 192, 138, 0.14)',
                     'pointBackgroundColor' => '#fff9f0',
@@ -58,8 +77,11 @@ class RevenueOverviewChart extends ChartWidget
                     'tension' => 0.38,
                 ],
                 [
-                    'label' => 'Previous week',
-                    'data' => [510, 690, 460, 925, 610, 720, 1320],
+                    'label' => 'Previous period',
+                    'data' => array_map(
+                        static fn (int $cents): float => round($cents / 100, 2),
+                        $series['previous'],
+                    ),
                     'borderColor' => '#b99b5b',
                     'backgroundColor' => 'transparent',
                     'pointRadius' => 0,
@@ -69,20 +91,12 @@ class RevenueOverviewChart extends ChartWidget
                     'tension' => 0.38,
                 ],
             ],
-            'labels' => [
-                'Monday',
-                'Tuesday',
-                'Wednesday',
-                'Thursday',
-                'Friday',
-                'Saturday',
-                'Sunday',
-            ],
+            'labels' => $series['labels'],
         ];
     }
 
     /**
-     * Render the dataset as a Chart.js line chart.
+     * Render the revenue dataset as a line chart.
      */
     protected function getType(): string
     {
@@ -90,7 +104,7 @@ class RevenueOverviewChart extends ChartWidget
     }
 
     /**
-     * Configure responsive Chart.js presentation and currency labels.
+     * Configure responsive presentation and USD formatting.
      */
     protected function getOptions(): RawJs
     {
@@ -126,8 +140,15 @@ class RevenueOverviewChart extends ChartWidget
                         callbacks: {
                             label: (context) => {
                                 const value = Number(context.raw ?? 0);
+                                const formatted = new Intl.NumberFormat(
+                                    'en-US',
+                                    {
+                                        style: 'currency',
+                                        currency: 'USD',
+                                    },
+                                ).format(value);
 
-                                return `${context.dataset.label}: $${value.toLocaleString()}`;
+                                return `${context.dataset.label}: ${formatted}`;
                             },
                         },
                     },
@@ -160,7 +181,16 @@ class RevenueOverviewChart extends ChartWidget
                         ticks: {
                             color: '#9fb3aa',
                             padding: 8,
-                            callback: (value) => `$${Number(value).toLocaleString()}`,
+                            callback: (value) => (
+                                new Intl.NumberFormat(
+                                    'en-US',
+                                    {
+                                        style: 'currency',
+                                        currency: 'USD',
+                                        maximumFractionDigits: 0,
+                                    },
+                                ).format(Number(value))
+                            ),
                             font: {
                                 size: 10,
                             },

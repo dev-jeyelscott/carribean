@@ -13,13 +13,13 @@
                 </p>
 
                 <p class="cc-dashboard-preview__copy">
-                    Operational dashboard layout using temporary presentation
-                    data.
+                    Paid revenue and placed-order activity from the existing
+                    transactional order records.
                 </p>
             </div>
 
-            <span class="cc-dashboard-preview__badge" role="note">
-                UI preview · Sample data
+            <span class="cc-dashboard-preview__badge" role="status">
+                Live data · {{ $periodLabel }}
             </span>
         </div>
 

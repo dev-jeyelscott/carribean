@@ -1,7 +1,6 @@
 <?php
 
 use App\Filament\Widgets\DashboardOverview;
-use App\Filament\Widgets\DashboardPreviewPrompt;
 use App\Filament\Widgets\FulfillmentMixPreviewChart;
 use App\Filament\Widgets\OperationsSnapshotPreview;
 use App\Filament\Widgets\OrderStatusPreviewChart;
@@ -15,91 +14,102 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     config()->set(
         'admin.seed_user.email',
-        'dashboard-preview-admin@example.test',
+        'dashboard-admin@example.test',
     );
 
     Filament::setCurrentPanel(
         Filament::getPanel('admin'),
     );
 
-    $this->actingAs(dashboardPresentationAdmin());
+    $this->actingAs(
+        dashboardPresentationAdmin(),
+    );
 });
 
-it('renders the branded analytics dashboard preview', function (): void {
+it('renders the live branded analytics dashboard', function (): void {
     $this->get('/admin')
         ->assertOk()
         ->assertSee('Dashboard')
         ->assertSee('Website overview')
-        ->assertSee('UI preview')
-        ->assertSee('Sample data');
+        ->assertSee('Filters')
+        ->assertSee('Live data')
+        ->assertDontSee('Sample data')
+        ->assertDontSee('UI preview');
 });
 
-it('renders the approved operational metric cards', function (): void {
+it('renders live operational metric cards', function (): void {
     Livewire::test(DashboardOverview::class)
-        ->assertSee('Revenue today')
-        ->assertSee('Orders today')
+        ->assertSee('Revenue in period')
+        ->assertSee('Orders in period')
         ->assertSee('Pending confirmation')
         ->assertSee('Preparing orders')
         ->assertSee('Average order value')
-        ->assertSee('UI preview');
+        ->assertSee('$0.00')
+        ->assertSee('Live data');
 });
 
-it('renders the Chart.js preview widgets', function (): void {
+it('renders the database-backed chart widgets', function (): void {
     Livewire::test(RevenueOverviewChart::class)
         ->assertSee('Revenue overview')
-        ->assertSee('Preview data');
+        ->assertSee('Paid revenue');
 
     Livewire::test(OrderStatusPreviewChart::class)
         ->assertSee('Orders by status')
-        ->assertSee('178 completed');
+        ->assertSee('Order lifecycle distribution');
 
     Livewire::test(FulfillmentMixPreviewChart::class)
         ->assertSee('Orders by fulfillment')
-        ->assertSee('22 pickup orders');
+        ->assertSee('Pickup and delivery order mix');
 });
 
-it('renders the preview tables and operational summaries', function (): void {
+it('renders live empty states and operational summaries', function (): void {
     Livewire::test(TopSellingItemsPreview::class)
         ->assertSee('Top-selling items')
-        ->assertSee('Coconut Curry Snapper');
+        ->assertSee('No paid item sales');
 
     Livewire::test(RecentOrdersPreview::class)
         ->assertSee('Recent orders')
-        ->assertSee('#ORD-10256')
-        ->assertSee('Maya Thompson');
+        ->assertSee(
+            'No orders were placed during this period.',
+        );
 
     Livewire::test(OperationsSnapshotPreview::class)
         ->assertSee('Operations snapshot')
         ->assertSee('Needs confirmation')
-        ->assertSee('Pickup share');
-
-    Livewire::test(DashboardPreviewPrompt::class)
-        ->assertSee('Analytics interface ready for integration')
-        ->assertSee('Data wiring next');
+        ->assertSee('Pickup share')
+        ->assertSee('0%');
 });
 
 it('loads the dedicated scoped dashboard stylesheet', function (): void {
     $adminEntryCss = file_get_contents(
-        resource_path('css/filament/admin/app.css'),
+        resource_path(
+            'css/filament/admin/app.css',
+        ),
     );
 
     $dashboardCss = file_get_contents(
-        resource_path('css/filament/admin/dashboard.css'),
+        resource_path(
+            'css/filament/admin/dashboard.css',
+        ),
     );
 
     expect($adminEntryCss)
-        ->toContain('@import "./dashboard.css";')
+        ->toContain(
+            '@import "./dashboard.css";',
+        )
         ->and($dashboardCss)
         ->toContain('.cc-dashboard-preview')
-        ->toContain(':has(.cc-dashboard-preview)');
+        ->toContain(
+            ':has(.cc-dashboard-preview)',
+        );
 });
 
 /**
- * Create the configured administrator for dashboard presentation tests.
+ * Create the configured administrator for dashboard tests.
  */
 function dashboardPresentationAdmin(): User
 {
     return User::factory()->create([
-        'email' => 'dashboard-preview-admin@example.test',
+        'email' => 'dashboard-admin@example.test',
     ]);
 }

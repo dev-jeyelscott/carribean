@@ -18,12 +18,12 @@
             </div>
 
             <span class="cc-dashboard-card__preview-label">
-                Preview
+                {{ $periodLabel }}
             </span>
         </header>
 
         <ol class="cc-dashboard-ranking">
-            @foreach ($items as $item)
+            @forelse ($items as $item)
                 <li class="cc-dashboard-ranking__item">
                     <span
                         class="cc-dashboard-ranking__rank"
@@ -42,7 +42,16 @@
                         <span>{{ $item['trend'] }}</span>
                     </div>
                 </li>
-            @endforeach
+            @empty
+                <li class="cc-dashboard-ranking__item">
+                    <div class="cc-dashboard-ranking__identity">
+                        <strong>No paid item sales</strong>
+                        <span>
+                            No recognized item revenue exists for this period.
+                        </span>
+                    </div>
+                </li>
+            @endforelse
         </ol>
     </section>
 </x-filament-widgets::widget>

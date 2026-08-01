@@ -18,19 +18,19 @@
             </div>
 
             <span class="cc-dashboard-card__preview-label">
-                Preview
+                {{ $periodLabel }}
             </span>
         </header>
 
         <div
             class="cc-dashboard-table-wrapper"
             tabindex="0"
-            aria-label="Scrollable sample recent-orders table"
+            aria-label="Scrollable recent-orders table"
         >
             <table class="cc-dashboard-table">
                 <caption class="sr-only">
-                    Sample recent restaurant orders. This table is not
-                    connected to operational data.
+                    Recent restaurant orders placed during
+                    {{ $periodLabel }}.
                 </caption>
 
                 <thead>
@@ -45,10 +45,14 @@
                 </thead>
 
                 <tbody>
-                    @foreach ($orders as $order)
+                    @forelse ($orders as $order)
                         <tr>
                             <td>
-                                <strong>{{ $order['number'] }}</strong>
+                                <strong>
+                                    <a href="{{ $order['url'] }}">
+                                        {{ $order['number'] }}
+                                    </a>
+                                </strong>
                             </td>
                             <td>{{ $order['customer'] }}</td>
                             <td>{{ $order['fulfillment'] }}</td>
@@ -63,7 +67,13 @@
                             </td>
                             <td>{{ $order['time'] }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6">
+                                No orders were placed during this period.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
