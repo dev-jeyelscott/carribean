@@ -136,20 +136,4 @@
             </div>
         </div>
     </div>
-
-    <a
-        href="#featured"
-        data-home-scroll-link
-        class="absolute bottom-7 left-5 z-10 inline-flex items-center gap-3
-            text-[0.68rem] font-semibold uppercase tracking-[0.18em]
-            text-white/80 transition hover:text-white sm:left-6 lg:left-10">
-        <span
-            class="flex h-10 w-6 items-start justify-center rounded-full
-                border border-white/45 pt-2"
-            aria-hidden="true">
-            <span class="block size-1.5 rounded-full bg-coral"></span>
-        </span>
-
-        Scroll
-    </a>
 </section>
