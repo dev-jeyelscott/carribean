@@ -33,7 +33,10 @@ if (document.querySelector("[data-reveal]")) {
             initPublicReveals();
         })
         .catch((error) => {
-            console.error("Unable to initialize public reveals.", error);
+            console.error(
+                "Unable to initialize public reveals.",
+                error,
+            );
         });
 }
 
@@ -48,7 +51,9 @@ const publicPageMotionRoot = document.querySelector(
 if (publicPageMotionRoot) {
     import("./public-page-experience")
         .then(({ initPublicPageExperience }) => {
-            initPublicPageExperience(publicPageMotionRoot);
+            initPublicPageExperience(
+                publicPageMotionRoot,
+            );
         })
         .catch((error) => {
             console.error(
@@ -69,20 +74,33 @@ const publicMotionRoot = document.querySelector(
 if (publicMotionRoot) {
     import("./public-animations")
         .then(({ initPublicAnimations }) => {
-            initPublicAnimations(publicMotionRoot);
+            initPublicAnimations(
+                publicMotionRoot,
+            );
         })
         .catch((error) => {
-            console.error("Unable to initialize public animations.", error);
+            console.error(
+                "Unable to initialize public animations.",
+                error,
+            );
         });
 }
 
-const homepagePagerRoot = document.querySelector("[data-home-section-pager]");
+const homepagePagerRoot = document.querySelector(
+    "[data-home-section-pager]",
+);
 
 if (homepagePagerRoot) {
     import("./homepage-section-navigation")
-        .then(({ initHomepageSectionNavigation }) => {
-            initHomepageSectionNavigation(homepagePagerRoot);
-        })
+        .then(
+            ({
+                initHomepageSectionNavigation,
+            }) => {
+                initHomepageSectionNavigation(
+                    homepagePagerRoot,
+                );
+            },
+        )
         .catch((error) => {
             console.error(
                 "Unable to initialize homepage section navigation.",
@@ -91,7 +109,9 @@ if (homepagePagerRoot) {
         });
 }
 
-const menuPageRoot = document.querySelector("[data-menu-page]");
+const menuPageRoot = document.querySelector(
+    "[data-menu-page]",
+);
 
 if (menuPageRoot) {
     import("./menu-experience")
@@ -99,12 +119,17 @@ if (menuPageRoot) {
             initMenuExperience(menuPageRoot);
         })
         .catch((error) => {
-            console.error("Unable to initialize the menu experience.", error);
+            console.error(
+                "Unable to initialize the menu experience.",
+                error,
+            );
         });
 
     import("./menu-category-scroll")
         .then(({ initMenuCategoryScroll }) => {
-            initMenuCategoryScroll(menuPageRoot);
+            initMenuCategoryScroll(
+                menuPageRoot,
+            );
         })
         .catch((error) => {
             console.error(
@@ -114,12 +139,16 @@ if (menuPageRoot) {
         });
 }
 
-const aboutPageRoot = document.querySelector("[data-about-page]");
+const aboutPageRoot = document.querySelector(
+    "[data-about-page]",
+);
 
 if (aboutPageRoot) {
     import("./about-experience")
         .then(({ initAboutExperience }) => {
-            initAboutExperience(aboutPageRoot);
+            initAboutExperience(
+                aboutPageRoot,
+            );
         })
         .catch((error) => {
             console.error(
@@ -129,12 +158,16 @@ if (aboutPageRoot) {
         });
 }
 
-const contactPageRoot = document.querySelector("[data-contact-page]");
+const contactPageRoot = document.querySelector(
+    "[data-contact-page]",
+);
 
 if (contactPageRoot) {
     import("./contact-experience")
         .then(({ initContactExperience }) => {
-            initContactExperience(contactPageRoot);
+            initContactExperience(
+                contactPageRoot,
+            );
         })
         .catch((error) => {
             console.error(
@@ -144,17 +177,9 @@ if (contactPageRoot) {
         });
 }
 
-const galleryPageRoot = document.querySelector("[data-gallery-page]");
-
-if (galleryPageRoot) {
-    import("./gallery-experience")
-        .then(({ initGalleryExperience }) => {
-            initGalleryExperience(galleryPageRoot);
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize the Gallery page experience.",
-                error,
-            );
-        });
-}
+/*
+ * Gallery initialization intentionally does not belong here.
+ *
+ * The Gallery route loads resources/js/gallery-page.js as a dedicated Vite
+ * entry, preventing duplicate ScrollTriggers and asynchronous chunk failures.
+ */

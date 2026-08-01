@@ -1,6 +1,6 @@
-import gsap from "gsap";
+import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { gallerySectionScrollTriggerConfig } from "./section-scroll-trigger-config";
+import { gallerySectionScrollTriggerConfig } from "./section-scroll-trigger-config.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,7 +14,87 @@ const {
 const dialogCloseDuration = 220;
 
 /**
- * Populate the shared dialog from one server-rendered gallery link.
+ * Return every valid Gallery panel in document order.
+ */
+function getGalleryPanels(root) {
+    return [
+        ...root.querySelectorAll("[data-gallery-panel]"),
+    ].filter(
+        (panel) =>
+            panel instanceof HTMLElement
+            && panel.id !== "",
+    );
+}
+
+/**
+ * Set the Gallery runtime state for browser diagnostics.
+ */
+function setGalleryMotionState(root, state) {
+    root.dataset.galleryMotionState = state;
+}
+
+/**
+ * Remove Gallery-owned ScrollTriggers left by an earlier initialization.
+ */
+function killExistingGalleryTriggers() {
+    ScrollTrigger
+        .getAll()
+        .filter((trigger) => {
+            const id = trigger.vars.id;
+
+            return typeof id === "string"
+                && id.startsWith("gallery-");
+        })
+        .forEach((trigger) => {
+            trigger.kill();
+        });
+}
+
+/**
+ * Expose the number of active Gallery ScrollTriggers for diagnostics and tests.
+ */
+function updateGalleryTriggerCount(root) {
+    const triggerCount = ScrollTrigger
+        .getAll()
+        .filter((trigger) => {
+            const id = trigger.vars.id;
+
+            return typeof id === "string"
+                && id.startsWith("gallery-");
+        })
+        .length;
+
+    root.dataset.galleryTriggerCount =
+        String(triggerCount);
+}
+
+/**
+ * Mark one Gallery panel as the active section.
+ */
+function setActiveGalleryPanel(
+    root,
+    panels,
+    activePanel,
+) {
+    if (!(activePanel instanceof HTMLElement)) {
+        return;
+    }
+
+    root.dataset.galleryActiveSection =
+        activePanel.id;
+
+    panels.forEach((panel) => {
+        panel.setAttribute(
+            "data-gallery-active",
+            panel === activePanel
+                ? "true"
+                : "false",
+        );
+    });
+}
+
+/**
+ * Populate the shared lightbox from one server-rendered Gallery link.
  */
 function setDialogContent(dialog, opener) {
     const image = dialog.querySelector(
@@ -33,7 +113,8 @@ function setDialogContent(dialog, opener) {
         return;
     }
 
-    dialog.dataset.galleryImageState = "loading";
+    dialog.dataset.galleryImageState =
+        "loading";
 
     image.src =
         opener.dataset.gallerySrc
@@ -64,16 +145,26 @@ function setDialogContent(dialog, opener) {
             ?? "Coast & Cay";
     }
 
-    if (image.complete) {
+    if (
+        image.complete
+        && image.naturalWidth > 0
+    ) {
         dialog.dataset.galleryImageState =
             "loaded";
     }
 }
 
 /**
- * Initialize the native dialog viewer, keyboard controls, and focus return.
+ * Initialize the native lightbox while retaining normal anchor fallbacks.
  */
 function initializeGalleryDialog(root) {
+    if (
+        typeof HTMLDialogElement
+        === "undefined"
+    ) {
+        return () => {};
+    }
+
     const dialog = root.querySelector(
         "[data-gallery-dialog]",
     );
@@ -111,7 +202,7 @@ function initializeGalleryDialog(root) {
     let closeTimer = null;
 
     /**
-     * Render one image and wrap navigation inside the current result page.
+     * Display one Gallery image and wrap navigation at either end.
      */
     const showImage = (requestedIndex) => {
         activeIndex =
@@ -128,7 +219,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Open the lightbox and retain the element that should regain focus.
+     * Open the lightbox and remember where focus should return.
      */
     const openDialog = (opener) => {
         const openerIndex =
@@ -173,7 +264,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Complete dialog closure after the CSS exit transition.
+     * Finish closing the dialog and cancel any pending timer.
      */
     const finalizeClose = () => {
         if (closeTimer !== null) {
@@ -187,7 +278,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Close immediately for reduced-motion users or animate the normal exit.
+     * Close immediately for reduced motion or use the CSS exit transition.
      */
     const closeDialog = () => {
         if (
@@ -199,11 +290,12 @@ function initializeGalleryDialog(root) {
             return;
         }
 
-        if (
+        const reducedMotion =
             window.matchMedia(
                 mediaQueries.reducedMotion,
-            ).matches
-        ) {
+            ).matches;
+
+        if (reducedMotion) {
             finalizeClose();
 
             return;
@@ -218,7 +310,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Intercept image links while retaining their non-JavaScript fallback URL.
+     * Intercept Gallery links only when the native lightbox is available.
      */
     const handleRootClick = (event) => {
         const target =
@@ -244,7 +336,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Handle close, previous, next, and backdrop interactions.
+     * Handle close, backdrop, previous, and next interactions.
      */
     const handleDialogClick = (event) => {
         if (event.target === dialog) {
@@ -264,13 +356,21 @@ function initializeGalleryDialog(root) {
             )
         ) {
             closeDialog();
-        } else if (
+
+            return;
+        }
+
+        if (
             target?.closest(
                 "[data-gallery-previous]",
             )
         ) {
             showImage(activeIndex - 1);
-        } else if (
+
+            return;
+        }
+
+        if (
             target?.closest(
                 "[data-gallery-next]",
             )
@@ -280,7 +380,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Keep Escape-to-close while allowing the exit transition to finish.
+     * Preserve an animated Escape close rather than closing immediately.
      */
     const handleDialogCancel = (event) => {
         event.preventDefault();
@@ -288,22 +388,22 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Support arrow-key image navigation.
+     * Support arrow-key navigation inside the lightbox.
      */
     const handleDialogKeydown = (event) => {
         if (event.key === "ArrowLeft") {
             event.preventDefault();
             showImage(activeIndex - 1);
-        } else if (
-            event.key === "ArrowRight"
-        ) {
+        }
+
+        if (event.key === "ArrowRight") {
             event.preventDefault();
             showImage(activeIndex + 1);
         }
     };
 
     /**
-     * Reveal the full-size image after loading completes.
+     * Reveal the full-size image after loading finishes.
      */
     const handleImageLoad = () => {
         dialog.dataset.galleryImageState =
@@ -311,7 +411,7 @@ function initializeGalleryDialog(root) {
     };
 
     /**
-     * Restore focus and reset temporary dialog media after closure.
+     * Restore focus and release the loaded image after closure.
      */
     const handleDialogClose = () => {
         dialog.classList.remove("is-closing");
@@ -414,63 +514,12 @@ function initializeGalleryDialog(root) {
 }
 
 /**
- * Return every valid Gallery panel in document order.
+ * Animate the Gallery hero immediately after the page runtime loads.
  */
-function getPanels(root) {
-    return [
-        ...root.querySelectorAll(
-            "[data-gallery-panel]",
-        ),
-    ].filter(
-        (panel) =>
-            panel instanceof HTMLElement
-            && panel.id,
-    );
-}
-
-/**
- * Mark one Gallery panel as active for diagnostics and future navigation UI.
- */
-function setActivePanel(root, panels, activePanel) {
-    if (!(activePanel instanceof HTMLElement)) {
-        return;
-    }
-
-    root.dataset.galleryActiveSection =
-        activePanel.id;
-
-    panels.forEach((panel) => {
-        panel.setAttribute(
-            "data-gallery-active",
-            panel === activePanel
-                ? "true"
-                : "false",
-        );
-    });
-}
-
-/**
- * Count Gallery-specific ScrollTriggers for browser diagnostics.
- */
-function updateGalleryTriggerCount(root) {
-    const triggerCount = ScrollTrigger
-        .getAll()
-        .filter((trigger) => {
-            const id = trigger.vars.id;
-
-            return typeof id === "string"
-                && id.startsWith("gallery-");
-        })
-        .length;
-
-    root.dataset.galleryTriggerCount =
-        String(triggerCount);
-}
-
-/**
- * Animate the Gallery hero immediately without making readable content depend on scroll.
- */
-function initializeHero(root, showMarkers) {
+function initializeGalleryHero(
+    root,
+    showMarkers,
+) {
     const hero = root.querySelector(
         "#gallery-hero",
     );
@@ -504,8 +553,7 @@ function initializeHero(root, showMarkers) {
             ease: "power4.out",
         },
         onComplete: () => {
-            hero.dataset
-                .galleryAnimationState =
+            hero.dataset.galleryAnimationState =
                 "complete";
         },
     });
@@ -517,10 +565,10 @@ function initializeHero(root, showMarkers) {
         timeline.fromTo(
             heroImage,
             {
-                scale: 1.06,
+                scale: 1.065,
             },
             {
-                duration: 1.55,
+                duration: 1.45,
                 scale: 1,
             },
             0,
@@ -532,12 +580,12 @@ function initializeHero(root, showMarkers) {
             copyTargets,
             {
                 autoAlpha: 0,
-                y: 34,
+                y: 36,
             },
             {
                 autoAlpha: 1,
-                duration: 0.95,
-                stagger: 0.1,
+                duration: 0.9,
+                stagger: 0.09,
                 y: 0,
             },
             0.08,
@@ -549,12 +597,17 @@ function initializeHero(root, showMarkers) {
             stackCards,
             {
                 autoAlpha: 0,
-                y: 72,
+                rotation: (index) =>
+                    index % 2 === 0
+                        ? 2
+                        : -2,
+                y: 68,
             },
             {
                 autoAlpha: 1,
-                duration: 1.05,
-                stagger: 0.12,
+                duration: 1,
+                rotation: 0,
+                stagger: 0.11,
                 y: 0,
             },
             0.2,
@@ -588,38 +641,19 @@ function initializeHero(root, showMarkers) {
 }
 
 /**
- * Create one one-time ScrollTrigger reveal timeline for a non-hero panel.
+ * Reveal the headings and supporting copy belonging to one Gallery panel.
  */
 function initializePanelReveal(
     panel,
     showMarkers,
 ) {
-    const revealTargets = [
+    const targets = [
         ...panel.querySelectorAll(
             "[data-gallery-reveal]",
         ),
     ];
 
-    const itemTargets = [
-        ...panel.querySelectorAll(
-            "[data-gallery-item]",
-        ),
-    ];
-
-    const itemImages = itemTargets
-        .map((item) =>
-            item.querySelector("img"),
-        )
-        .filter(
-            (image) =>
-                image
-                instanceof HTMLImageElement,
-        );
-
-    if (
-        revealTargets.length === 0
-        && itemTargets.length === 0
-    ) {
+    if (targets.length === 0) {
         panel.dataset.galleryAnimationState =
             "complete";
 
@@ -629,83 +663,118 @@ function initializePanelReveal(
     panel.dataset.galleryAnimationState =
         "pending";
 
-    const timeline = gsap.timeline({
+    gsap.timeline({
         scrollTrigger: {
-            id:
-                `gallery-reveal-${panel.id}`,
+            id: `gallery-reveal-${panel.id}`,
             trigger: panel,
             ...reveal.trigger,
             once: true,
             markers: showMarkers,
         },
         onStart: () => {
-            panel.dataset
-                .galleryAnimationState =
+            panel.dataset.galleryAnimationState =
                 "active";
         },
         onComplete: () => {
-            panel.dataset
-                .galleryAnimationState =
+            panel.dataset.galleryAnimationState =
                 "complete";
         },
-    });
+    }).fromTo(
+        targets,
+        {
+            autoAlpha: 0,
+            y: reveal.distance,
+        },
+        {
+            autoAlpha: 1,
+            duration: reveal.duration,
+            ease: reveal.ease,
+            stagger: reveal.stagger,
+            y: 0,
+        },
+    );
+}
 
-    if (revealTargets.length > 0) {
+/**
+ * Give each contact-sheet card its own viewport-based ScrollTrigger.
+ */
+function initializeGalleryItems(
+    root,
+    showMarkers,
+) {
+    const galleryItems = [
+        ...root.querySelectorAll(
+            "[data-gallery-item]",
+        ),
+    ].filter(
+        (item) =>
+            item instanceof HTMLElement,
+    );
+
+    galleryItems.forEach((item, index) => {
+        const image = item.querySelector("img");
+
+        item.dataset.galleryItemState =
+            "pending";
+
+        const timeline = gsap.timeline({
+            scrollTrigger: {
+                id: `gallery-item-${index + 1}`,
+                trigger: item,
+                start: "top 86%",
+                end: "bottom 18%",
+                once: true,
+                invalidateOnRefresh: true,
+                markers: showMarkers,
+            },
+            onStart: () => {
+                item.dataset.galleryItemState =
+                    "active";
+            },
+            onComplete: () => {
+                item.dataset.galleryItemState =
+                    "complete";
+            },
+        });
+
         timeline.fromTo(
-            revealTargets,
+            item,
             {
                 autoAlpha: 0,
-                y: reveal.distance,
+                y: reveal.distance + 10,
             },
             {
                 autoAlpha: 1,
                 duration: reveal.duration,
                 ease: reveal.ease,
-                stagger: reveal.stagger,
                 y: 0,
             },
             0,
         );
-    }
 
-    if (itemTargets.length > 0) {
-        timeline.fromTo(
-            itemTargets,
-            {
-                autoAlpha: 0,
-                y: reveal.distance + 6,
-            },
-            {
-                autoAlpha: 1,
-                duration: reveal.duration,
-                ease: reveal.ease,
-                stagger: reveal.stagger,
-                y: 0,
-            },
-            0.08,
-        );
-    }
-
-    if (itemImages.length > 0) {
-        timeline.fromTo(
-            itemImages,
-            {
-                scale: 1.045,
-            },
-            {
-                duration:
-                    reveal.duration + 0.15,
-                ease: reveal.ease,
-                scale: 1,
-                stagger: reveal.stagger,
-            },
-            0.08,
-        );
-    }
+        if (
+            image
+            instanceof HTMLImageElement
+        ) {
+            timeline.fromTo(
+                image,
+                {
+                    scale: 1.055,
+                },
+                {
+                    duration:
+                        reveal.duration + 0.18,
+                    ease: reveal.ease,
+                    scale: 1,
+                },
+                0,
+            );
+        }
+    });
 }
 
 /**
- * Track the panel crossing the viewport center.
+ * Track the Gallery section crossing the center of the viewport.
  */
 function initializeSectionTracking(
     root,
@@ -719,14 +788,14 @@ function initializeSectionTracking(
             ...tracking.trigger,
             markers: showMarkers,
             onEnter: () => {
-                setActivePanel(
+                setActiveGalleryPanel(
                     root,
                     panels,
                     panel,
                 );
             },
             onEnterBack: () => {
-                setActivePanel(
+                setActiveGalleryPanel(
                     root,
                     panels,
                     panel,
@@ -737,9 +806,12 @@ function initializeSectionTracking(
 }
 
 /**
- * Add restrained shared depth motion to marked Gallery backgrounds.
+ * Add restrained desktop-only depth motion to marked backgrounds.
  */
-function initializeDepth(root, showMarkers) {
+function initializeGalleryDepth(
+    root,
+    showMarkers,
+) {
     root.querySelectorAll(
         "[data-gallery-depth]",
     ).forEach((container, index) => {
@@ -778,21 +850,23 @@ function initializeDepth(root, showMarkers) {
 }
 
 /**
- * Restore every Gallery target to its final readable reduced-motion state.
+ * Restore all Gallery targets to readable final states for reduced motion.
  */
 function setReducedMotionState(
     root,
     panels,
 ) {
+    const targets = root.querySelectorAll(
+        [
+            "[data-gallery-reveal]",
+            "[data-gallery-stack-card]",
+            "[data-gallery-item]",
+            "[data-gallery-panel] img",
+        ].join(", "),
+    );
+
     gsap.set(
-        root.querySelectorAll(
-            [
-                "[data-gallery-reveal]",
-                "[data-gallery-stack-card]",
-                "[data-gallery-item]",
-                "[data-gallery-panel] img",
-            ].join(", "),
-        ),
+        targets,
         {
             autoAlpha: 1,
             clearProps:
@@ -806,43 +880,64 @@ function setReducedMotionState(
             "complete";
     });
 
-    root.dataset.galleryMotionState =
-        "reduced";
+    root.querySelectorAll(
+        "[data-gallery-item]",
+    ).forEach((item) => {
+        if (item instanceof HTMLElement) {
+            item.dataset.galleryItemState =
+                "complete";
+        }
+    });
+
+    setGalleryMotionState(
+        root,
+        "reduced",
+    );
 }
 
 /**
- * Refresh ScrollTrigger after layout-affecting resources settle.
+ * Refresh ScrollTrigger when fonts or responsive images affect layout.
  */
 function createRefreshLifecycle(root) {
     let disposed = false;
+    let refreshFrame = null;
 
-    const refresh = () => {
+    /**
+     * Queue one refresh on the next browser animation frame.
+     */
+    const queueRefresh = () => {
         if (disposed) {
             return;
         }
 
-        ScrollTrigger.refresh();
-        updateGalleryTriggerCount(root);
-    };
+        if (refreshFrame !== null) {
+            window.cancelAnimationFrame(
+                refreshFrame,
+            );
+        }
 
-    const refreshFrame =
-        window.requestAnimationFrame(refresh);
+        refreshFrame =
+            window.requestAnimationFrame(() => {
+                refreshFrame = null;
 
-    const handleWindowLoad = () => {
-        refresh();
+                ScrollTrigger.refresh();
+                updateGalleryTriggerCount(root);
+            });
     };
 
     window.addEventListener(
         "load",
-        handleWindowLoad,
+        queueRefresh,
         {
             once: true,
         },
     );
 
-    document.fonts?.ready
-        ?.then(refresh)
-        .catch(() => {});
+    if (document.fonts?.ready) {
+        document.fonts.ready
+            .then(queueRefresh)
+            .catch(() => {});
+    }
 
     const pendingImages = [
         ...root.querySelectorAll("img"),
@@ -855,7 +950,7 @@ function createRefreshLifecycle(root) {
     pendingImages.forEach((image) => {
         image.addEventListener(
             "load",
-            refresh,
+            queueRefresh,
             {
                 once: true,
             },
@@ -863,60 +958,85 @@ function createRefreshLifecycle(root) {
 
         image.addEventListener(
             "error",
-            refresh,
+            queueRefresh,
             {
                 once: true,
             },
         );
     });
 
+    queueRefresh();
+
     return () => {
         disposed = true;
 
-        window.cancelAnimationFrame(
-            refreshFrame,
-        );
+        if (refreshFrame !== null) {
+            window.cancelAnimationFrame(
+                refreshFrame,
+            );
+        }
 
         window.removeEventListener(
             "load",
-            handleWindowLoad,
+            queueRefresh,
         );
 
         pendingImages.forEach((image) => {
             image.removeEventListener(
                 "load",
-                refresh,
+                queueRefresh,
             );
 
             image.removeEventListener(
                 "error",
-                refresh,
+                queueRefresh,
             );
         });
     };
 }
 
 /**
- * Initialize the complete Gallery ScrollTrigger system.
+ * Initialize the complete Gallery ScrollTrigger experience.
  */
 function initializeGalleryMotion(root) {
-    const panels = getPanels(root);
+    const panels = getGalleryPanels(root);
 
     if (panels.length === 0) {
-        root.dataset.galleryMotionState =
-            "unavailable";
+        setGalleryMotionState(
+            root,
+            "unavailable",
+        );
 
         return () => {};
     }
 
-    const showMarkers = new URLSearchParams(
-        window.location.search,
-    ).has("debug-scroll");
+    killExistingGalleryTriggers();
 
-    setActivePanel(
+    setGalleryMotionState(
+        root,
+        "initializing",
+    );
+
+    setActiveGalleryPanel(
         root,
         panels,
         panels[0],
+    );
+
+    const showMarkers =
+        new URLSearchParams(
+            window.location.search,
+        ).has("debug-scroll");
+
+    ScrollTrigger.saveStyles(
+        root.querySelectorAll(
+            [
+                "[data-gallery-reveal]",
+                "[data-gallery-stack-card]",
+                "[data-gallery-item]",
+                "[data-gallery-panel] img",
+            ].join(", "),
+        ),
     );
 
     const media = gsap.matchMedia();
@@ -933,72 +1053,77 @@ function initializeGalleryMotion(root) {
         (mediaContext) => {
             const {
                 desktop = false,
+                motionAllowed = true,
                 reducedMotion = false,
             } = mediaContext.conditions ?? {};
+
+            initializeSectionTracking(
+                root,
+                panels,
+                showMarkers,
+            );
+
+            if (
+                reducedMotion
+                || !motionAllowed
+            ) {
+                setReducedMotionState(
+                    root,
+                    panels,
+                );
+
+                updateGalleryTriggerCount(root);
+
+                return () => {};
+            }
+
+            initializeGalleryHero(
+                root,
+                showMarkers,
+            );
+
+            panels
+                .slice(1)
+                .forEach((panel) => {
+                    initializePanelReveal(
+                        panel,
+                        showMarkers,
+                    );
+                });
+
+            initializeGalleryItems(
+                root,
+                showMarkers,
+            );
+
+            if (desktop) {
+                initializeGalleryDepth(
+                    root,
+                    showMarkers,
+                );
+            }
+
+            setGalleryMotionState(
+                root,
+                "ready",
+            );
 
             const cleanupRefresh =
                 createRefreshLifecycle(root);
 
-            const animationContext =
-                gsap.context(() => {
-                    initializeSectionTracking(
-                        root,
-                        panels,
-                        showMarkers,
-                    );
-
-                    if (reducedMotion) {
-                        setReducedMotionState(
-                            root,
-                            panels,
-                        );
-
-                        return;
-                    }
-
-                    initializeHero(
-                        root,
-                        showMarkers,
-                    );
-
-                    panels
-                        .slice(1)
-                        .forEach((panel) => {
-                            initializePanelReveal(
-                                panel,
-                                showMarkers,
-                            );
-                        });
-
-                    if (desktop) {
-                        initializeDepth(
-                            root,
-                            showMarkers,
-                        );
-                    }
-
-                    root.dataset
-                        .galleryMotionState =
-                        "ready";
-                }, root);
-
             updateGalleryTriggerCount(root);
 
-            return () => {
-                cleanupRefresh();
-                animationContext.revert();
-            };
+            return cleanupRefresh;
         },
     );
 
     return () => {
         media.revert();
 
-        delete root.dataset
-            .galleryTriggerCount;
+        killExistingGalleryTriggers();
 
         delete root.dataset
-            .galleryMotionState;
+            .galleryTriggerCount;
 
         delete root.dataset
             .galleryActiveSection;
@@ -1010,6 +1135,14 @@ function initializeGalleryMotion(root) {
 
             panel.removeAttribute(
                 "data-gallery-animation-state",
+            );
+        });
+
+        root.querySelectorAll(
+            "[data-gallery-item]",
+        ).forEach((item) => {
+            item.removeAttribute(
+                "data-gallery-item-state",
             );
         });
     };
@@ -1027,12 +1160,15 @@ export function initGalleryExperience(
         return () => {};
     }
 
-    const cleanupDialog =
-        initializeGalleryDialog(root);
-
     const cleanupMotion =
         initializeGalleryMotion(root);
 
+    const cleanupDialog =
+        initializeGalleryDialog(root);
+
+    /**
+     * Clean up every Gallery-owned listener, tween, and ScrollTrigger.
+     */
     const cleanup = () => {
         cleanupDialog();
         cleanupMotion();

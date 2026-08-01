@@ -27,6 +27,25 @@
     $headerUsesTransparentSurface = is_bool($headerTransparent)
         ? $headerTransparent
         : true;
+
+    /*
+     * Start with the shared public assets used by every public route.
+     */
+    $viteEntries = [
+        'resources/css/public.css',
+        'resources/css/public-header.css',
+        'resources/js/app.js',
+    ];
+
+    /*
+     * Load the dedicated Gallery runtime only for the Gallery route.
+     *
+     * This removes Gallery's dependency on the asynchronous import inside the
+     * shared application bootstrap and keeps GSAP page-scoped.
+     */
+    if (request()->routeIs('gallery')) {
+        $viteEntries[] = 'resources/js/gallery-page.js';
+    }
 @endphp
 
 <!DOCTYPE html>
@@ -51,11 +70,7 @@
             :data="$structuredData" />
     @endif
 
-    @vite([
-        'resources/css/public.css',
-        'resources/css/public-header.css',
-        'resources/js/app.js',
-    ])
+    @vite($viteEntries)
 
     @livewireStyles
 </head>

@@ -12,6 +12,12 @@ export default defineConfig({
                 "resources/css/public-header.css",
                 "resources/css/filament/admin/app.css",
                 "resources/js/app.js",
+
+                /*
+                 * Gallery owns a dedicated entry so its GSAP and ScrollTrigger
+                 * runtime loads only on the Gallery route.
+                 */
+                "resources/js/gallery-page.js",
             ],
             refresh: true,
             fonts: [
@@ -25,8 +31,12 @@ export default defineConfig({
     server: {
         cors: true,
         watch: {
-            ignored: ["**/storage/framework/views/**"],
+            ignored: [
+                "**/storage/framework/views/**",
+            ],
         },
-        allowedHosts: ["unsworn-stock-naturist.ngrok-free.dev"],
+        allowedHosts: [
+            "unsworn-stock-naturist.ngrok-free.dev",
+        ],
     },
 });
