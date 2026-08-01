@@ -16,7 +16,7 @@ test('homepage featured menu uses a balanced three-card layout', function (): vo
         ->not->toContain('->take(4)');
 });
 
-test('homepage hero keeps its scroll control without the visible section pager', function (): void {
+test('homepage hero omits the retired scroll indicator and visible section pager', function (): void {
     $homepageHero = File::get(
         resource_path(
             'views/components/public/homepage-hero.blade.php',
@@ -24,16 +24,8 @@ test('homepage hero keeps its scroll control without the visible section pager',
     );
 
     expect($homepageHero)
-        /*
-         * Keep the accessible control that moves visitors to the next
-         * homepage section.
-         */
-        ->toContain('data-home-scroll-link')
-        ->toContain('href="#featured"')
-        ->toContain('Scroll')
-        /*
-         * The retired right-side text navigation must not return.
-         */
+        ->not->toContain('data-home-scroll-link')
+        ->not->toContain('href="#featured"')
         ->not->toContain('<x-public.section-pager')
         ->not->toContain('label="Homepage sections"')
         ->not->toContain('context="home"')

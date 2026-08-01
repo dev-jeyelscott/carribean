@@ -1,18 +1,18 @@
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { homepageSectionScrollTriggerConfig } from "./section-scroll-trigger-config";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
-const desktopQuery = "(min-width: 1024px) and (pointer: fine)";
-const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-const shortViewportQuery = "(max-height: 719px)";
-
-const wheelActivationThreshold = 8;
-const wheelGestureReleaseDelay = 140;
-const sectionTransitionDuration = 0.48;
-const sectionRevealDuration = 0.9;
-const sectionRevealStagger = 0.09;
+const {
+    depth,
+    media: mediaQueries,
+    navigation,
+    reveal,
+    tracking,
+    wheel,
+} = homepageSectionScrollTriggerConfig;
 
 /**
  * Return every valid top-level homepage panel in document order.
@@ -167,20 +167,20 @@ function createPanelReveal(panel, immediate = false) {
 
     gsap.set(targets, {
         autoAlpha: 0,
-        y: 34,
+        y: reveal.distance,
     });
 
     const timeline = gsap.timeline({
         paused: true,
         defaults: {
-            duration: sectionRevealDuration,
-            ease: "power3.out",
+            duration: reveal.duration,
+            ease: reveal.ease,
         },
     });
 
     timeline.to(targets, {
         autoAlpha: 1,
-        stagger: sectionRevealStagger,
+        stagger: reveal.stagger,
         y: 0,
     });
 
@@ -209,9 +209,7 @@ function createPanelReveal(panel, immediate = false) {
     const trigger = ScrollTrigger.create({
         id: `home-reveal-${panel.id}`,
         trigger: panel,
-        start: "top 76%",
-        end: "bottom 24%",
-        invalidateOnRefresh: true,
+        ...reveal.trigger,
         onEnter: play,
         onEnterBack: play,
     });
@@ -250,20 +248,14 @@ function initializeStoryDepth(
     const tween = gsap.fromTo(
         image,
         {
-            scale: 1.06,
-            yPercent: -2,
+            ...depth.from,
         },
         {
-            ease: "none",
-            scale: 1.02,
-            yPercent: 2,
+            ...depth.to,
             scrollTrigger: {
                 id: "home-story-depth",
                 trigger: story,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: true,
-                invalidateOnRefresh: true,
+                ...depth.trigger,
             },
         },
     );
@@ -275,7 +267,7 @@ function initializeStoryDepth(
 }
 
 /**
- * Bind explicit homepage links such as the hero Scroll control.
+ * Bind explicit homepage links such as a hero Scroll control.
  */
 function bindScrollLinks(root, reducedMotion) {
     const cleanupCallbacks = [];
@@ -312,8 +304,8 @@ function bindScrollLinks(root, reducedMotion) {
                 }
 
                 gsap.to(window, {
-                    duration: sectionTransitionDuration,
-                    ease: "power3.out",
+                    duration: navigation.duration,
+                    ease: navigation.ease,
                     overwrite: "auto",
                     scrollTo: {
                         autoKill: false,
@@ -380,13 +372,13 @@ export function initHomepageSectionNavigation(
 
     setNavigationState(root, "initializing");
 
-    const media = gsap.matchMedia();
+    const matchMedia = gsap.matchMedia();
 
-    media.add(
+    matchMedia.add(
         {
-            desktop: desktopQuery,
-            reducedMotion: reducedMotionQuery,
-            shortViewport: shortViewportQuery,
+            desktop: mediaQueries.desktop,
+            reducedMotion: mediaQueries.reducedMotion,
+            shortViewport: mediaQueries.shortViewport,
         },
         (context) => {
             const {
@@ -457,9 +449,7 @@ export function initHomepageSectionNavigation(
                     ScrollTrigger.create({
                         id: `home-active-${panel.id}`,
                         trigger: panel,
-                        start: "top 52%",
-                        end: "bottom 48%",
-                        invalidateOnRefresh: true,
+                        ...tracking.trigger,
                         onEnter: () => {
                             activatePanel(index);
                         },
@@ -478,7 +468,8 @@ export function initHomepageSectionNavigation(
             activatePanel(activeIndex);
 
             const canSnap =
-                desktop
+                wheel.enabled
+                && desktop
                 && !reducedMotion
                 && !shortViewport
                 && panels.length > 1;
@@ -509,7 +500,7 @@ export function initHomepageSectionNavigation(
                             if (!isAnimating) {
                                 isGestureLocked = false;
                             }
-                        }, wheelGestureReleaseDelay);
+                        }, wheel.gestureReleaseDelay);
                 };
 
                 /**
@@ -556,8 +547,8 @@ export function initHomepageSectionNavigation(
                     setNavigationState(root, "snapping");
 
                     activeTween = gsap.to(window, {
-                        duration: sectionTransitionDuration,
-                        ease: "power3.out",
+                        duration: navigation.duration,
+                        ease: navigation.ease,
                         overwrite: "auto",
                         scrollTo: {
                             autoKill: false,
@@ -646,7 +637,7 @@ export function initHomepageSectionNavigation(
 
                     if (
                         Math.abs(accumulatedWheelDelta)
-                            < wheelActivationThreshold
+                            < wheel.activationThreshold
                     ) {
                         return;
                     }
@@ -789,7 +780,7 @@ export function initHomepageSectionNavigation(
      * Remove every responsive controller and diagnostic state.
      */
     const cleanup = () => {
-        media.revert();
+        matchMedia.revert();
 
         document.documentElement.classList.remove(
             "home-section-snap-active",
