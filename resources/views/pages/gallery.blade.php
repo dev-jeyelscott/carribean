@@ -62,18 +62,22 @@
         data-gallery-page
         data-gallery-motion
         data-gallery-motion-state="loading"
+        data-gallery-active-section="gallery-hero"
         class="gallery-page">
         {{-- Cinematic full-screen gallery introduction. --}}
         <section
             id="gallery-hero"
             data-public-hero
             data-gallery-panel
+            data-gallery-section
+            data-gallery-label="Introduction"
             data-gallery-hero
             class="gallery-hero"
             aria-labelledby="gallery-hero-heading">
             @if ($heroImage?->image_url)
             <div
                 data-gallery-hero-image
+                data-gallery-hero-depth
                 class="gallery-hero__background">
                 <x-public.responsive-image
                     :image="$heroImage"
@@ -185,6 +189,7 @@
             id="gallery-signature"
             data-gallery-panel
             data-gallery-section
+            data-gallery-label="Our Story"
             class="gallery-signature"
             aria-labelledby="gallery-signature-heading">
             <div class="public-container gallery-signature__grid">
@@ -230,6 +235,8 @@
         <section
             id="gallery-collection"
             data-gallery-panel
+            data-gallery-section
+            data-gallery-label="Collection"
             data-gallery-collection
             class="gallery-collection"
             aria-labelledby="gallery-collection-heading">
@@ -370,11 +377,16 @@
         <section
             id="gallery-invitation"
             data-gallery-panel
+            data-gallery-section
+            data-gallery-label="Visit Coast & Cay"
             data-gallery-cta
             class="gallery-cta"
             aria-labelledby="gallery-cta-heading">
             @if ($heroImage?->image_url)
-            <div class="gallery-cta__background" aria-hidden="true">
+            <div
+                data-gallery-depth
+                class="gallery-cta__background"
+                aria-hidden="true">
                 <x-public.responsive-image
                     :image="$heroImage"
                     alt=""

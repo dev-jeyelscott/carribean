@@ -1,6 +1,7 @@
 const baseSectionScrollTriggerConfig = {
     media: {
         desktop: "(min-width: 1024px) and (pointer: fine)",
+        motionAllowed: "(prefers-reduced-motion: no-preference)",
         reducedMotion: "(prefers-reduced-motion: reduce)",
         shortViewport: "(max-height: 719px)",
     },
@@ -123,16 +124,21 @@ export const aboutSectionScrollTriggerConfig =
         },
     });
 
-/*
- * Gallery keeps native document scrolling while reusing the homepage media,
- * reveal trigger, easing, and depth-trigger geometry. Only its established
- * non-hero reveal distance, duration, and stagger remain page-specific.
- */
 export const gallerySectionScrollTriggerConfig =
     createSectionScrollTriggerConfig({
         reveal: {
             distance: 42,
             duration: 0.85,
             stagger: 0.08,
+        },
+        depth: {
+            from: {
+                scale: 1.05,
+                yPercent: -3,
+            },
+            to: {
+                scale: 1.01,
+                yPercent: 3,
+            },
         },
     });
