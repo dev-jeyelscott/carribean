@@ -1,154 +1,105 @@
 <?php
 
 use App\Models\GalleryImage;
-use App\Models\Page;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 /**
- * Create one deterministic gallery record without invoking image processing.
- *
- * @param  array<string, mixed>  $overrides
+ * Insert predictable Gallery records without invoking image-file processing.
  */
-function createGalleryPageImage(array $overrides = []): GalleryImage
-{
-    return GalleryImage::withoutEvents(
-        fn (): GalleryImage => GalleryImage::query()->create([
-            'title' => 'Island Supper',
-            'alt_text' => 'A Caribbean-inspired dinner at Coast and Cay',
-            'image_path' => 'gallery/island-supper.jpg',
-            'category' => 'dish',
-            'sort_order' => 1,
-            'is_visible' => true,
-            ...$overrides,
-        ]),
+function seedGalleryPageImages(
+    int $count,
+    bool $visible = true,
+    string $prefix = 'Gallery',
+): void {
+    $timestamp = now();
+
+    GalleryImage::query()->insert(
+        collect(range(1, $count))
+            ->map(
+                fn (int $index): array => [
+                    'title' => "{$prefix} moment {$index}",
+                    'alt_text' => "{$prefix} image {$index}",
+                    'image_path' => "gallery/{$prefix}-{$index}.jpg",
+                    'category' => $index % 2 === 0
+                        ? 'Dining'
+                        : 'Cuisine',
+                    'sort_order' => $index,
+                    'is_visible' => $visible,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ],
+            )
+            ->all(),
     );
 }
 
-beforeEach(function (): void {
-    Page::query()->create([
-        'slug' => 'gallery',
-        'title' => 'Gallery',
-        'excerpt' => 'A visual journal of Coast and Cay.',
-        'content' => 'Food, hospitality, and coastal moments.',
-        'is_published' => true,
-    ]);
-});
+test('gallery renders one collage experience with a load more fallback', function (): void {
+    seedGalleryPageImages(13);
 
-test('the gallery renders the editorial experience with visible images', function (): void {
-    createGalleryPageImage();
-
-    createGalleryPageImage([
-        'title' => 'Sunset Dining Room',
-        'image_path' => 'gallery/sunset-room.jpg',
-        'category' => 'ambiance',
-        'sort_order' => 2,
-    ]);
-
-    createGalleryPageImage([
-        'title' => 'Hidden Draft',
-        'image_path' => 'gallery/hidden-draft.jpg',
-        'is_visible' => false,
-        'sort_order' => 3,
-    ]);
-
-    $response = $this->get(route('gallery'));
-
-    $response
+    $this->get(route('gallery'))
         ->assertOk()
         ->assertSee('data-gallery-page', false)
-        ->assertSee('data-gallery-collection', false)
+        ->assertSee('data-gallery-section', false)
+        ->assertSee('data-gallery-grid', false)
+        ->assertSee('data-gallery-layout="feature"', false)
+        ->assertSee('data-gallery-layout="portrait"', false)
+        ->assertSee('data-gallery-layout="square"', false)
+        ->assertSee('data-gallery-layout="landscape"', false)
+        ->assertSee('data-gallery-load-more', false)
         ->assertSee('data-gallery-dialog', false)
-        ->assertSeeText('Island Supper')
-        ->assertSeeText('Sunset Dining Room')
-        ->assertDontSeeText('Hidden Draft');
+        ->assertSeeText('Load more moments')
+        ->assertDontSee('id="gallery-hero"', false)
+        ->assertDontSee('id="gallery-signature"', false)
+        ->assertDontSee('id="gallery-invitation"', false);
 });
 
-test('the gallery filters visible images by a valid category', function (): void {
-    createGalleryPageImage();
+test('gallery returns the next server-rendered fragment as json', function (): void {
+    seedGalleryPageImages(13);
 
-    createGalleryPageImage([
-        'title' => 'Ocean Room',
-        'image_path' => 'gallery/ocean-room.jpg',
-        'category' => 'ambiance',
-        'sort_order' => 2,
-    ]);
-
-    $response = $this->get(route('gallery', [
-        'category' => 'dish',
-    ]));
-
-    $response
-        ->assertOk()
-        ->assertSeeText('Island Supper')
-        ->assertDontSeeText('Ocean Room')
-        ->assertSee('data-gallery-category="dish"', false)
-        ->assertSee('aria-current="true"', false);
-});
-
-test('an unknown category safely falls back to the complete collection', function (): void {
-    createGalleryPageImage();
-
-    createGalleryPageImage([
-        'title' => 'Warm Welcome',
-        'image_path' => 'gallery/warm-welcome.jpg',
-        'category' => 'people',
-        'sort_order' => 2,
-    ]);
-
-    $response = $this->get(route('gallery', [
-        'category' => 'not-a-real-category',
-    ]));
-
-    $response
-        ->assertOk()
-        ->assertSeeText('Island Supper')
-        ->assertSeeText('Warm Welcome')
-        ->assertSeeText('The complete contact sheet');
-});
-
-test('each gallery volume is limited to five viewport frames', function (): void {
-    foreach (range(1, 7) as $index) {
-        createGalleryPageImage([
-            'title' => sprintf('Volume Frame %02d', $index),
-            'image_path' => sprintf(
-                'gallery/volume-frame-%02d.jpg',
-                $index,
+    $response = $this
+        ->withHeader(
+            'Accept',
+            'application/json',
+        )
+        ->get(
+            route(
+                'gallery',
+                [
+                    'page' => 2,
+                ],
             ),
-            'category' => 'volume',
-            'sort_order' => $index,
-        ]);
-    }
+        );
 
-    $firstVolume = $this->get(route('gallery'));
-
-    $firstVolume
+    $response
         ->assertOk()
-        ->assertSeeText('Volume Frame 05')
-        ->assertDontSeeText('Volume Frame 06')
-        ->assertSee('rel="next"', false);
+        ->assertJsonStructure([
+            'html',
+            'next_page_url',
+        ])
+        ->assertJsonPath(
+            'next_page_url',
+            null,
+        );
 
-    expect(
-        substr_count(
-            $firstVolume->getContent(),
-            'data-gallery-item',
-        ),
-    )->toBe(5);
+    expect($response->json('html'))
+        ->toContain('data-gallery-item')
+        ->toContain('Gallery moment 13');
+});
 
-    $secondVolume = $this->get(route('gallery', [
-        'page' => 2,
-    ]));
+test('gallery excludes images that are not publicly visible', function (): void {
+    seedGalleryPageImages(
+        1,
+        true,
+        'Visible',
+    );
 
-    $secondVolume
+    seedGalleryPageImages(
+        1,
+        false,
+        'Hidden',
+    );
+
+    $this->get(route('gallery'))
         ->assertOk()
-        ->assertSeeText('Volume Frame 06')
-        ->assertSeeText('Volume Frame 07');
-
-    expect(
-        substr_count(
-            $secondVolume->getContent(),
-            'data-gallery-item',
-        ),
-    )->toBe(2);
+        ->assertSeeText('Visible moment 1')
+        ->assertDontSeeText('Hidden moment 1');
 });

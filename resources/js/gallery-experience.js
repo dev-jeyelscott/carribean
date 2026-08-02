@@ -5,38 +5,48 @@ import { gallerySectionScrollTriggerConfig } from "./section-scroll-trigger-conf
 gsap.registerPlugin(ScrollTrigger);
 
 const {
-    depth,
     media: mediaQueries,
     reveal,
-    tracking,
 } = gallerySectionScrollTriggerConfig;
 
-const dialogCloseDuration = 220;
+const swipeThreshold = 52;
 
 /**
- * Return every valid Gallery panel in document order.
+ * Return every currently rendered collage card.
  */
-function getGalleryPanels(root) {
+function getGalleryCards(root) {
     return [
-        ...root.querySelectorAll("[data-gallery-panel]"),
+        ...root.querySelectorAll("[data-gallery-item]"),
     ].filter(
-        (panel) =>
-            panel instanceof HTMLElement
-            && panel.id !== "",
+        (card) => card instanceof HTMLElement,
     );
 }
 
 /**
- * Set the Gallery runtime state for browser diagnostics.
+ * Return every currently rendered fullscreen opener.
+ *
+ * This query is intentionally dynamic so cards appended through Load More
+ * automatically participate in modal navigation.
+ */
+function getGalleryOpeners(root) {
+    return [
+        ...root.querySelectorAll("[data-gallery-open]"),
+    ].filter(
+        (opener) => opener instanceof HTMLAnchorElement,
+    );
+}
+
+/**
+ * Record the Gallery runtime state for diagnostics and browser tests.
  */
 function setGalleryMotionState(root, state) {
     root.dataset.galleryMotionState = state;
 }
 
 /**
- * Remove Gallery-owned ScrollTriggers left by an earlier initialization.
+ * Remove Gallery-owned ScrollTriggers left by the current page lifecycle.
  */
-function killExistingGalleryTriggers() {
+function killGalleryScrollTriggers() {
     ScrollTrigger
         .getAll()
         .filter((trigger) => {
@@ -51,52 +61,396 @@ function killExistingGalleryTriggers() {
 }
 
 /**
- * Expose the number of active Gallery ScrollTriggers for diagnostics and tests.
+ * Track thumbnail image loading without hiding content when JavaScript fails.
  */
-function updateGalleryTriggerCount(root) {
-    const triggerCount = ScrollTrigger
-        .getAll()
-        .filter((trigger) => {
-            const id = trigger.vars.id;
+function initializeThumbnailState(cards) {
+    const cleanups = [];
 
-            return typeof id === "string"
-                && id.startsWith("gallery-");
-        })
-        .length;
+    cards.forEach((card) => {
+        const image = card.querySelector(
+            ".gallery-collage-card__image",
+        );
 
-    root.dataset.galleryTriggerCount =
-        String(triggerCount);
+        if (!(image instanceof HTMLImageElement)) {
+            card.dataset.galleryImageState = "loaded";
+
+            return;
+        }
+
+        /**
+         * Mark the card as ready once its responsive image has loaded.
+         */
+        const markLoaded = () => {
+            card.dataset.galleryImageState = "loaded";
+        };
+
+        /**
+         * Stop displaying a loading shimmer when an image cannot be loaded.
+         */
+        const markError = () => {
+            card.dataset.galleryImageState = "error";
+        };
+
+        if (image.complete) {
+            if (image.naturalWidth > 0) {
+                markLoaded();
+            } else {
+                markError();
+            }
+
+            return;
+        }
+
+        image.addEventListener(
+            "load",
+            markLoaded,
+            {
+                once: true,
+            },
+        );
+
+        image.addEventListener(
+            "error",
+            markError,
+            {
+                once: true,
+            },
+        );
+
+        cleanups.push(() => {
+            image.removeEventListener(
+                "load",
+                markLoaded,
+            );
+
+            image.removeEventListener(
+                "error",
+                markError,
+            );
+        });
+    });
+
+    return () => {
+        cleanups.forEach((cleanup) => {
+            cleanup();
+        });
+    };
 }
 
 /**
- * Mark one Gallery panel as the active section.
+ * Animate the page heading and initial collage cards.
  */
-function setActiveGalleryPanel(
-    root,
-    panels,
-    activePanel,
-) {
-    if (!(activePanel instanceof HTMLElement)) {
+function animateInitialGallery(root) {
+    const headingTargets = [
+        ...root.querySelectorAll(
+            "[data-gallery-heading-reveal]",
+        ),
+    ];
+
+    if (headingTargets.length > 0) {
+        gsap.fromTo(
+            headingTargets,
+            {
+                autoAlpha: 0,
+                y: 28,
+            },
+            {
+                autoAlpha: 1,
+                duration: 0.9,
+                ease: "power3.out",
+                stagger: 0.09,
+                y: 0,
+            },
+        );
+    }
+
+    const cards = getGalleryCards(root);
+
+    if (cards.length === 0) {
         return;
     }
 
-    root.dataset.galleryActiveSection =
-        activePanel.id;
+    gsap.set(
+        cards,
+        {
+            autoAlpha: 0,
+            scale: 0.985,
+            y: reveal.distance,
+        },
+    );
 
-    panels.forEach((panel) => {
-        panel.setAttribute(
-            "data-gallery-active",
-            panel === activePanel
-                ? "true"
-                : "false",
-        );
-    });
+    ScrollTrigger.batch(
+        cards,
+        {
+            id: "gallery-collage-cards",
+            start: reveal.trigger.start,
+            once: true,
+            onEnter: (batch) => {
+                gsap.to(
+                    batch,
+                    {
+                        autoAlpha: 1,
+                        duration: reveal.duration,
+                        ease: reveal.ease,
+                        scale: 1,
+                        stagger: reveal.stagger,
+                        y: 0,
+                        overwrite: true,
+                    },
+                );
+            },
+        },
+    );
 }
 
 /**
- * Populate the shared lightbox from one server-rendered Gallery link.
+ * Animate cards that were appended through the Load More interaction.
  */
-function setDialogContent(dialog, opener) {
+function animateAppendedCards(cards) {
+    if (cards.length === 0) {
+        return;
+    }
+
+    gsap.fromTo(
+        cards,
+        {
+            autoAlpha: 0,
+            scale: 0.975,
+            y: 34,
+        },
+        {
+            autoAlpha: 1,
+            duration: 0.78,
+            ease: "power3.out",
+            scale: 1,
+            stagger: 0.07,
+            y: 0,
+            clearProps: "opacity,visibility,transform",
+        },
+    );
+}
+
+/**
+ * Validate and normalize the JSON returned by the Gallery controller.
+ */
+function parseGalleryPayload(payload) {
+    if (
+        payload === null
+        || typeof payload !== "object"
+        || typeof payload.html !== "string"
+    ) {
+        throw new TypeError(
+            "The Gallery response did not contain valid HTML.",
+        );
+    }
+
+    if (
+        payload.next_page_url !== null
+        && typeof payload.next_page_url !== "string"
+    ) {
+        throw new TypeError(
+            "The Gallery response contained an invalid next-page URL.",
+        );
+    }
+
+    return {
+        html: payload.html,
+        nextPageUrl: payload.next_page_url,
+    };
+}
+
+/**
+ * Progressively append the next server-rendered Gallery page.
+ *
+ * The real anchor URL remains available as a non-JavaScript fallback.
+ */
+function initializeLoadMore(
+    root,
+    onCardsAppended,
+) {
+    const grid = root.querySelector(
+        "[data-gallery-grid]",
+    );
+
+    if (!(grid instanceof HTMLElement)) {
+        return () => {};
+    }
+
+    let activeController = null;
+
+    /**
+     * Load and append the next Gallery fragment.
+     */
+    const handleLoadMoreClick = async (event) => {
+        const target = event.target instanceof Element
+            ? event.target
+            : null;
+
+        const button = target?.closest(
+            "[data-gallery-load-more]",
+        );
+
+        if (!(button instanceof HTMLAnchorElement)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (button.dataset.galleryBusy === "true") {
+            return;
+        }
+
+        const shell = button.closest(
+            "[data-gallery-load-more-shell]",
+        );
+
+        const label = button.querySelector(
+            "[data-gallery-load-more-label]",
+        );
+
+        const status = shell?.querySelector(
+            "[data-gallery-load-more-status]",
+        );
+
+        activeController?.abort();
+        activeController = new AbortController();
+
+        button.dataset.galleryBusy = "true";
+        button.setAttribute("aria-disabled", "true");
+
+        if (label) {
+            label.textContent = "Loading moments";
+        }
+
+        if (status) {
+            status.textContent =
+                "Loading more Gallery images.";
+        }
+
+        try {
+            const response = await fetch(
+                button.href,
+                {
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With":
+                            "XMLHttpRequest",
+                    },
+                    signal: activeController.signal,
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Gallery request failed with status ${response.status}.`,
+                );
+            }
+
+            const payload = parseGalleryPayload(
+                await response.json(),
+            );
+
+            const template =
+                document.createElement("template");
+
+            template.innerHTML =
+                payload.html.trim();
+
+            const newCards = [
+                ...template.content.querySelectorAll(
+                    "[data-gallery-item]",
+                ),
+            ].filter(
+                (card) =>
+                    card instanceof HTMLElement,
+            );
+
+            grid.append(template.content);
+
+            onCardsAppended(newCards);
+
+            if (payload.nextPageUrl) {
+                button.href =
+                    payload.nextPageUrl;
+
+                button.dataset.galleryBusy =
+                    "false";
+
+                button.removeAttribute(
+                    "aria-disabled",
+                );
+
+                if (label) {
+                    label.textContent =
+                        "Load more moments";
+                }
+
+                if (status) {
+                    status.textContent =
+                        `${newCards.length} more moments are now in view.`;
+                }
+            } else {
+                button.remove();
+
+                if (status) {
+                    status.textContent =
+                        "All Gallery moments are now in view.";
+                }
+            }
+
+            ScrollTrigger.refresh();
+        } catch (error) {
+            if (error.name === "AbortError") {
+                return;
+            }
+
+            console.error(
+                "Unable to load additional Gallery images.",
+                error,
+            );
+
+            button.dataset.galleryBusy =
+                "false";
+
+            button.removeAttribute(
+                "aria-disabled",
+            );
+
+            if (label) {
+                label.textContent = "Try again";
+            }
+
+            if (status) {
+                status.textContent =
+                    "The additional images could not be loaded. Please try again.";
+            }
+        }
+    };
+
+    root.addEventListener(
+        "click",
+        handleLoadMoreClick,
+    );
+
+    return () => {
+        activeController?.abort();
+
+        root.removeEventListener(
+            "click",
+            handleLoadMoreClick,
+        );
+    };
+}
+
+/**
+ * Populate the fullscreen viewer from one Gallery card.
+ */
+function setDialogContent(
+    dialog,
+    opener,
+    position,
+    total,
+) {
     const image = dialog.querySelector(
         "[data-gallery-dialog-image]",
     );
@@ -109,34 +463,46 @@ function setDialogContent(dialog, opener) {
         "[data-gallery-dialog-category]",
     );
 
+    const counter = dialog.querySelector(
+        "[data-gallery-dialog-counter]",
+    );
+
+    const status = dialog.querySelector(
+        "[data-gallery-dialog-status]",
+    );
+
     if (!(image instanceof HTMLImageElement)) {
         return;
     }
 
+    const displayTitle =
+        opener.dataset.galleryTitle
+        ?? "Coast & Cay moment";
+
     dialog.dataset.galleryImageState =
         "loading";
+
+    image.removeAttribute("src");
+    image.removeAttribute("srcset");
+
+    image.alt =
+        opener.dataset.galleryAlt
+        ?? displayTitle;
+
+    image.sizes =
+        "min(92vw, 1800px)";
+
+    if (opener.dataset.gallerySrcset) {
+        image.srcset =
+            opener.dataset.gallerySrcset;
+    }
 
     image.src =
         opener.dataset.gallerySrc
         ?? opener.href;
 
-    image.alt =
-        opener.dataset.galleryAlt
-        ?? "";
-
-    image.sizes = "min(88vw, 1440px)";
-
-    if (opener.dataset.gallerySrcset) {
-        image.srcset =
-            opener.dataset.gallerySrcset;
-    } else {
-        image.removeAttribute("srcset");
-    }
-
     if (title) {
-        title.textContent =
-            opener.dataset.galleryTitle
-            ?? "Coast & Cay moment";
+        title.textContent = displayTitle;
     }
 
     if (category) {
@@ -145,17 +511,89 @@ function setDialogContent(dialog, opener) {
             ?? "Coast & Cay";
     }
 
-    if (
-        image.complete
-        && image.naturalWidth > 0
-    ) {
-        dialog.dataset.galleryImageState =
-            "loaded";
+    if (counter) {
+        counter.textContent =
+            `${String(position).padStart(2, "0")} / `
+            + String(total).padStart(2, "0");
+    }
+
+    if (status) {
+        status.textContent =
+            `Loading image ${position} of ${total}: ${displayTitle}.`;
     }
 }
 
 /**
- * Initialize the native lightbox while retaining normal anchor fallbacks.
+ * Resolve after the current fullscreen image loads or fails.
+ */
+async function waitForDialogImage(image) {
+    if (!image.complete) {
+        await new Promise((resolve) => {
+            /**
+             * Resolve the pending image wait and remove temporary listeners.
+             */
+            const finish = () => {
+                image.removeEventListener(
+                    "load",
+                    finish,
+                );
+
+                image.removeEventListener(
+                    "error",
+                    finish,
+                );
+
+                resolve();
+            };
+
+            image.addEventListener(
+                "load",
+                finish,
+            );
+
+            image.addEventListener(
+                "error",
+                finish,
+            );
+        });
+    }
+
+    if (image.naturalWidth === 0) {
+        return false;
+    }
+
+    if (typeof image.decode === "function") {
+        try {
+            await image.decode();
+        } catch {
+            /*
+             * A browser may reject decode after the image has already become
+             * displayable. naturalWidth remains the final success signal.
+             */
+        }
+    }
+
+    return image.naturalWidth > 0;
+}
+
+/**
+ * Convert one GSAP tween into an awaitable operation.
+ */
+function tweenToPromise(target, variables) {
+    return new Promise((resolve) => {
+        gsap.to(
+            target,
+            {
+                ...variables,
+                onComplete: resolve,
+                onInterrupt: resolve,
+            },
+        );
+    });
+}
+
+/**
+ * Initialize the fullscreen dialog and all of its navigation behavior.
  */
 function initializeGalleryDialog(root) {
     if (
@@ -169,21 +607,17 @@ function initializeGalleryDialog(root) {
         "[data-gallery-dialog]",
     );
 
-    const openers = [
-        ...root.querySelectorAll(
-            "[data-gallery-open]",
-        ),
-    ].filter(
-        (opener) =>
-            opener instanceof HTMLAnchorElement,
-    );
-
-    if (
-        !(dialog instanceof HTMLDialogElement)
-        || openers.length === 0
-    ) {
+    if (!(dialog instanceof HTMLDialogElement)) {
         return () => {};
     }
+
+    const panel = dialog.querySelector(
+        "[data-gallery-dialog-panel]",
+    );
+
+    const stage = dialog.querySelector(
+        "[data-gallery-dialog-stage]",
+    );
 
     const image = dialog.querySelector(
         "[data-gallery-dialog-image]",
@@ -197,50 +631,35 @@ function initializeGalleryDialog(root) {
         "[data-gallery-next]",
     );
 
+    if (
+        !(panel instanceof HTMLElement)
+        || !(stage instanceof HTMLElement)
+        || !(image instanceof HTMLImageElement)
+    ) {
+        return () => {};
+    }
+
     let activeIndex = 0;
     let activeOpener = null;
-    let closeTimer = null;
+    let contentVersion = 0;
+    let isClosing = false;
+    let pointerStart = null;
 
     /**
-     * Display one Gallery image and wrap navigation at either end.
+     * Determine whether animated transitions are currently permitted.
      */
-    const showImage = (requestedIndex) => {
-        activeIndex =
-            (
-                requestedIndex
-                + openers.length
-            )
-            % openers.length;
-
-        setDialogContent(
-            dialog,
-            openers[activeIndex],
-        );
-    };
+    const motionIsAllowed = () => window
+        .matchMedia(
+            mediaQueries.motionAllowed,
+        )
+        .matches;
 
     /**
-     * Open the lightbox and remember where focus should return.
+     * Enable or disable directional controls based on available cards.
      */
-    const openDialog = (opener) => {
-        const openerIndex =
-            openers.indexOf(opener);
-
-        if (openerIndex < 0) {
-            return;
-        }
-
-        activeOpener = opener;
-
-        showImage(openerIndex);
-
-        dialog.classList.remove("is-closing");
-
-        document.documentElement.classList.add(
-            "gallery-dialog-open",
-        );
-
+    const updateNavigationState = () => {
         const navigationDisabled =
-            openers.length < 2;
+            getGalleryOpeners(root).length < 2;
 
         if (
             previousButton
@@ -257,86 +676,381 @@ function initializeGalleryDialog(root) {
             nextButton.disabled =
                 navigationDisabled;
         }
+    };
+
+    /**
+     * Reveal the image after the browser finishes loading it.
+     */
+    const revealDialogImage = async (
+        version,
+        direction,
+    ) => {
+        const loaded =
+            await waitForDialogImage(image);
+
+        if (
+            version !== contentVersion
+            || !dialog.open
+        ) {
+            return;
+        }
+
+        const status = dialog.querySelector(
+            "[data-gallery-dialog-status]",
+        );
+
+        if (!loaded) {
+            dialog.dataset.galleryImageState =
+                "error";
+
+            if (status) {
+                status.textContent =
+                    "The selected Gallery image could not be loaded.";
+            }
+
+            gsap.set(
+                image,
+                {
+                    autoAlpha: 1,
+                    clearProps: "transform",
+                },
+            );
+
+            return;
+        }
+
+        dialog.dataset.galleryImageState =
+            "loaded";
+
+        const title = dialog.querySelector(
+            "[data-gallery-dialog-title]",
+        )?.textContent ?? "Gallery image";
+
+        if (status) {
+            status.textContent =
+                `Showing ${title}.`;
+        }
+
+        if (!motionIsAllowed()) {
+            gsap.set(
+                image,
+                {
+                    autoAlpha: 1,
+                    clearProps: "transform",
+                },
+            );
+
+            return;
+        }
+
+        const entrance = direction === 0
+            ? {
+                x: 0,
+                y: 18,
+            }
+            : {
+                x: direction * 42,
+                y: 0,
+            };
+
+        gsap.fromTo(
+            image,
+            {
+                autoAlpha: 0,
+                scale: 1.018,
+                ...entrance,
+            },
+            {
+                autoAlpha: 1,
+                clearProps:
+                    "opacity,visibility,transform",
+                duration: 0.58,
+                ease: "power3.out",
+                scale: 1,
+                x: 0,
+                y: 0,
+            },
+        );
+    };
+
+    /**
+     * Play the viewer panel's opening animation.
+     */
+    const playOpenAnimation = () => {
+        gsap.killTweensOf([
+            dialog,
+            panel,
+        ]);
+
+        if (!motionIsAllowed()) {
+            gsap.set(
+                [
+                    dialog,
+                    panel,
+                ],
+                {
+                    autoAlpha: 1,
+                    clearProps: "transform",
+                },
+            );
+
+            return;
+        }
+
+        gsap.timeline({
+            defaults: {
+                ease: "power4.out",
+            },
+        })
+            .fromTo(
+                dialog,
+                {
+                    autoAlpha: 0,
+                },
+                {
+                    autoAlpha: 1,
+                    duration: 0.24,
+                },
+                0,
+            )
+            .fromTo(
+                panel,
+                {
+                    autoAlpha: 0,
+                    scale: 0.982,
+                    y: 24,
+                },
+                {
+                    autoAlpha: 1,
+                    duration: 0.52,
+                    scale: 1,
+                    y: 0,
+                },
+                0.04,
+            );
+    };
+
+    /**
+     * Display a different image while the dialog remains open.
+     */
+    const displayImage = async (
+        requestedIndex,
+        direction,
+    ) => {
+        const openers =
+            getGalleryOpeners(root);
+
+        if (openers.length === 0) {
+            return;
+        }
+
+        const normalizedIndex =
+            (
+                requestedIndex
+                + openers.length
+            )
+            % openers.length;
+
+        const version = ++contentVersion;
+
+        gsap.killTweensOf(image);
+
+        if (
+            motionIsAllowed()
+            && dialog.open
+        ) {
+            await tweenToPromise(
+                image,
+                {
+                    autoAlpha: 0,
+                    duration: 0.18,
+                    ease: "power2.in",
+                    overwrite: true,
+                    scale: 0.992,
+                    x: direction > 0
+                        ? -28
+                        : 28,
+                },
+            );
+        }
+
+        if (
+            version !== contentVersion
+            || !dialog.open
+        ) {
+            return;
+        }
+
+        activeIndex = normalizedIndex;
+
+        setDialogContent(
+            dialog,
+            openers[activeIndex],
+            activeIndex + 1,
+            openers.length,
+        );
+
+        updateNavigationState();
+
+        await revealDialogImage(
+            version,
+            direction,
+        );
+    };
+
+    /**
+     * Open the dialog from the selected Gallery card.
+     */
+    const openDialog = (opener) => {
+        const openers =
+            getGalleryOpeners(root);
+
+        const openerIndex =
+            openers.indexOf(opener);
+
+        if (openerIndex < 0) {
+            return;
+        }
+
+        activeIndex = openerIndex;
+        activeOpener = opener;
+        isClosing = false;
+
+        const version = ++contentVersion;
+
+        setDialogContent(
+            dialog,
+            opener,
+            activeIndex + 1,
+            openers.length,
+        );
+
+        updateNavigationState();
+
+        dialog.classList.remove(
+            "is-closing",
+        );
+
+        document.documentElement.classList.add(
+            "gallery-dialog-open",
+        );
 
         if (!dialog.open) {
             dialog.showModal();
         }
+
+        playOpenAnimation();
+
+        void revealDialogImage(
+            version,
+            0,
+        );
     };
 
     /**
-     * Finish closing the dialog and cancel any pending timer.
+     * Navigate relative to the currently displayed image.
      */
-    const finalizeClose = () => {
-        if (closeTimer !== null) {
-            window.clearTimeout(closeTimer);
-            closeTimer = null;
+    const navigate = (step) => {
+        if (
+            !dialog.open
+            || getGalleryOpeners(root).length < 2
+        ) {
+            return;
         }
 
+        void displayImage(
+            activeIndex + step,
+            step,
+        );
+    };
+
+    /**
+     * Complete dialog closure and allow the native close event to run.
+     */
+    const finalizeClose = () => {
         if (dialog.open) {
             dialog.close();
         }
     };
 
     /**
-     * Close immediately for reduced motion or use the CSS exit transition.
+     * Close the dialog immediately or through an elegant exit timeline.
      */
     const closeDialog = () => {
         if (
             !dialog.open
-            || dialog.classList.contains(
-                "is-closing",
-            )
+            || isClosing
         ) {
             return;
         }
 
-        const reducedMotion =
-            window.matchMedia(
-                mediaQueries.reducedMotion,
-            ).matches;
+        isClosing = true;
+        contentVersion += 1;
 
-        if (reducedMotion) {
+        dialog.classList.add(
+            "is-closing",
+        );
+
+        gsap.killTweensOf([
+            dialog,
+            panel,
+            image,
+        ]);
+
+        if (!motionIsAllowed()) {
             finalizeClose();
 
             return;
         }
 
-        dialog.classList.add("is-closing");
-
-        closeTimer = window.setTimeout(
-            finalizeClose,
-            dialogCloseDuration,
-        );
+        gsap.timeline({
+            onComplete: finalizeClose,
+        })
+            .to(
+                panel,
+                {
+                    autoAlpha: 0,
+                    duration: 0.2,
+                    ease: "power2.in",
+                    scale: 0.985,
+                    y: 16,
+                },
+                0,
+            )
+            .to(
+                dialog,
+                {
+                    autoAlpha: 0,
+                    duration: 0.22,
+                    ease: "power2.in",
+                },
+                0.05,
+            );
     };
 
     /**
-     * Intercept Gallery links only when the native lightbox is available.
+     * Open Gallery cards through delegated click handling.
      */
     const handleRootClick = (event) => {
-        const target =
-            event.target instanceof Element
-                ? event.target
-                : null;
+        const target = event.target instanceof Element
+            ? event.target
+            : null;
 
         const opener = target?.closest(
             "[data-gallery-open]",
         );
 
-        if (
-            !(
-                opener
-                instanceof HTMLAnchorElement
-            )
-        ) {
+        if (!(opener instanceof HTMLAnchorElement)) {
             return;
         }
 
         event.preventDefault();
+
         openDialog(opener);
     };
 
     /**
-     * Handle close, backdrop, previous, and next interactions.
+     * Handle backdrop, close, previous, and next clicks.
      */
     const handleDialogClick = (event) => {
         if (event.target === dialog) {
@@ -345,10 +1059,9 @@ function initializeGalleryDialog(root) {
             return;
         }
 
-        const target =
-            event.target instanceof Element
-                ? event.target
-                : null;
+        const target = event.target instanceof Element
+            ? event.target
+            : null;
 
         if (
             target?.closest(
@@ -365,7 +1078,7 @@ function initializeGalleryDialog(root) {
                 "[data-gallery-previous]",
             )
         ) {
-            showImage(activeIndex - 1);
+            navigate(-1);
 
             return;
         }
@@ -375,46 +1088,129 @@ function initializeGalleryDialog(root) {
                 "[data-gallery-next]",
             )
         ) {
-            showImage(activeIndex + 1);
+            navigate(1);
         }
     };
 
     /**
-     * Preserve an animated Escape close rather than closing immediately.
+     * Animate the browser's native Escape cancellation instead of closing
+     * the dialog immediately.
      */
     const handleDialogCancel = (event) => {
         event.preventDefault();
+
         closeDialog();
     };
 
     /**
-     * Support arrow-key navigation inside the lightbox.
+     * Support directional and boundary keyboard navigation.
      */
     const handleDialogKeydown = (event) => {
         if (event.key === "ArrowLeft") {
             event.preventDefault();
-            showImage(activeIndex - 1);
+            navigate(-1);
+
+            return;
         }
 
         if (event.key === "ArrowRight") {
             event.preventDefault();
-            showImage(activeIndex + 1);
+            navigate(1);
+
+            return;
+        }
+
+        if (event.key === "Home") {
+            event.preventDefault();
+
+            void displayImage(
+                0,
+                -1,
+            );
+
+            return;
+        }
+
+        if (event.key === "End") {
+            event.preventDefault();
+
+            const lastIndex =
+                getGalleryOpeners(root).length - 1;
+
+            void displayImage(
+                lastIndex,
+                1,
+            );
         }
     };
 
     /**
-     * Reveal the full-size image after loading finishes.
+     * Record the beginning of a primary touch or pointer gesture.
      */
-    const handleImageLoad = () => {
-        dialog.dataset.galleryImageState =
-            "loaded";
+    const handlePointerDown = (event) => {
+        if (!event.isPrimary) {
+            return;
+        }
+
+        pointerStart = {
+            x: event.clientX,
+            y: event.clientY,
+        };
     };
 
     /**
-     * Restore focus and release the loaded image after closure.
+     * Convert a sufficiently horizontal gesture into previous/next navigation.
+     */
+    const handlePointerUp = (event) => {
+        if (
+            !event.isPrimary
+            || pointerStart === null
+        ) {
+            pointerStart = null;
+
+            return;
+        }
+
+        const horizontalDistance =
+            event.clientX - pointerStart.x;
+
+        const verticalDistance =
+            event.clientY - pointerStart.y;
+
+        pointerStart = null;
+
+        if (
+            Math.abs(horizontalDistance)
+                < swipeThreshold
+            || Math.abs(horizontalDistance)
+                <= Math.abs(verticalDistance)
+        ) {
+            return;
+        }
+
+        navigate(
+            horizontalDistance < 0
+                ? 1
+                : -1,
+        );
+    };
+
+    /**
+     * Clear an interrupted pointer gesture.
+     */
+    const handlePointerCancel = () => {
+        pointerStart = null;
+    };
+
+    /**
+     * Reset viewer state and return focus to the originating card.
      */
     const handleDialogClose = () => {
-        dialog.classList.remove("is-closing");
+        isClosing = false;
+
+        dialog.classList.remove(
+            "is-closing",
+        );
 
         dialog.dataset.galleryImageState =
             "idle";
@@ -423,13 +1219,20 @@ function initializeGalleryDialog(root) {
             "gallery-dialog-open",
         );
 
-        if (
-            image instanceof HTMLImageElement
-        ) {
-            image.removeAttribute("src");
-            image.removeAttribute("srcset");
-            image.alt = "";
-        }
+        gsap.set(
+            [
+                dialog,
+                panel,
+                image,
+            ],
+            {
+                clearProps: "all",
+            },
+        );
+
+        image.removeAttribute("src");
+        image.removeAttribute("srcset");
+        image.alt = "";
 
         activeOpener?.focus({
             preventScroll: true,
@@ -463,9 +1266,19 @@ function initializeGalleryDialog(root) {
         handleDialogClose,
     );
 
-    image?.addEventListener(
-        "load",
-        handleImageLoad,
+    stage.addEventListener(
+        "pointerdown",
+        handlePointerDown,
+    );
+
+    stage.addEventListener(
+        "pointerup",
+        handlePointerUp,
+    );
+
+    stage.addEventListener(
+        "pointercancel",
+        handlePointerCancel,
     );
 
     return () => {
@@ -494,14 +1307,26 @@ function initializeGalleryDialog(root) {
             handleDialogClose,
         );
 
-        image?.removeEventListener(
-            "load",
-            handleImageLoad,
+        stage.removeEventListener(
+            "pointerdown",
+            handlePointerDown,
         );
 
-        if (closeTimer !== null) {
-            window.clearTimeout(closeTimer);
-        }
+        stage.removeEventListener(
+            "pointerup",
+            handlePointerUp,
+        );
+
+        stage.removeEventListener(
+            "pointercancel",
+            handlePointerCancel,
+        );
+
+        gsap.killTweensOf([
+            dialog,
+            panel,
+            image,
+        ]);
 
         document.documentElement.classList.remove(
             "gallery-dialog-open",
@@ -514,669 +1339,140 @@ function initializeGalleryDialog(root) {
 }
 
 /**
- * Animate the Gallery hero immediately after the page runtime loads.
+ * Initialize the complete one-section Gallery experience.
  */
-function initializeGalleryHero(
-    root,
-    showMarkers,
-) {
-    const hero = root.querySelector(
-        "#gallery-hero",
-    );
-
-    if (!(hero instanceof HTMLElement)) {
-        return;
-    }
-
-    const heroImage = hero.querySelector(
-        "[data-gallery-hero-image] img",
-    );
-
-    const copyTargets = [
-        ...hero.querySelectorAll(
-            "[data-gallery-hero-copy] "
-            + "[data-gallery-reveal]",
-        ),
-    ];
-
-    const stackCards = [
-        ...hero.querySelectorAll(
-            "[data-gallery-stack-card]",
-        ),
-    ];
-
-    hero.dataset.galleryAnimationState =
-        "active";
-
-    const timeline = gsap.timeline({
-        defaults: {
-            ease: "power4.out",
-        },
-        onComplete: () => {
-            hero.dataset.galleryAnimationState =
-                "complete";
-        },
-    });
-
-    if (
-        heroImage
-        instanceof HTMLImageElement
-    ) {
-        timeline.fromTo(
-            heroImage,
-            {
-                scale: 1.065,
-            },
-            {
-                duration: 1.45,
-                scale: 1,
-            },
-            0,
-        );
-    }
-
-    if (copyTargets.length > 0) {
-        timeline.fromTo(
-            copyTargets,
-            {
-                autoAlpha: 0,
-                y: 36,
-            },
-            {
-                autoAlpha: 1,
-                duration: 0.9,
-                stagger: 0.09,
-                y: 0,
-            },
-            0.08,
-        );
-    }
-
-    if (stackCards.length > 0) {
-        timeline.fromTo(
-            stackCards,
-            {
-                autoAlpha: 0,
-                rotation: (index) =>
-                    index % 2 === 0
-                        ? 2
-                        : -2,
-                y: 68,
-            },
-            {
-                autoAlpha: 1,
-                duration: 1,
-                rotation: 0,
-                stagger: 0.11,
-                y: 0,
-            },
-            0.2,
-        );
-    }
-
-    if (
-        heroImage
-        instanceof HTMLImageElement
-    ) {
-        gsap.fromTo(
-            heroImage,
-            {
-                yPercent: 0,
-            },
-            {
-                ease: "none",
-                yPercent: 6,
-                scrollTrigger: {
-                    id: "gallery-depth-hero",
-                    trigger: hero,
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: true,
-                    invalidateOnRefresh: true,
-                    markers: showMarkers,
-                },
-            },
-        );
-    }
-}
-
-/**
- * Reveal the headings and supporting copy belonging to one Gallery panel.
- */
-function initializePanelReveal(
-    panel,
-    showMarkers,
-) {
-    const targets = [
-        ...panel.querySelectorAll(
-            "[data-gallery-reveal]",
-        ),
-    ];
-
-    if (targets.length === 0) {
-        panel.dataset.galleryAnimationState =
-            "complete";
-
-        return;
-    }
-
-    panel.dataset.galleryAnimationState =
-        "pending";
-
-    gsap.timeline({
-        scrollTrigger: {
-            id: `gallery-reveal-${panel.id}`,
-            trigger: panel,
-            ...reveal.trigger,
-            once: true,
-            markers: showMarkers,
-        },
-        onStart: () => {
-            panel.dataset.galleryAnimationState =
-                "active";
-        },
-        onComplete: () => {
-            panel.dataset.galleryAnimationState =
-                "complete";
-        },
-    }).fromTo(
-        targets,
-        {
-            autoAlpha: 0,
-            y: reveal.distance,
-        },
-        {
-            autoAlpha: 1,
-            duration: reveal.duration,
-            ease: reveal.ease,
-            stagger: reveal.stagger,
-            y: 0,
-        },
-    );
-}
-
-/**
- * Give each contact-sheet card its own viewport-based ScrollTrigger.
- */
-function initializeGalleryItems(
-    root,
-    showMarkers,
-) {
-    const galleryItems = [
-        ...root.querySelectorAll(
-            "[data-gallery-item]",
-        ),
-    ].filter(
-        (item) =>
-            item instanceof HTMLElement,
-    );
-
-    galleryItems.forEach((item, index) => {
-        const image = item.querySelector("img");
-
-        item.dataset.galleryItemState =
-            "pending";
-
-        const timeline = gsap.timeline({
-            scrollTrigger: {
-                id: `gallery-item-${index + 1}`,
-                trigger: item,
-                start: "top 86%",
-                end: "bottom 18%",
-                once: true,
-                invalidateOnRefresh: true,
-                markers: showMarkers,
-            },
-            onStart: () => {
-                item.dataset.galleryItemState =
-                    "active";
-            },
-            onComplete: () => {
-                item.dataset.galleryItemState =
-                    "complete";
-            },
-        });
-
-        timeline.fromTo(
-            item,
-            {
-                autoAlpha: 0,
-                y: reveal.distance + 10,
-            },
-            {
-                autoAlpha: 1,
-                duration: reveal.duration,
-                ease: reveal.ease,
-                y: 0,
-            },
-            0,
-        );
-
-        if (
-            image
-            instanceof HTMLImageElement
-        ) {
-            timeline.fromTo(
-                image,
-                {
-                    scale: 1.055,
-                },
-                {
-                    duration:
-                        reveal.duration + 0.18,
-                    ease: reveal.ease,
-                    scale: 1,
-                },
-                0,
-            );
-        }
-    });
-}
-
-/**
- * Track the Gallery section crossing the center of the viewport.
- */
-function initializeSectionTracking(
-    root,
-    panels,
-    showMarkers,
-) {
-    panels.forEach((panel) => {
-        ScrollTrigger.create({
-            id: `gallery-track-${panel.id}`,
-            trigger: panel,
-            ...tracking.trigger,
-            markers: showMarkers,
-            onEnter: () => {
-                setActiveGalleryPanel(
-                    root,
-                    panels,
-                    panel,
-                );
-            },
-            onEnterBack: () => {
-                setActiveGalleryPanel(
-                    root,
-                    panels,
-                    panel,
-                );
-            },
-        });
-    });
-}
-
-/**
- * Add restrained desktop-only depth motion to marked backgrounds.
- */
-function initializeGalleryDepth(
-    root,
-    showMarkers,
-) {
-    root.querySelectorAll(
-        "[data-gallery-depth]",
-    ).forEach((container, index) => {
-        const image =
-            container.querySelector("img");
-
-        const panel =
-            container.closest(
-                "[data-gallery-panel]",
-            );
-
-        if (
-            !(image instanceof HTMLImageElement)
-            || !(panel instanceof HTMLElement)
-        ) {
-            return;
-        }
-
-        gsap.fromTo(
-            image,
-            {
-                ...depth.from,
-            },
-            {
-                ...depth.to,
-                scrollTrigger: {
-                    id:
-                        `gallery-depth-${panel.id}-${index}`,
-                    trigger: panel,
-                    ...depth.trigger,
-                    markers: showMarkers,
-                },
-            },
-        );
-    });
-}
-
-/**
- * Restore all Gallery targets to readable final states for reduced motion.
- */
-function setReducedMotionState(
-    root,
-    panels,
-) {
-    const targets = root.querySelectorAll(
-        [
-            "[data-gallery-reveal]",
-            "[data-gallery-stack-card]",
-            "[data-gallery-item]",
-            "[data-gallery-panel] img",
-        ].join(", "),
-    );
-
-    gsap.set(
-        targets,
-        {
-            autoAlpha: 1,
-            clearProps:
-                "transform,opacity,"
-                + "visibility,willChange",
-        },
-    );
-
-    panels.forEach((panel) => {
-        panel.dataset.galleryAnimationState =
-            "complete";
-    });
-
-    root.querySelectorAll(
-        "[data-gallery-item]",
-    ).forEach((item) => {
-        if (item instanceof HTMLElement) {
-            item.dataset.galleryItemState =
-                "complete";
-        }
-    });
-
-    setGalleryMotionState(
-        root,
-        "reduced",
-    );
-}
-
-/**
- * Refresh ScrollTrigger when fonts or responsive images affect layout.
- */
-function createRefreshLifecycle(root) {
-    let disposed = false;
-    let refreshFrame = null;
-
-    /**
-     * Queue one refresh on the next browser animation frame.
-     */
-    const queueRefresh = () => {
-        if (disposed) {
-            return;
-        }
-
-        if (refreshFrame !== null) {
-            window.cancelAnimationFrame(
-                refreshFrame,
-            );
-        }
-
-        refreshFrame =
-            window.requestAnimationFrame(() => {
-                refreshFrame = null;
-
-                ScrollTrigger.refresh();
-                updateGalleryTriggerCount(root);
-            });
-    };
-
-    window.addEventListener(
-        "load",
-        queueRefresh,
-        {
-            once: true,
-        },
-    );
-
-    if (document.fonts?.ready) {
-        document.fonts.ready
-            .then(queueRefresh)
-            .catch(() => {});
-    }
-
-    const pendingImages = [
-        ...root.querySelectorAll("img"),
-    ].filter(
-        (image) =>
-            image instanceof HTMLImageElement
-            && !image.complete,
-    );
-
-    pendingImages.forEach((image) => {
-        image.addEventListener(
-            "load",
-            queueRefresh,
-            {
-                once: true,
-            },
-        );
-
-        image.addEventListener(
-            "error",
-            queueRefresh,
-            {
-                once: true,
-            },
-        );
-    });
-
-    queueRefresh();
-
-    return () => {
-        disposed = true;
-
-        if (refreshFrame !== null) {
-            window.cancelAnimationFrame(
-                refreshFrame,
-            );
-        }
-
-        window.removeEventListener(
-            "load",
-            queueRefresh,
-        );
-
-        pendingImages.forEach((image) => {
-            image.removeEventListener(
-                "load",
-                queueRefresh,
-            );
-
-            image.removeEventListener(
-                "error",
-                queueRefresh,
-            );
-        });
-    };
-}
-
-/**
- * Initialize the complete Gallery ScrollTrigger experience.
- */
-function initializeGalleryMotion(root) {
-    const panels = getGalleryPanels(root);
-
-    if (panels.length === 0) {
-        setGalleryMotionState(
-            root,
-            "unavailable",
-        );
-
-        return () => {};
-    }
-
-    killExistingGalleryTriggers();
-
-    setGalleryMotionState(
-        root,
-        "initializing",
-    );
-
-    setActiveGalleryPanel(
-        root,
-        panels,
-        panels[0],
-    );
-
-    const showMarkers =
-        new URLSearchParams(
-            window.location.search,
-        ).has("debug-scroll");
-
-    ScrollTrigger.saveStyles(
-        root.querySelectorAll(
-            [
-                "[data-gallery-reveal]",
-                "[data-gallery-stack-card]",
-                "[data-gallery-item]",
-                "[data-gallery-panel] img",
-            ].join(", "),
-        ),
-    );
-
-    const media = gsap.matchMedia();
-
-    media.add(
-        {
-            desktop:
-                mediaQueries.desktop,
-            motionAllowed:
-                mediaQueries.motionAllowed,
-            reducedMotion:
-                mediaQueries.reducedMotion,
-        },
-        (mediaContext) => {
-            const {
-                desktop = false,
-                motionAllowed = true,
-                reducedMotion = false,
-            } = mediaContext.conditions ?? {};
-
-            initializeSectionTracking(
-                root,
-                panels,
-                showMarkers,
-            );
-
-            if (
-                reducedMotion
-                || !motionAllowed
-            ) {
-                setReducedMotionState(
-                    root,
-                    panels,
-                );
-
-                updateGalleryTriggerCount(root);
-
-                return () => {};
-            }
-
-            initializeGalleryHero(
-                root,
-                showMarkers,
-            );
-
-            panels
-                .slice(1)
-                .forEach((panel) => {
-                    initializePanelReveal(
-                        panel,
-                        showMarkers,
-                    );
-                });
-
-            initializeGalleryItems(
-                root,
-                showMarkers,
-            );
-
-            if (desktop) {
-                initializeGalleryDepth(
-                    root,
-                    showMarkers,
-                );
-            }
-
-            setGalleryMotionState(
-                root,
-                "ready",
-            );
-
-            const cleanupRefresh =
-                createRefreshLifecycle(root);
-
-            updateGalleryTriggerCount(root);
-
-            return cleanupRefresh;
-        },
-    );
-
-    return () => {
-        media.revert();
-
-        killExistingGalleryTriggers();
-
-        delete root.dataset
-            .galleryTriggerCount;
-
-        delete root.dataset
-            .galleryActiveSection;
-
-        panels.forEach((panel) => {
-            panel.removeAttribute(
-                "data-gallery-active",
-            );
-
-            panel.removeAttribute(
-                "data-gallery-animation-state",
-            );
-        });
-
-        root.querySelectorAll(
-            "[data-gallery-item]",
-        ).forEach((item) => {
-            item.removeAttribute(
-                "data-gallery-item-state",
-            );
-        });
-    };
-}
-
-/**
- * Initialize Gallery lightbox and ScrollTrigger systems.
- */
-export function initGalleryExperience(
-    root = document.querySelector(
-        "[data-gallery-page]",
-    ),
-) {
+export function initGalleryExperience(root) {
     if (!(root instanceof HTMLElement)) {
         return () => {};
     }
 
-    const cleanupMotion =
-        initializeGalleryMotion(root);
+    killGalleryScrollTriggers();
+
+    root.dataset.galleryEnhanced = "true";
+
+    setGalleryMotionState(
+        root,
+        "booting",
+    );
+
+    const thumbnailCleanups = [
+        initializeThumbnailState(
+            getGalleryCards(root),
+        ),
+    ];
+
+    const matchMedia =
+        gsap.matchMedia();
+
+    matchMedia.add(
+        mediaQueries.motionAllowed,
+        () => {
+            const context = gsap.context(
+                () => {
+                    animateInitialGallery(root);
+                },
+                root,
+            );
+
+            return () => {
+                context.revert();
+            };
+        },
+    );
+
+    matchMedia.add(
+        mediaQueries.reducedMotion,
+        () => {
+            gsap.set(
+                [
+                    ...root.querySelectorAll(
+                        "[data-gallery-heading-reveal]",
+                    ),
+                    ...getGalleryCards(root),
+                ],
+                {
+                    autoAlpha: 1,
+                    clearProps: "transform",
+                },
+            );
+        },
+    );
 
     const cleanupDialog =
         initializeGalleryDialog(root);
 
-    /**
-     * Clean up every Gallery-owned listener, tween, and ScrollTrigger.
-     */
-    const cleanup = () => {
+    const cleanupLoadMore =
+        initializeLoadMore(
+            root,
+            (cards) => {
+                thumbnailCleanups.push(
+                    initializeThumbnailState(cards),
+                );
+
+                if (
+                    window
+                        .matchMedia(
+                            mediaQueries.motionAllowed,
+                        )
+                        .matches
+                ) {
+                    animateAppendedCards(cards);
+                } else {
+                    gsap.set(
+                        cards,
+                        {
+                            autoAlpha: 1,
+                            clearProps: "transform",
+                        },
+                    );
+                }
+            },
+        );
+
+    setGalleryMotionState(
+        root,
+        "ready",
+    );
+
+    const refreshFrame =
+        window.requestAnimationFrame(
+            () => {
+                ScrollTrigger.refresh();
+            },
+        );
+
+    return () => {
+        window.cancelAnimationFrame(
+            refreshFrame,
+        );
+
+        cleanupLoadMore();
         cleanupDialog();
-        cleanupMotion();
+
+        thumbnailCleanups.forEach(
+            (cleanup) => {
+                cleanup();
+            },
+        );
+
+        matchMedia.revert();
+
+        killGalleryScrollTriggers();
+
+        gsap.killTweensOf(
+            root.querySelectorAll(
+                "[data-gallery-heading-reveal], "
+                + "[data-gallery-item]",
+            ),
+        );
+
+        root.removeAttribute(
+            "data-gallery-enhanced",
+        );
+
+        setGalleryMotionState(
+            root,
+            "destroyed",
+        );
     };
-
-    if (import.meta.hot) {
-        import.meta.hot.dispose(cleanup);
-    }
-
-    return cleanup;
 }

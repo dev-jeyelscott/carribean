@@ -1,47 +1,162 @@
-import { expect, test } from "@playwright/test";
+import {
+    expect,
+    test,
+} from "@playwright/test";
 
-test("gallery filtering and native image viewer remain usable", async ({
-    page,
-}) => {
-    await page.goto("/gallery");
+test.describe(
+    "Gallery experience",
+    () => {
+        test(
+            "renders one section and supports fullscreen keyboard navigation",
+            async ({ page }) => {
+                await page.goto("/gallery");
 
-    const gallery = page.locator("[data-gallery-page]");
-    const cards = page.locator("[data-gallery-open]");
+                const gallery = page.locator(
+                    "[data-gallery-page]",
+                );
 
-    await expect(gallery).toBeVisible();
-    await expect(gallery).toHaveAttribute(
-        "data-gallery-motion-state",
-        /ready|reduced/,
-    );
-    await expect(cards).toHaveCount(3);
+                await expect(gallery)
+                    .toHaveAttribute(
+                        "data-gallery-motion-state",
+                        "ready",
+                    );
 
-    await cards.first().click();
+                await expect(
+                    gallery.locator("section"),
+                ).toHaveCount(1);
 
-    const dialog = page.locator("[data-gallery-dialog]");
-    const dialogTitle = page.locator("[data-gallery-dialog-title]");
-    const firstTitle = await dialogTitle.textContent();
+                const openers = page.locator(
+                    "[data-gallery-open]",
+                );
 
-    await expect(dialog).toBeVisible();
-    await expect(dialogTitle).not.toBeEmpty();
+                await expect(
+                    openers.first(),
+                ).toBeVisible();
 
-    await page.keyboard.press("ArrowRight");
+                const openerCount =
+                    await openers.count();
 
-    await expect
-        .poll(async () => dialogTitle.textContent())
-        .not.toBe(firstTitle);
+                test.skip(
+                    openerCount < 2,
+                    "At least two seeded images are required.",
+                );
 
-    await page.keyboard.press("Escape");
-    await expect(dialog).not.toBeVisible();
+                const firstOpener =
+                    openers.first();
 
-    await page
-        .locator('[data-gallery-filter][data-gallery-category="dish"]')
-        .click();
+                await firstOpener.click();
 
-    await expect(page).toHaveURL(/category=dish/);
-    await expect(page.locator("[data-gallery-open]")).toHaveCount(2);
-    await expect(
-        page.locator(
-            '[data-gallery-filter][data-gallery-category="dish"]',
-        ),
-    ).toHaveAttribute("aria-current", "true");
-});
+                const dialog = page.locator(
+                    "[data-gallery-dialog]",
+                );
+
+                const dialogImage = page.locator(
+                    "[data-gallery-dialog-image]",
+                );
+
+                await expect(dialog)
+                    .toHaveAttribute(
+                        "open",
+                        "",
+                    );
+
+                await expect(dialogImage)
+                    .toHaveAttribute(
+                        "src",
+                        /.+/,
+                    );
+
+                const firstSource =
+                    await dialogImage.getAttribute(
+                        "src",
+                    );
+
+                await page
+                    .getByRole(
+                        "button",
+                        {
+                            name: "View next image",
+                        },
+                    )
+                    .click();
+
+                await expect
+                    .poll(
+                        async () =>
+                            dialogImage.getAttribute(
+                                "src",
+                            ),
+                    )
+                    .not
+                    .toBe(firstSource);
+
+                await page.keyboard.press(
+                    "ArrowLeft",
+                );
+
+                await expect
+                    .poll(
+                        async () =>
+                            dialogImage.getAttribute(
+                                "src",
+                            ),
+                    )
+                    .toBe(firstSource);
+
+                await page.keyboard.press(
+                    "Escape",
+                );
+
+                await expect(dialog)
+                    .not
+                    .toHaveAttribute(
+                        "open",
+                        "",
+                    );
+
+                await expect(firstOpener)
+                    .toBeFocused();
+            },
+        );
+
+        test(
+            "keeps the fullscreen viewer usable with reduced motion",
+            async ({ page }) => {
+                await page.emulateMedia({
+                    reducedMotion: "reduce",
+                });
+
+                await page.goto("/gallery");
+
+                const firstOpener = page
+                    .locator(
+                        "[data-gallery-open]",
+                    )
+                    .first();
+
+                await firstOpener.click();
+
+                const dialog = page.locator(
+                    "[data-gallery-dialog]",
+                );
+
+                await expect(dialog)
+                    .toHaveAttribute(
+                        "open",
+                        "",
+                    );
+
+                await page.keyboard.press(
+                    "Escape",
+                );
+
+                await expect(dialog)
+                    .not
+                    .toHaveAttribute(
+                        "open",
+                        "",
+                    );
+            },
+        );
+    },
+);
