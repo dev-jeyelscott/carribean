@@ -9,17 +9,11 @@ use Illuminate\Contracts\View\View;
 final class BlogController extends Controller
 {
     /**
-     * Display published Blog posts using a simple paginated journal.
+     * Display the Livewire-powered public journal.
      */
     public function index(): View
     {
-        return view('pages.blog.index', [
-            'posts' => BlogPost::query()
-                ->published()
-                ->latestPublished()
-                ->paginate(9)
-                ->withQueryString(),
-        ]);
+        return view('pages.blog.index');
     }
 
     /**
