@@ -840,3 +840,249 @@ html.gallery-dialog-open body {
         transform: none !important;
     }
 }
+
+/*
+ * Gallery green token surface
+ *
+ * This final cascade block changes only the Gallery presentation. It reuses
+ * the existing semantic Coast & Cay tokens and leaves the footer and other
+ * public pages unchanged.
+ */
+.gallery-page {
+    background: var(--color-primary-deep);
+    color: var(--color-canvas);
+}
+
+.gallery-collage {
+    padding-top: clamp(9.5rem, 12vw, 12rem);
+    background:
+        radial-gradient(
+            circle at 8% 4%,
+            color-mix(
+                in srgb,
+                var(--color-primary-soft) 46%,
+                transparent
+            ),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 92% 12%,
+            color-mix(
+                in srgb,
+                var(--color-ocean) 30%,
+                transparent
+            ),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 54% 92%,
+            color-mix(
+                in srgb,
+                var(--color-coral) 10%,
+                transparent
+            ),
+            transparent 34%
+        ),
+        linear-gradient(
+            180deg,
+            var(--color-primary-deep) 0%,
+            color-mix(
+                in srgb,
+                var(--color-primary-deep) 84%,
+                var(--color-primary)
+            ) 55%,
+            var(--color-primary-deep) 100%
+        );
+    color: var(--color-canvas);
+}
+
+.gallery-collage::before {
+    opacity: 0.2;
+    background-image:
+        radial-gradient(
+            color-mix(
+                in srgb,
+                var(--color-canvas) 14%,
+                transparent
+            ) 0.6px,
+            transparent 0.6px
+        ),
+        radial-gradient(
+            color-mix(
+                in srgb,
+                var(--color-sun) 12%,
+                transparent
+            ) 0.6px,
+            transparent 0.6px
+        );
+}
+
+.gallery-collage__glow {
+    opacity: 0.12;
+    background: var(--color-coral);
+}
+
+.gallery-collage__eyebrow {
+    color: var(--color-sun);
+}
+
+.gallery-collage__title {
+    color: var(--color-canvas);
+    text-shadow:
+        0 0.08em 0.35em
+        color-mix(
+            in srgb,
+            var(--color-primary-deep) 48%,
+            transparent
+        );
+}
+
+.gallery-collage__mark {
+    color: var(--color-coral);
+}
+
+.gallery-collage__description {
+    color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 76%,
+            transparent
+        );
+}
+
+.gallery-collage__count {
+    color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 88%,
+            transparent
+        );
+}
+
+.gallery-collage__count span {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 24%,
+            transparent
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--color-primary-soft) 56%,
+            transparent
+        );
+    color: var(--color-sun);
+    box-shadow:
+        inset 0 1px 0
+        color-mix(
+            in srgb,
+            var(--color-canvas) 8%,
+            transparent
+        );
+}
+
+.gallery-collage-card {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 14%,
+            transparent
+        );
+    box-shadow: var(--shadow-panel);
+}
+
+.gallery-load-more__button {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 54%,
+            transparent
+        );
+    background:
+        color-mix(
+            in srgb,
+            var(--color-primary-soft) 28%,
+            transparent
+        );
+    color: var(--color-canvas);
+    backdrop-filter: blur(0.75rem);
+}
+
+.gallery-load-more__button:hover,
+.gallery-load-more__button:focus-visible {
+    border-color: var(--color-canvas);
+    background: var(--color-canvas);
+    color: var(--color-primary-deep);
+    box-shadow: var(--shadow-panel);
+}
+
+.gallery-load-more__icon {
+    color: var(--color-sun);
+}
+
+.gallery-load-more__status {
+    color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 66%,
+            transparent
+        );
+}
+
+.gallery-collage__empty {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 16%,
+            transparent
+        );
+    background:
+        radial-gradient(
+            circle at 80% 18%,
+            color-mix(
+                in srgb,
+                var(--color-sun) 18%,
+                transparent
+            ),
+            transparent 31%
+        ),
+        linear-gradient(
+            145deg,
+            color-mix(
+                in srgb,
+                var(--color-primary-soft) 70%,
+                var(--color-primary-deep)
+            ),
+            var(--color-primary-deep)
+        );
+    color: var(--color-canvas);
+    box-shadow: var(--shadow-elevated);
+}
+
+.gallery-collage__empty-eyebrow {
+    color: var(--color-sun);
+}
+
+.gallery-collage__empty-title {
+    color: var(--color-canvas);
+}
+
+.gallery-collage__empty-copy {
+    color:
+        color-mix(
+            in srgb,
+            var(--color-canvas) 72%,
+            transparent
+        );
+}
+
+@media (max-width: 1023px) {
+    /*
+     * The transparent mobile header overlays the page, so retain enough
+     * breathing room before the Gallery heading.
+     */
+    .gallery-collage {
+        padding-top: clamp(8rem, 18vw, 9.5rem);
+    }
+}

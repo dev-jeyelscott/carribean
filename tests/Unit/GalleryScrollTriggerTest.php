@@ -127,3 +127,30 @@ test('gallery styles define all collage shapes and reduced motion', function ():
         ->toContain('@media (prefers-reduced-motion: reduce)')
         ->toContain('backdrop-filter: blur(');
 });
+
+test('gallery uses the transparent header and green semantic tokens', function (): void {
+    $gallery = readGalleryProjectFile(
+        'resources/views/pages/gallery.blade.php',
+    );
+
+    $styles = readGalleryProjectFile(
+        'resources/css/gallery.css',
+    );
+
+    expect($gallery)
+        ->toContain(':header-overlay="true"')
+        ->toContain(':header-transparent="true"')
+        ->not->toContain(':header-overlay="false"')
+        ->not->toContain(':header-transparent="false"');
+
+    expect($styles)
+        ->toContain('Gallery green token surface')
+        ->toContain(
+            'background: var(--color-primary-deep);',
+        )
+        ->toContain('var(--color-primary-soft)')
+        ->toContain('var(--color-ocean)')
+        ->toContain('var(--color-canvas)')
+        ->toContain('var(--color-sun)')
+        ->toContain('var(--color-coral)');
+});

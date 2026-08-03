@@ -3,8 +3,8 @@
     :description="$page?->meta_description
         ?: 'Explore the food, atmosphere, and coastal hospitality of Coast & Cay.'"
     :image="$coverImage?->image_url"
-    :header-overlay="false"
-    :header-transparent="false"
+    :header-overlay="true"
+    :header-transparent="true"
 >
     @php
         /*
