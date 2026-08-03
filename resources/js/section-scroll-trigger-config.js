@@ -1,12 +1,17 @@
-const baseSectionScrollTriggerConfig = {
+/**
+ * Homepage-only ScrollTrigger configuration.
+ *
+ * Non-home routes must use native scrolling, IntersectionObserver, and CSS
+ * transitions instead of importing the ScrollTrigger plugin.
+ */
+export const homepageSectionScrollTriggerConfig = {
     media: {
         desktop: "(min-width: 1024px) and (pointer: fine)",
-        motionAllowed: "(prefers-reduced-motion: no-preference)",
         reducedMotion: "(prefers-reduced-motion: reduce)",
         shortViewport: "(max-height: 719px)",
     },
     wheel: {
-        enabled: false,
+        enabled: true,
         activationThreshold: 8,
         gestureReleaseDelay: 140,
     },
@@ -50,95 +55,3 @@ const baseSectionScrollTriggerConfig = {
         },
     },
 };
-
-/**
- * Create an isolated section-scroll profile with optional page overrides.
- */
-export function createSectionScrollTriggerConfig(overrides = {}) {
-    return {
-        media: {
-            ...baseSectionScrollTriggerConfig.media,
-            ...overrides.media,
-        },
-        wheel: {
-            ...baseSectionScrollTriggerConfig.wheel,
-            ...overrides.wheel,
-        },
-        navigation: {
-            ...baseSectionScrollTriggerConfig.navigation,
-            ...overrides.navigation,
-        },
-        reveal: {
-            ...baseSectionScrollTriggerConfig.reveal,
-            ...overrides.reveal,
-            trigger: {
-                ...baseSectionScrollTriggerConfig.reveal.trigger,
-                ...overrides.reveal?.trigger,
-            },
-        },
-        tracking: {
-            ...baseSectionScrollTriggerConfig.tracking,
-            ...overrides.tracking,
-            trigger: {
-                ...baseSectionScrollTriggerConfig.tracking.trigger,
-                ...overrides.tracking?.trigger,
-            },
-        },
-        depth: {
-            ...baseSectionScrollTriggerConfig.depth,
-            ...overrides.depth,
-            from: {
-                ...baseSectionScrollTriggerConfig.depth.from,
-                ...overrides.depth?.from,
-            },
-            to: {
-                ...baseSectionScrollTriggerConfig.depth.to,
-                ...overrides.depth?.to,
-            },
-            trigger: {
-                ...baseSectionScrollTriggerConfig.depth.trigger,
-                ...overrides.depth?.trigger,
-            },
-        },
-    };
-}
-
-/*
- * Preserve each page's established motion while sharing the same base
- * media, navigation, reveal, tracking, and depth configuration.
- */
-export const homepageSectionScrollTriggerConfig =
-    createSectionScrollTriggerConfig({
-        wheel: {
-            enabled: true,
-        },
-    });
-
-export const aboutSectionScrollTriggerConfig =
-    createSectionScrollTriggerConfig({
-        wheel: {
-            enabled: true,
-        },
-        reveal: {
-            distance: 42,
-        },
-    });
-
-export const gallerySectionScrollTriggerConfig =
-    createSectionScrollTriggerConfig({
-        reveal: {
-            distance: 42,
-            duration: 0.85,
-            stagger: 0.08,
-        },
-        depth: {
-            from: {
-                scale: 1.05,
-                yPercent: -3,
-            },
-            to: {
-                scale: 1.01,
-                yPercent: 3,
-            },
-        },
-    });

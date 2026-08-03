@@ -1,0 +1,44 @@
+/*
+ * About page native-scroll behavior.
+ *
+ * The page remains full-screen and editorial, but it no longer depends on
+ * GSAP, ScrollToPlugin, wheel interception, or ScrollTrigger.
+ */
+html:has([data-about-page]) {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+}
+
+[data-about-panel] {
+    scroll-margin-top: 80px;
+}
+
+/*
+ * Keep every former animation target in its final readable state.
+ */
+[data-about-reveal],
+[data-about-image-reveal],
+[data-about-hero-image] img,
+[data-about-parallax] img {
+    opacity: 1 !important;
+    visibility: visible !important;
+    clip-path: none !important;
+    transform: none !important;
+    will-change: auto !important;
+}
+
+@media (max-width: 1023px) {
+    html:has([data-about-page]) {
+        scroll-padding-top: 76px;
+    }
+
+    [data-about-panel] {
+        scroll-margin-top: 76px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has([data-about-page]) {
+        scroll-behavior: auto;
+    }
+}

@@ -27,6 +27,10 @@ if (publicHeader) {
         });
 }
 
+/*
+ * Ordinary public-page reveals use IntersectionObserver and CSS rather than
+ * GSAP ScrollTrigger.
+ */
 if (document.querySelector("[data-reveal]")) {
     import("./public-reveals")
         .then(({ initPublicReveals }) => {
@@ -41,66 +45,28 @@ if (document.querySelector("[data-reveal]")) {
 }
 
 /*
- * Journal, checkout confirmation, and customer order pages use one
- * lightweight, page-scoped animation profile.
+ * The homepage is the only public route allowed to load ScrollTrigger.
  */
-const publicPageMotionRoot = document.querySelector(
-    "[data-public-page-motion]",
+const homepageRoot = document.querySelector(
+    "[data-home-motion][data-home-section-pager]",
 );
 
-if (publicPageMotionRoot) {
-    import("./public-page-experience")
-        .then(({ initPublicPageExperience }) => {
-            initPublicPageExperience(
-                publicPageMotionRoot,
-            );
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize the public page experience.",
-                error,
-            );
-        });
-}
-
-/*
- * Contact has a dedicated coordinated animation profile. Excluding it here
- * prevents generic section timelines from animating the same elements twice.
- */
-const publicMotionRoot = document.querySelector(
-    "[data-home-motion]:not([data-contact-page])",
-);
-
-if (publicMotionRoot) {
+if (homepageRoot) {
     import("./public-animations")
         .then(({ initPublicAnimations }) => {
-            initPublicAnimations(
-                publicMotionRoot,
-            );
+            initPublicAnimations(homepageRoot);
         })
         .catch((error) => {
             console.error(
-                "Unable to initialize public animations.",
+                "Unable to initialize homepage animations.",
                 error,
             );
         });
-}
 
-const homepagePagerRoot = document.querySelector(
-    "[data-home-section-pager]",
-);
-
-if (homepagePagerRoot) {
     import("./homepage-section-navigation")
-        .then(
-            ({
-                initHomepageSectionNavigation,
-            }) => {
-                initHomepageSectionNavigation(
-                    homepagePagerRoot,
-                );
-            },
-        )
+        .then(({ initHomepageSectionNavigation }) => {
+            initHomepageSectionNavigation(homepageRoot);
+        })
         .catch((error) => {
             console.error(
                 "Unable to initialize homepage section navigation.",
@@ -109,9 +75,11 @@ if (homepagePagerRoot) {
         });
 }
 
-const menuPageRoot = document.querySelector(
-    "[data-menu-page]",
-);
+/*
+ * Menu interactions use native scrolling, IntersectionObserver, and GSAP Core
+ * for the product dialog. ScrollTrigger is intentionally excluded.
+ */
+const menuPageRoot = document.querySelector("[data-menu-page]");
 
 if (menuPageRoot) {
     import("./menu-experience")
@@ -124,62 +92,4 @@ if (menuPageRoot) {
                 error,
             );
         });
-
-    import("./menu-category-scroll")
-        .then(({ initMenuCategoryScroll }) => {
-            initMenuCategoryScroll(
-                menuPageRoot,
-            );
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize menu category navigation.",
-                error,
-            );
-        });
 }
-
-const aboutPageRoot = document.querySelector(
-    "[data-about-page]",
-);
-
-if (aboutPageRoot) {
-    import("./about-experience")
-        .then(({ initAboutExperience }) => {
-            initAboutExperience(
-                aboutPageRoot,
-            );
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize the About page experience.",
-                error,
-            );
-        });
-}
-
-const contactPageRoot = document.querySelector(
-    "[data-contact-page]",
-);
-
-if (contactPageRoot) {
-    import("./contact-experience")
-        .then(({ initContactExperience }) => {
-            initContactExperience(
-                contactPageRoot,
-            );
-        })
-        .catch((error) => {
-            console.error(
-                "Unable to initialize the Contact page experience.",
-                error,
-            );
-        });
-}
-
-/*
- * Gallery initialization intentionally does not belong here.
- *
- * The Gallery route loads resources/js/gallery-page.js as a dedicated Vite
- * entry, preventing duplicate ScrollTriggers and asynchronous chunk failures.
- */

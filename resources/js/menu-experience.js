@@ -1,31 +1,31 @@
 import gsap from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 
 /**
- * Return the current shared-header height used for anchor offsets.
+ * Return the current public-header height used by anchor navigation.
  */
 function headerOffset() {
-    const header = document.querySelector("header");
+    const header = document.querySelector(
+        "[data-public-header-shell] > header",
+    );
 
     return header instanceof HTMLElement
-        ? header.getBoundingClientRect().height
+        ? Math.ceil(header.getBoundingClientRect().height)
         : 88;
 }
 
 /**
- * Return all menu sections currently rendered inside the page.
+ * Return every rendered menu category section.
  */
 function menuSections(root) {
     return [...root.querySelectorAll("[data-menu-section]")].filter(
-        (section) => section instanceof HTMLElement,
+        (section) => section instanceof HTMLElement && section.id,
     );
 }
 
 /**
- * Return all category links from desktop and mobile navigation.
+ * Return every desktop and mobile category link.
  */
 function categoryLinks(root) {
     return [...root.querySelectorAll("[data-menu-category-link]")].filter(
@@ -34,7 +34,7 @@ function categoryLinks(root) {
 }
 
 /**
- * Center the active mobile category chip inside its horizontal scroller.
+ * Keep the active mobile category chip visible inside its scroller.
  */
 function centerMobileCategoryLink(link, reducedMotion) {
     const scroller = link.closest("[data-menu-category-scroller]");
@@ -57,9 +57,8 @@ function centerMobileCategoryLink(link, reducedMotion) {
  */
 function setActiveCategory(root, section, reducedMotion) {
     const expectedHash = `#${section.id}`;
-    const links = categoryLinks(root);
 
-    links.forEach((link) => {
+    categoryLinks(root).forEach((link) => {
         const isActive = link.getAttribute("href") === expectedHash;
 
         link.setAttribute("aria-current", isActive ? "true" : "false");
@@ -74,90 +73,97 @@ function setActiveCategory(root, section, reducedMotion) {
 }
 
 /**
- * Initialize category links and active-section ScrollTriggers.
+ * Scroll to one category using the browser's native scrolling behavior.
+ */
+function scrollToCategory(section, reducedMotion) {
+    const top =
+        section.getBoundingClientRect().top +
+        window.scrollY -
+        headerOffset() -
+        16;
+
+    window.scrollTo({
+        behavior: reducedMotion ? "auto" : "smooth",
+        left: 0,
+        top: Math.max(0, Math.round(top)),
+    });
+}
+
+/**
+ * Track the visible category with IntersectionObserver and native anchors.
  */
 function initializeCategoryNavigation(root, reducedMotion) {
     const sections = menuSections(root);
-    const cleanup = [];
 
-    const handleCategoryClick = (event) => {
-        const link = event.target.closest("[data-menu-category-link]");
+    if (sections.length === 0) {
+        return () => {};
+    }
 
-        if (!(link instanceof HTMLAnchorElement)) {
+    const handleClick = (event) => {
+        const target =
+            event.target instanceof Element
+                ? event.target.closest("[data-menu-category-link]")
+                : null;
+
+        if (!(target instanceof HTMLAnchorElement)) {
             return;
         }
 
-        const target = document.getElementById(link.hash.slice(1));
+        const section = document.getElementById(target.hash.slice(1));
 
-        if (!(target instanceof HTMLElement)) {
+        if (!(section instanceof HTMLElement)) {
             return;
         }
 
         event.preventDefault();
-
-        setActiveCategory(root, target, reducedMotion);
-
-        window.history.replaceState(null, "", `#${target.id}`);
-
-        if (reducedMotion) {
-            window.scrollTo({
-                behavior: "auto",
-                top:
-                    target.getBoundingClientRect().top +
-                    window.scrollY -
-                    headerOffset() -
-                    16,
-            });
-
-            return;
-        }
-
-        gsap.to(window, {
-            duration: 0.65,
-            ease: "power3.out",
-            overwrite: "auto",
-            scrollTo: {
-                autoKill: true,
-                offsetY: headerOffset() + 16,
-                y: target,
-            },
-        });
+        setActiveCategory(root, section, reducedMotion);
+        window.history.replaceState(null, "", `#${section.id}`);
+        scrollToCategory(section, reducedMotion);
     };
 
-    root.addEventListener("click", handleCategoryClick);
+    root.addEventListener("click", handleClick);
 
-    cleanup.push(() => {
-        root.removeEventListener("click", handleCategoryClick);
-    });
+    const observer = new IntersectionObserver(
+        (entries) => {
+            const visibleEntry = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort(
+                    (left, right) =>
+                        right.intersectionRatio - left.intersectionRatio,
+                )[0];
 
-    sections.forEach((section) => {
-        const trigger = ScrollTrigger.create({
-            trigger: section,
-            start: "top 46%",
-            end: "bottom 46%",
-            onEnter: () => {
-                setActiveCategory(root, section, reducedMotion);
-            },
-            onEnterBack: () => {
-                setActiveCategory(root, section, reducedMotion);
-            },
-        });
+            if (visibleEntry?.target instanceof HTMLElement) {
+                setActiveCategory(root, visibleEntry.target, reducedMotion);
+            }
+        },
+        {
+            root: null,
+            rootMargin: "-38% 0px -52% 0px",
+            threshold: [0, 0.01, 0.25, 0.5],
+        },
+    );
 
-        cleanup.push(() => trigger.kill());
-    });
+    sections.forEach((section) => observer.observe(section));
 
     const requestedSection = window.location.hash
         ? document.getElementById(window.location.hash.slice(1))
         : null;
 
-    if (requestedSection instanceof HTMLElement) {
-        setActiveCategory(root, requestedSection, reducedMotion);
-    } else if (sections[0]) {
-        setActiveCategory(root, sections[0], reducedMotion);
-    }
+    setActiveCategory(
+        root,
+        requestedSection instanceof HTMLElement
+            ? requestedSection
+            : sections[0],
+        reducedMotion,
+    );
+
+    root.dataset.menuCategoryNavigation = "native";
 
     return () => {
-        cleanup.forEach((callback) => callback());
+        observer.disconnect();
+        root.removeEventListener("click", handleClick);
+        delete root.dataset.menuCategoryNavigation;
+        delete root.dataset.menuActiveCategory;
     };
 }
 
@@ -173,42 +179,33 @@ function carouselStep(track, items) {
 }
 
 /**
- * Calculate how many complete cards fit inside one carousel viewport.
+ * Return the number of complete cards visible in the carousel viewport.
  */
 function visibleCarouselCount(track, items) {
     const step = carouselStep(track, items);
 
-    if (step <= 0) {
-        return 1;
-    }
-
-    return Math.max(1, Math.round(track.clientWidth / step));
+    return step <= 0
+        ? 1
+        : Math.max(1, Math.round(track.clientWidth / step));
 }
 
 /**
- * Initialize controls, keyboard input, status, and progress for one carousel.
+ * Initialize one native horizontal menu carousel.
  */
 function initializeCarousel(carousel, reducedMotion) {
     const track = carousel.querySelector("[data-menu-carousel-track]");
-
-    const previousButton = carousel
-        .closest("[data-menu-section]")
-        ?.querySelector("[data-menu-carousel-previous]");
-
-    const nextButton = carousel
-        .closest("[data-menu-section]")
-        ?.querySelector("[data-menu-carousel-next]");
-
-    const status = carousel
-        .closest("[data-menu-section]")
-        ?.querySelector("[data-menu-carousel-status]");
-
-    const progress = carousel.querySelector("[data-menu-carousel-progress]");
 
     if (!(track instanceof HTMLElement)) {
         return () => {};
     }
 
+    const section = carousel.closest("[data-menu-section]");
+    const previousButton = section?.querySelector(
+        "[data-menu-carousel-previous]",
+    );
+    const nextButton = section?.querySelector("[data-menu-carousel-next]");
+    const status = section?.querySelector("[data-menu-carousel-status]");
+    const progress = carousel.querySelector("[data-menu-carousel-progress]");
     const items = [
         ...track.querySelectorAll("[data-menu-carousel-item]"),
     ].filter((item) => item instanceof HTMLElement);
@@ -220,42 +217,28 @@ function initializeCarousel(carousel, reducedMotion) {
     let updateFrame = null;
 
     /**
-     * Return the card index closest to the current scroll position.
+     * Return the card index nearest the current native scroll position.
      */
     const currentIndex = () => {
         const step = carouselStep(track, items);
 
-        if (step <= 0) {
-            return 0;
-        }
-
-        return Math.max(
-            0,
-            Math.min(items.length - 1, Math.round(track.scrollLeft / step)),
-        );
+        return step <= 0
+            ? 0
+            : Math.max(
+                  0,
+                  Math.min(
+                      items.length - 1,
+                      Math.round(track.scrollLeft / step),
+                  ),
+              );
     };
 
     /**
-     * Return the current responsive carousel page.
-     *
-     * One page equals the number of complete cards visible in the current
-     * carousel viewport.
-     */
-    const currentPage = () => {
-        const visibleCount = visibleCarouselCount(track, items);
-
-        return Math.round(currentIndex() / visibleCount);
-    };
-
-    /**
-     * Synchronize controls, readable status, and progress with scroll position.
+     * Synchronize navigation buttons, status text, and progress.
      */
     const updateState = () => {
         const index = currentIndex();
         const visibleCount = visibleCarouselCount(track, items);
-
-        const lastVisible = Math.min(items.length, index + visibleCount);
-
         const maximumScroll = track.scrollWidth - track.clientWidth;
 
         if (previousButton instanceof HTMLButtonElement) {
@@ -267,7 +250,10 @@ function initializeCarousel(carousel, reducedMotion) {
         }
 
         if (status instanceof HTMLElement) {
-            status.textContent = `${index + 1}–${lastVisible} of ${items.length}`;
+            status.textContent = `${index + 1}–${Math.min(
+                items.length,
+                index + visibleCount,
+            )} of ${items.length}`;
         }
 
         if (progress instanceof HTMLElement) {
@@ -276,12 +262,15 @@ function initializeCarousel(carousel, reducedMotion) {
                     ? 1
                     : index / Math.max(1, items.length - visibleCount);
 
-            progress.style.transform = `scaleX(${Math.max(0.08, progressValue)})`;
+            progress.style.transform = `scaleX(${Math.max(
+                0.08,
+                progressValue,
+            )})`;
         }
     };
 
     /**
-     * Schedule one state update per animation frame.
+     * Schedule at most one carousel state update per animation frame.
      */
     const scheduleUpdate = () => {
         if (updateFrame !== null) {
@@ -295,168 +284,78 @@ function initializeCarousel(carousel, reducedMotion) {
     };
 
     /**
-     * Animate the track to one card index.
+     * Move to one responsive carousel page with native scrolling.
      */
-    const scrollToIndex = (index) => {
+    const movePage = (direction) => {
         const visibleCount = visibleCarouselCount(track, items);
-
-        const maximumStartIndex = Math.max(0, items.length - visibleCount);
-
-        const targetIndex = Math.max(0, Math.min(maximumStartIndex, index));
-
-        const target = items[targetIndex];
+        const currentPage = Math.round(currentIndex() / visibleCount);
+        const maximumPage = Math.max(
+            0,
+            Math.ceil(items.length / visibleCount) - 1,
+        );
+        const targetPage = Math.max(
+            0,
+            Math.min(maximumPage, currentPage + direction),
+        );
+        const target = items[targetPage * visibleCount];
 
         if (!(target instanceof HTMLElement)) {
             return;
         }
 
-        if (reducedMotion) {
-            track.scrollTo({
-                behavior: "auto",
-                left: target.offsetLeft,
-            });
-
-            scheduleUpdate();
-
-            return;
-        }
-
-        gsap.to(track, {
-            duration: 0.55,
-            ease: "power3.out",
-            overwrite: "auto",
-            scrollTo: {
-                x: target.offsetLeft,
-            },
-            onUpdate: scheduleUpdate,
-            onComplete: scheduleUpdate,
+        track.scrollTo({
+            behavior: reducedMotion ? "auto" : "smooth",
+            left: target.offsetLeft,
         });
     };
 
-    /**
-     * Move to one responsive carousel page.
-     *
-     * Desktop advances four cards, while narrower layouts advance by however
-     * many complete cards currently fit inside the carousel.
-     */
-    const scrollToPage = (page) => {
-        const visibleCount = visibleCarouselCount(track, items);
-
-        const maximumPage = Math.max(
-            0,
-            Math.ceil(items.length / visibleCount) - 1,
-        );
-
-        const targetPage = Math.max(0, Math.min(maximumPage, page));
-
-        scrollToIndex(targetPage * visibleCount);
-    };
-
-    const handlePrevious = () => {
-        scrollToPage(currentPage() - 1);
-    };
-
-    const handleNext = () => {
-        scrollToPage(currentPage() + 1);
-    };
+    const handlePrevious = () => movePage(-1);
+    const handleNext = () => movePage(1);
 
     const handleKeydown = (event) => {
         if (event.key === "ArrowLeft") {
             event.preventDefault();
             handlePrevious();
-
-            return;
         }
 
         if (event.key === "ArrowRight") {
             event.preventDefault();
             handleNext();
-
-            return;
         }
 
         if (event.key === "Home") {
             event.preventDefault();
-            scrollToIndex(0);
-
-            return;
+            track.scrollTo({
+                behavior: reducedMotion ? "auto" : "smooth",
+                left: 0,
+            });
         }
 
         if (event.key === "End") {
             event.preventDefault();
-            scrollToPage(Number.MAX_SAFE_INTEGER);
+            track.scrollTo({
+                behavior: reducedMotion ? "auto" : "smooth",
+                left: track.scrollWidth,
+            });
         }
-    };
-
-    /**
-     * Preserve normal vertical page scrolling while supporting horizontal
-     * trackpads and Shift + mouse-wheel navigation.
-     */
-    const handleWheel = (event) => {
-        const usesHorizontalTrackpad =
-            Math.abs(event.deltaX) > Math.abs(event.deltaY);
-
-        const horizontalDelta = usesHorizontalTrackpad
-            ? event.deltaX
-            : event.shiftKey
-              ? event.deltaY
-              : 0;
-
-        if (horizontalDelta === 0) {
-            return;
-        }
-
-        const maximumScroll = track.scrollWidth - track.clientWidth;
-
-        const canMoveBackward = horizontalDelta < 0 && track.scrollLeft > 0;
-
-        const canMoveForward =
-            horizontalDelta > 0 && track.scrollLeft < maximumScroll;
-
-        if (!canMoveBackward && !canMoveForward) {
-            return;
-        }
-
-        event.preventDefault();
-
-        track.scrollLeft += horizontalDelta;
-
-        scheduleUpdate();
     };
 
     previousButton?.addEventListener("click", handlePrevious);
-
     nextButton?.addEventListener("click", handleNext);
-
     track.addEventListener("keydown", handleKeydown);
-
-    track.addEventListener("scroll", scheduleUpdate, {
-        passive: true,
-    });
-
-    track.addEventListener("wheel", handleWheel, {
-        passive: false,
-    });
+    track.addEventListener("scroll", scheduleUpdate, { passive: true });
 
     const resizeObserver = new ResizeObserver(scheduleUpdate);
-
     resizeObserver.observe(track);
 
     updateState();
-
     carousel.dataset.menuCarouselReady = "true";
 
     return () => {
         previousButton?.removeEventListener("click", handlePrevious);
-
         nextButton?.removeEventListener("click", handleNext);
-
         track.removeEventListener("keydown", handleKeydown);
-
         track.removeEventListener("scroll", scheduleUpdate);
-
-        track.removeEventListener("wheel", handleWheel);
-
         resizeObserver.disconnect();
 
         if (updateFrame !== null) {
@@ -468,238 +367,35 @@ function initializeCarousel(carousel, reducedMotion) {
 }
 
 /**
- * Initialize every native horizontal carousel.
+ * Initialize every native horizontal menu carousel.
  */
 function initializeCarousels(root, reducedMotion) {
-    const cleanup = [];
+    const cleanups = [];
 
     root.querySelectorAll("[data-menu-carousel]").forEach((carousel) => {
-        cleanup.push(initializeCarousel(carousel, reducedMotion));
+        cleanups.push(initializeCarousel(carousel, reducedMotion));
     });
 
     return () => {
-        cleanup.forEach((callback) => callback());
+        cleanups.reverse().forEach((cleanup) => cleanup());
     };
 }
 
 /**
- * Reveal the hero and category content only after the GSAP module succeeds.
- */
-function initializeMenuMotion(root, reducedMotion) {
-    if (reducedMotion) {
-        gsap.set(
-            root.querySelectorAll(
-                "[data-menu-hero-item], [data-menu-hero-depth], [data-menu-section-heading], [data-menu-section-rule], [data-menu-carousel-item], [data-menu-carousel-controls]",
-            ),
-            {
-                autoAlpha: 1,
-                clearProps: "transform",
-            },
-        );
-
-        return () => {};
-    }
-
-    const cleanup = [];
-    const hero = root.querySelector("[data-menu-hero]");
-
-    const heroItems = root.querySelectorAll("[data-menu-hero-item]");
-
-    const heroDepthLayers = root.querySelectorAll("[data-menu-hero-depth]");
-
-    if (hero instanceof HTMLElement && heroItems.length > 0) {
-        /*
-         * Reveal the hero once when it enters the viewport.
-         *
-         * The page normally starts inside the hero, but attaching the entrance
-         * timeline to ScrollTrigger also handles restored scroll positions,
-         * browser back navigation, and direct page reloads consistently.
-         */
-        gsap.set(heroItems, {
-            autoAlpha: 0,
-            y: 24,
-        });
-
-        const heroEntranceTimeline = gsap.timeline({
-            defaults: {
-                ease: "power4.out",
-            },
-            scrollTrigger: {
-                trigger: hero,
-                start: "top 88%",
-                once: true,
-            },
-        });
-
-        heroEntranceTimeline.to(heroItems, {
-            autoAlpha: 1,
-            duration: 1,
-            stagger: 0.11,
-            y: 0,
-        });
-
-        /*
-         * Apply restrained scroll-linked depth while the visitor leaves the hero.
-         *
-         * The hero remains in normal document flow. Only transform and opacity are
-         * animated, preventing layout shifts and avoiding scroll hijacking.
-         */
-        const heroScrollTimeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: hero,
-                start: "top top",
-                end: "bottom top",
-                scrub: 0.65,
-                invalidateOnRefresh: true,
-            },
-        });
-
-        heroScrollTimeline
-            .to(
-                heroItems,
-                {
-                    autoAlpha: 0.4,
-                    ease: "none",
-                    stagger: 0.015,
-                    yPercent: -10,
-                },
-                0,
-            )
-            .to(
-                heroDepthLayers,
-                {
-                    ease: "none",
-                    scale: 1.06,
-                    yPercent: 18,
-                },
-                0,
-            );
-
-        hero.dataset.menuHeroScrollTrigger = "ready";
-
-        cleanup.push(() => {
-            heroEntranceTimeline.scrollTrigger?.kill();
-            heroEntranceTimeline.kill();
-
-            heroScrollTimeline.scrollTrigger?.kill();
-            heroScrollTimeline.kill();
-
-            delete hero.dataset.menuHeroScrollTrigger;
-        });
-    }
-
-    menuSections(root).forEach((section) => {
-        const heading = section.querySelector("[data-menu-section-heading]");
-
-        const rule = section.querySelector("[data-menu-section-rule]");
-
-        const controls = section.querySelector("[data-menu-carousel-controls]");
-
-        const cards = [
-            ...section.querySelectorAll("[data-menu-carousel-item]"),
-        ].slice(0, 6);
-
-        const headingElements = heading
-            ? [...heading.querySelectorAll("p, h2")].slice(0, 3)
-            : [];
-
-        gsap.set(headingElements, {
-            autoAlpha: 0,
-            y: 20,
-        });
-
-        gsap.set(cards, {
-            autoAlpha: 0,
-            y: 28,
-        });
-
-        if (controls) {
-            gsap.set(controls, {
-                autoAlpha: 0,
-                y: 14,
-            });
-        }
-
-        if (rule) {
-            gsap.set(rule, {
-                scaleX: 0,
-                transformOrigin: "left center",
-            });
-        }
-
-        const timeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: section,
-                start: "top 72%",
-                once: true,
-            },
-        });
-
-        timeline
-            .to(headingElements, {
-                autoAlpha: 1,
-                duration: 0.7,
-                ease: "power3.out",
-                stagger: 0.08,
-                y: 0,
-            })
-            .to(
-                rule,
-                {
-                    duration: 0.5,
-                    ease: "power3.out",
-                    scaleX: 1,
-                },
-                "<0.08",
-            )
-            .to(
-                controls,
-                {
-                    autoAlpha: 1,
-                    duration: 0.45,
-                    ease: "power3.out",
-                    y: 0,
-                },
-                "<0.1",
-            )
-            .to(
-                cards,
-                {
-                    autoAlpha: 1,
-                    duration: 0.65,
-                    ease: "power3.out",
-                    stagger: 0.07,
-                    y: 0,
-                },
-                "<0.05",
-            );
-
-        cleanup.push(() => {
-            timeline.scrollTrigger?.kill();
-            timeline.kill();
-        });
-    });
-
-    return () => {
-        cleanup.forEach((callback) => callback());
-    };
-}
-
-/**
- * Animate and manage the reusable native product dialog.
+ * Animate and manage the reusable product dialog with GSAP Core only.
  */
 function initializeProductModal(root, reducedMotion) {
     let opener = null;
-    let activeTimeline = null;
+    let activeTween = null;
     let isClosing = false;
 
     /**
-     * Return the latest dialog after Livewire morphing.
+     * Return the latest dialog after a Livewire DOM morph.
      */
     const currentDialog = () => root.querySelector("[data-product-modal]");
 
     /**
-     * Ask the Livewire component to close and reset validation state.
+     * Trigger the Livewire close action for the current dialog.
      */
     const requestClose = (dialog) => {
         const closeAction = dialog.querySelector(
@@ -712,7 +408,7 @@ function initializeProductModal(root, reducedMotion) {
     };
 
     /**
-     * Bind native cancel and backdrop behavior to the current dialog.
+     * Bind native cancel and backdrop behavior once per dialog instance.
      */
     const bindDialogEvents = (dialog) => {
         if (dialog.dataset.productModalBound === "true") {
@@ -734,7 +430,7 @@ function initializeProductModal(root, reducedMotion) {
     };
 
     /**
-     * Open the dialog and reveal its layered content.
+     * Open the native dialog and animate its panel without scroll coupling.
      */
     const handleOpen = () => {
         const dialog = currentDialog();
@@ -744,7 +440,6 @@ function initializeProductModal(root, reducedMotion) {
         }
 
         bindDialogEvents(dialog);
-
         opener = document.activeElement;
         isClosing = false;
 
@@ -755,100 +450,46 @@ function initializeProductModal(root, reducedMotion) {
         document.documentElement.classList.add("menu-modal-open");
 
         const panel = dialog.querySelector("[data-product-modal-panel]");
-
-        const image = dialog.querySelector("[data-product-modal-image]");
-
-        const copy = dialog.querySelector("[data-product-modal-copy]");
-
-        const options = dialog.querySelector("[data-product-modal-options]");
-
-        const footer = dialog.querySelector("[data-product-modal-footer]");
-
         const closeAction = dialog.querySelector(
             "[data-product-modal-close-action]",
         );
 
-        activeTimeline?.kill();
+        activeTween?.kill();
 
-        if (reducedMotion) {
-            gsap.set([panel, image, copy, options, footer], {
-                autoAlpha: 1,
-                clearProps: "transform",
-            });
-        } else {
-            gsap.set(panel, {
-                autoAlpha: 0,
-                scale: 0.96,
-                y: 18,
-            });
-
-            gsap.set([image, copy, options, footer], {
-                autoAlpha: 0,
-                y: 18,
-            });
-
-            activeTimeline = gsap.timeline({
-                defaults: {
-                    ease: "power3.out",
-                },
-            });
-
-            activeTimeline
-                .to(panel, {
+        if (panel instanceof HTMLElement) {
+            if (reducedMotion) {
+                gsap.set(panel, {
                     autoAlpha: 1,
-                    duration: 0.4,
-                    scale: 1,
-                    y: 0,
-                })
-                .to(
-                    image,
+                    clearProps: "transform",
+                });
+            } else {
+                activeTween = gsap.fromTo(
+                    panel,
+                    {
+                        autoAlpha: 0,
+                        scale: 0.97,
+                        y: 18,
+                    },
                     {
                         autoAlpha: 1,
-                        duration: 0.55,
+                        duration: 0.42,
+                        ease: "power3.out",
+                        scale: 1,
                         y: 0,
                     },
-                    "<0.05",
-                )
-                .to(
-                    copy,
-                    {
-                        autoAlpha: 1,
-                        duration: 0.45,
-                        y: 0,
-                    },
-                    "<0.08",
-                )
-                .to(
-                    options,
-                    {
-                        autoAlpha: 1,
-                        duration: 0.45,
-                        y: 0,
-                    },
-                    "<0.08",
-                )
-                .to(
-                    footer,
-                    {
-                        autoAlpha: 1,
-                        duration: 0.4,
-                        y: 0,
-                    },
-                    "<0.08",
                 );
+            }
         }
 
         requestAnimationFrame(() => {
             if (closeAction instanceof HTMLElement) {
-                closeAction.focus({
-                    preventScroll: true,
-                });
+                closeAction.focus({ preventScroll: true });
             }
         });
     };
 
     /**
-     * Animate the current modal out before closing the native dialog.
+     * Animate the dialog panel out, then close the native dialog.
      */
     const handleClose = () => {
         const dialog = currentDialog();
@@ -871,41 +512,35 @@ function initializeProductModal(root, reducedMotion) {
             }
 
             document.documentElement.classList.remove("menu-modal-open");
-
             isClosing = false;
 
             if (opener instanceof HTMLElement) {
-                opener.focus({
-                    preventScroll: true,
-                });
+                opener.focus({ preventScroll: true });
             }
 
             opener = null;
         };
 
-        activeTimeline?.kill();
+        activeTween?.kill();
 
-        if (reducedMotion || !panel) {
+        if (reducedMotion || !(panel instanceof HTMLElement)) {
             finishClose();
 
             return;
         }
 
-        activeTimeline = gsap.timeline({
-            onComplete: finishClose,
-        });
-
-        activeTimeline.to(panel, {
+        activeTween = gsap.to(panel, {
             autoAlpha: 0,
             duration: 0.22,
             ease: "power2.in",
             scale: 0.985,
             y: 10,
+            onComplete: finishClose,
         });
     };
 
     /**
-     * Apply a restrained error shake without moving the page backdrop.
+     * Shake the product panel after a validation error.
      */
     const handleError = () => {
         if (reducedMotion) {
@@ -916,46 +551,36 @@ function initializeProductModal(root, reducedMotion) {
             "[data-product-modal-panel]",
         );
 
-        if (!(panel instanceof HTMLElement)) {
-            return;
+        if (panel instanceof HTMLElement) {
+            gsap.fromTo(
+                panel,
+                { x: -6 },
+                {
+                    duration: 0.08,
+                    ease: "power1.inOut",
+                    repeat: 3,
+                    x: 0,
+                    yoyo: true,
+                },
+            );
         }
-
-        gsap.fromTo(
-            panel,
-            {
-                x: -6,
-            },
-            {
-                duration: 0.08,
-                ease: "power1.inOut",
-                repeat: 3,
-                x: 0,
-                yoyo: true,
-            },
-        );
     };
 
     window.addEventListener("product-modal-open", handleOpen);
-
     window.addEventListener("product-modal-close", handleClose);
-
     window.addEventListener("product-modal-error", handleError);
 
     return () => {
-        activeTimeline?.kill();
-
+        activeTween?.kill();
         window.removeEventListener("product-modal-open", handleOpen);
-
         window.removeEventListener("product-modal-close", handleClose);
-
         window.removeEventListener("product-modal-error", handleError);
-
         document.documentElement.classList.remove("menu-modal-open");
     };
 }
 
 /**
- * Initialize the complete progressive menu experience.
+ * Initialize all non-scroll-triggered Menu interactions.
  */
 export function initMenuExperience(
     root = document.querySelector("[data-menu-page]"),
@@ -964,86 +589,37 @@ export function initMenuExperience(
         return () => {};
     }
 
-    root.dataset.menuExperience = "loading";
-
-    const media = gsap.matchMedia();
-
-    let refreshFrame = null;
+    let activeCleanup = () => {};
+    const mediaQuery = window.matchMedia(reducedMotionQuery);
 
     /**
-     * Recalculate ScrollTrigger positions after layout-affecting resources
-     * finish loading or the active motion preference changes.
+     * Rebuild interaction behavior when the motion preference changes.
      */
-    const refresh = () => {
-        if (refreshFrame !== null) {
-            window.cancelAnimationFrame(refreshFrame);
-        }
+    const initialize = () => {
+        activeCleanup();
 
-        refreshFrame = window.requestAnimationFrame(() => {
-            refreshFrame = null;
+        const reducedMotion = mediaQuery.matches;
+        const cleanups = [
+            initializeCategoryNavigation(root, reducedMotion),
+            initializeCarousels(root, reducedMotion),
+            initializeProductModal(root, reducedMotion),
+        ];
 
-            ScrollTrigger.refresh(true);
-        });
+        root.dataset.menuExperience = "ready";
+
+        activeCleanup = () => {
+            cleanups.reverse().forEach((cleanup) => cleanup());
+        };
     };
 
-    media.add(
-        {
-            motionAllowed: "(prefers-reduced-motion: no-preference)",
-            reducedMotion: "(prefers-reduced-motion: reduce)",
-        },
-        (context) => {
-            const reducedMotion = context.conditions?.reducedMotion === true;
+    const handleMotionPreferenceChange = () => initialize();
 
-            const cleanup = [
-                initializeCategoryNavigation(root, reducedMotion),
-                initializeCarousels(root, reducedMotion),
-                initializeMenuMotion(root, reducedMotion),
-                initializeProductModal(root, reducedMotion),
-            ];
+    mediaQuery.addEventListener("change", handleMotionPreferenceChange);
+    initialize();
 
-            root.dataset.menuExperience = "ready";
-
-            refresh();
-
-            return () => {
-                cleanup.reverse().forEach((callback) => callback());
-
-                root.dataset.menuExperience = "loading";
-            };
-        },
-    );
-
-    if (document.readyState === "complete") {
-        refresh();
-    } else {
-        window.addEventListener("load", refresh, {
-            once: true,
-        });
-    }
-
-    if (document.fonts) {
-        document.fonts.ready.then(refresh).catch(() => {});
-    }
-
-    /**
-     * Remove menu-owned listeners, animations, and ScrollTriggers.
-     */
     const cleanup = () => {
-        window.removeEventListener("load", refresh);
-
-        if (refreshFrame !== null) {
-            window.cancelAnimationFrame(refreshFrame);
-            refreshFrame = null;
-        }
-
-        media.revert();
-
-        ScrollTrigger.getAll().forEach((trigger) => {
-            if (root.contains(trigger.trigger) || trigger.trigger === root) {
-                trigger.kill();
-            }
-        });
-
+        mediaQuery.removeEventListener("change", handleMotionPreferenceChange);
+        activeCleanup();
         delete root.dataset.menuExperience;
     };
 

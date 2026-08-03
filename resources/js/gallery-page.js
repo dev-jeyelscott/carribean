@@ -1,67 +1,42 @@
-import { initGalleryExperience } from "./gallery-experience.js";
+import { initGalleryInteractions } from "./gallery-interactions.js";
 
-let cleanupGalleryExperience = () => {};
+let cleanupGalleryInteractions = () => {};
 
 /**
- * Initialize the Gallery-only browser experience.
- *
- * This file is a dedicated Vite entry loaded only on the Gallery route.
- * Keeping the bootstrap synchronous removes the shared app.js dynamic-import
- * dependency and makes ScrollTrigger initialization deterministic.
+ * Initialize Gallery loading and fullscreen interactions without GSAP.
  */
 function bootGalleryPage() {
-    cleanupGalleryExperience();
+    cleanupGalleryInteractions();
 
-    const galleryRoot = document.querySelector(
-        "[data-gallery-page]",
-    );
+    const galleryRoot = document.querySelector("[data-gallery-page]");
 
     if (!(galleryRoot instanceof HTMLElement)) {
-        cleanupGalleryExperience = () => {};
+        cleanupGalleryInteractions = () => {};
 
         return;
     }
 
-    galleryRoot.dataset.galleryMotionState =
-        "booting";
-
     try {
-        cleanupGalleryExperience =
-            initGalleryExperience(galleryRoot);
+        cleanupGalleryInteractions = initGalleryInteractions(galleryRoot);
     } catch (error) {
-        galleryRoot.dataset.galleryMotionState =
-            "error";
+        galleryRoot.dataset.galleryMotionState = "error";
 
         console.error(
-            "Unable to initialize the Gallery ScrollTrigger experience.",
+            "Unable to initialize the Gallery interactions.",
             error,
         );
 
-        cleanupGalleryExperience = () => {};
+        cleanupGalleryInteractions = () => {};
     }
 }
 
-/*
- * Run after the module executes. ES modules are deferred automatically, so the
- * server-rendered Gallery root is already available at this point.
- */
 bootGalleryPage();
 
-/*
- * Retain compatibility if Livewire navigation is introduced on public links.
- */
-document.addEventListener(
-    "livewire:navigated",
-    bootGalleryPage,
-);
+document.addEventListener("livewire:navigated", bootGalleryPage);
 
 if (import.meta.hot) {
     import.meta.hot.dispose(() => {
-        cleanupGalleryExperience();
-
-        document.removeEventListener(
-            "livewire:navigated",
-            bootGalleryPage,
-        );
+        cleanupGalleryInteractions();
+        document.removeEventListener("livewire:navigated", bootGalleryPage);
     });
 }
