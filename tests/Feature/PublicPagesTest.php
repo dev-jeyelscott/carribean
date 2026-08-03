@@ -253,14 +253,28 @@ test('site setting updates and deletes invalidate cached public values', functio
     )->toBe('Fallback Restaurant Name');
 });
 
-test('gallery page opts into its dedicated progressive motion runtime', function (): void {
-    $this->get(route('gallery'))
+test('gallery page opts into its dedicated collage motion runtime', function (): void {
+    $response = $this->get(route('gallery'));
+
+    $response
         ->assertOk()
         ->assertSee('data-gallery-page', false)
-        ->assertSee('data-gallery-motion', false)
-        ->assertSee('data-gallery-hero', false)
+        ->assertSee(
+            'data-gallery-motion-state="idle"',
+            false,
+        )
         ->assertSee('data-gallery-section', false)
-        ->assertSee('data-gallery-dialog', false);
+        ->assertSee('id="gallery-collection"', false)
+        ->assertSee('data-gallery-dialog', false)
+        ->assertDontSee('data-gallery-hero', false)
+        ->assertDontSee('data-gallery-panel', false);
+
+    expect(
+        substr_count(
+            $response->getContent(),
+            '<section',
+        ),
+    )->toBe(1);
 });
 
 test('shared public settings keep malformed public links out of rendered pages', function (): void {

@@ -51,8 +51,8 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->toContain('gestureReleaseDelay: 140');
 
     /*
-     * The homepage controller consumes the shared profile rather than
-     * redeclaring its own timing constants.
+     * Homepage consumes the shared profile instead of redeclaring timing
+     * constants inside its runtime.
      */
     expect($homepageMotion)
         ->toContain('homepageSectionScrollTriggerConfig')
@@ -64,8 +64,7 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->not->toContain('wheelGestureReleaseDelay = 140');
 
     /*
-     * The About controller consumes the reusable profile while retaining its
-     * page-specific 42px content reveal distance.
+     * About consumes the reusable full-screen section profile.
      */
     expect($configuration)
         ->toContain('aboutSectionScrollTriggerConfig')
@@ -88,8 +87,9 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->not->toContain('const shortViewportQuery');
 
     /*
-     * Gallery keeps native scrolling but now consumes the homepage-derived
-     * media, reveal-trigger, and depth-trigger configuration.
+     * Gallery uses native document scrolling with batched collage reveals.
+     * It does not use desktop panel tracking or depth-based full-screen
+     * section movement.
      */
     expect($configuration)
         ->toContain('gallerySectionScrollTriggerConfig')
@@ -97,19 +97,48 @@ test('page-scoped public motion preserves intentional transition contracts', fun
         ->toContain('stagger: 0.08');
 
     expect($galleryMotion)
-        ->toContain('gsap.registerPlugin(ScrollTrigger);')
-        ->toContain('gallerySectionScrollTriggerConfig')
-        ->toContain('mediaQueries.desktop')
-        ->toContain('mediaQueries.reducedMotion')
+        ->toContain(
+            'gsap.registerPlugin(ScrollTrigger);',
+        )
+        ->toContain(
+            'gallerySectionScrollTriggerConfig',
+        )
+        ->toContain(
+            'mediaQueries.motionAllowed',
+        )
+        ->toContain(
+            'mediaQueries.reducedMotion',
+        )
+        ->toContain('ScrollTrigger.batch(')
+        ->toContain(
+            'start: reveal.trigger.start',
+        )
         ->toContain('y: reveal.distance')
-        ->toContain('duration: reveal.duration')
-        ->toContain('stagger: reveal.stagger')
-        ->toContain('...reveal.trigger')
-        ->toContain('...depth.trigger')
-        ->not->toContain('const desktopQuery')
-        ->not->toContain('const reducedMotionQuery')
-        ->not->toContain('wheelActivationThreshold')
-        ->not->toContain('sectionTransitionDuration = 0.48');
+        ->toContain(
+            'duration: reveal.duration',
+        )
+        ->toContain(
+            'stagger: reveal.stagger',
+        )
+        ->toContain('ScrollTrigger.refresh()')
+        ->not->toContain(
+            'mediaQueries.desktop',
+        )
+        ->not->toContain(
+            '...depth.trigger',
+        )
+        ->not->toContain(
+            'const desktopQuery',
+        )
+        ->not->toContain(
+            'const reducedMotionQuery',
+        )
+        ->not->toContain(
+            'wheelActivationThreshold',
+        )
+        ->not->toContain(
+            'sectionTransitionDuration = 0.48',
+        );
 });
 
 test('homepage uses the reusable menu product card', function (): void {

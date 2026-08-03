@@ -10,16 +10,10 @@ test('the homepage keeps its section runtime without rendering the visible secti
 
     $response
         ->assertOk()
-        /*
-         * Retain the homepage GSAP section-navigation runtime hook.
-         */
         ->assertSee(
             'data-home-section-pager',
             false,
         )
-        /*
-         * Do not render the retired right-side homepage navigation.
-         */
         ->assertDontSee(
             'data-section-pager-context="home"',
             false,
@@ -61,7 +55,7 @@ test('the about page uses its dedicated full-screen section contract', function 
         );
 });
 
-test('the gallery uses dedicated GSAP panels without the retired fixed pager', function (): void {
+test('the gallery uses one collage section without the retired section pager', function (): void {
     Page::query()->create([
         'slug' => 'gallery',
         'title' => 'Gallery',
@@ -75,14 +69,32 @@ test('the gallery uses dedicated GSAP panels without the retired fixed pager', f
     $response
         ->assertOk()
         ->assertSee('data-gallery-page', false)
-        ->assertSee('data-gallery-motion', false)
-        ->assertSee('data-gallery-panel', false)
-        ->assertSee('id="gallery-hero"', false)
-        ->assertSee('id="gallery-signature"', false)
+        ->assertSee(
+            'data-gallery-motion-state="idle"',
+            false,
+        )
+        ->assertSee('data-gallery-section', false)
         ->assertSee('id="gallery-collection"', false)
-        ->assertSee('id="gallery-invitation"', false)
+        ->assertSee('data-gallery-dialog', false)
+        ->assertDontSee('data-gallery-panel', false)
+        ->assertDontSee('id="gallery-hero"', false)
+        ->assertDontSee(
+            'id="gallery-signature"',
+            false,
+        )
+        ->assertDontSee(
+            'id="gallery-invitation"',
+            false,
+        )
         ->assertDontSee(
             'data-section-pager-context="gallery"',
             false,
         );
+
+    expect(
+        substr_count(
+            $response->getContent(),
+            'id="gallery-collection"',
+        ),
+    )->toBe(1);
 });

@@ -37,25 +37,89 @@ test('stale gallery and menu image paths do not emit broken storage urls', funct
         'is_visible' => true,
     ]);
 
-    expect($manager->resolvePath($galleryPath, ResponsiveImageManager::VARIANT_HERO))->toBeNull()
-        ->and($manager->resolveUrl($galleryPath, ResponsiveImageManager::VARIANT_HERO))->toBeNull()
-        ->and($galleryImage->responsiveImagePath(ResponsiveImageManager::VARIANT_HERO))->toBeNull()
-        ->and($galleryImage->responsiveImageUrl(ResponsiveImageManager::VARIANT_HERO))->toBeNull()
-        ->and($galleryImage->image_url)->toBeNull()
-        ->and($menuItem->responsiveImagePath(ResponsiveImageManager::VARIANT_CARD))->toBeNull()
-        ->and($menuItem->responsiveImageUrl(ResponsiveImageManager::VARIANT_CARD))->toBeNull()
-        ->and($menuItem->image_url)->toBeNull();
+    expect(
+        $manager->resolvePath(
+            $galleryPath,
+            ResponsiveImageManager::VARIANT_HERO,
+        ),
+    )
+        ->toBeNull()
+        ->and(
+            $manager->resolveUrl(
+                $galleryPath,
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and(
+            $galleryImage->responsiveImagePath(
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and(
+            $galleryImage->responsiveImageUrl(
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and($galleryImage->image_url)
+        ->toBeNull()
+        ->and(
+            $menuItem->responsiveImagePath(
+                ResponsiveImageManager::VARIANT_CARD,
+            ),
+        )
+        ->toBeNull()
+        ->and(
+            $menuItem->responsiveImageUrl(
+                ResponsiveImageManager::VARIANT_CARD,
+            ),
+        )
+        ->toBeNull()
+        ->and($menuItem->image_url)
+        ->toBeNull();
 });
 
-test('reservation hero renders its approved fallback for a stale managed image path', function (): void {
-    $missingPath = 'gallery/missing-reservation-hero.jpg';
+test('stale managed hero paths resolve safely for fallback consumers', function (): void {
+    $missingPath = 'gallery/missing-managed-hero.jpg';
+    $manager = app(ResponsiveImageManager::class);
 
-    GalleryImage::query()->create([
-        'title' => 'Missing Reservation Hero',
-        'alt_text' => 'Missing reservation hero image',
+    $image = GalleryImage::query()->create([
+        'title' => 'Missing Managed Hero',
+        'alt_text' => 'Missing managed hero image',
         'image_path' => $missingPath,
         'category' => 'interior',
         'sort_order' => 1,
         'is_visible' => true,
     ]);
+
+    expect(
+        $manager->resolvePath(
+            $missingPath,
+            ResponsiveImageManager::VARIANT_HERO,
+        ),
+    )
+        ->toBeNull()
+        ->and(
+            $manager->resolveUrl(
+                $missingPath,
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and(
+            $image->responsiveImagePath(
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and(
+            $image->responsiveImageUrl(
+                ResponsiveImageManager::VARIANT_HERO,
+            ),
+        )
+        ->toBeNull()
+        ->and($image->image_url)
+        ->toBeNull();
 });
