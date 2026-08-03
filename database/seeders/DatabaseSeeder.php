@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             GalleryImageSeeder::class,
             ContactInquirySeeder::class,
             PhaseTenContentSeeder::class,
+            BlogPostSeeder::class,
         ]);
     }
 }
