@@ -105,10 +105,10 @@ test('missing derivatives fall back to the original image without breaking rende
         ->and($image->responsiveImageSrcset())->toBeNull();
 });
 
-test('public pages render responsive image selection while preserving hero priority and lazy loading', function (): void {
+test('public pages render responsive images with intentional loading priorities', function (): void {
     $galleryPath = storeResponsiveTestImage(
         'gallery',
-        'gallery-hero.jpg',
+        'gallery-collage.jpg',
     );
 
     $menuPath = storeResponsiveTestImage(
@@ -117,7 +117,7 @@ test('public pages render responsive image selection while preserving hero prior
     );
 
     GalleryImage::query()->create([
-        'title' => 'Gallery Hero',
+        'title' => 'Gallery Collage',
         'alt_text' => 'Elegant dining room',
         'image_path' => $galleryPath,
         'category' => 'Ambiance',
@@ -141,26 +141,49 @@ test('public pages render responsive image selection while preserving hero prior
         'is_visible' => true,
     ]);
 
+    /*
+     * Homepage retains its dedicated LCP hero and supporting lazy images.
+     */
     $this->get(route('home'))
         ->assertOk()
         ->assertSee('<picture', false)
         ->assertSee('srcset=', false)
         ->assertSee('sizes=', false)
-        ->assertSee('fetchpriority="high"', false)
-        ->assertSee('loading="lazy"', false);
+        ->assertSee(
+            'fetchpriority="high"',
+            false,
+        )
+        ->assertSee(
+            'loading="lazy"',
+            false,
+        );
 
+    /*
+     * Menu cards use responsive selection without hero-level priority.
+     */
     $this->get(route('menu'))
         ->assertOk()
         ->assertSeeText('Responsive Menu Item')
         ->assertSee('<picture', false)
         ->assertSee('srcset=', false);
 
+    /*
+     * Gallery starts with editorial text and lazy collage images. It no
+     * longer has a separate high-priority hero image.
+     */
     $this->get(route('gallery'))
         ->assertOk()
-        ->assertSeeText('Gallery Hero')
+        ->assertSeeText('Gallery Collage')
         ->assertSee('<picture', false)
         ->assertSee('srcset=', false)
-        ->assertSee('fetchpriority="high"', false);
+        ->assertSee(
+            'loading="lazy"',
+            false,
+        )
+        ->assertDontSee(
+            'fetchpriority="high"',
+            false,
+        );
 });
 
 test('filament image tables resolve dedicated thumbnail variants', function (): void {

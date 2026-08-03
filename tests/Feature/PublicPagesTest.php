@@ -142,20 +142,15 @@ test('all public pages share sticky accessible navigation', function (
     'contact' => 'contact.create',
 ]);
 
-test('shared public image heroes expose the shared GSAP contract', function (
-    string $routeName,
-): void {
-    $this->get(route($routeName))
+test('contact image hero exposes the shared GSAP contract', function (): void {
+    $this->get(route('contact.create'))
         ->assertOk()
         ->assertSee('data-public-hero', false)
         ->assertSee(
             'data-gsap="hero-content"',
             false,
         );
-})->with([
-    'gallery' => 'gallery',
-    'contact' => 'contact.create',
-]);
+});
 
 test('homepage exposes its dedicated section-pager hero contract', function (): void {
     $this->get(route('home'))
@@ -269,10 +264,14 @@ test('gallery page opts into its dedicated collage motion runtime', function ():
         ->assertDontSee('data-gallery-hero', false)
         ->assertDontSee('data-gallery-panel', false);
 
+    /*
+    * The shared footer contains its own semantic sections. Count the unique
+    * Gallery content marker instead of every section in the complete layout.
+    */
     expect(
         substr_count(
             $response->getContent(),
-            '<section',
+            'id="gallery-collection"',
         ),
     )->toBe(1);
 });
