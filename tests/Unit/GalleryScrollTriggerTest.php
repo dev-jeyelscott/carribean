@@ -71,39 +71,81 @@ test('gallery card exposes landscape portrait square and feature layouts', funct
         ->toContain('data-gallery-srcset');
 });
 
-test('gallery motion supports progressive loading and accessible navigation', function (): void {
+test('gallery interactions support loading and accessible navigation without ScrollTrigger', function (): void {
     $configuration = readGalleryProjectFile(
         'resources/js/section-scroll-trigger-config.js',
     );
 
-    $motion = readGalleryProjectFile(
-        'resources/js/gallery-experience.js',
+    $interactions = readGalleryProjectFile(
+        'resources/js/gallery-interactions.js',
+    );
+
+    $galleryEntry = readGalleryProjectFile(
+        'resources/js/gallery-page.js',
     );
 
     expect($configuration)
         ->toContain(
-            'motionAllowed: "(prefers-reduced-motion: no-preference)"',
+            'homepageSectionScrollTriggerConfig',
+        )
+        ->not->toContain(
+            'gallerySectionScrollTriggerConfig',
+        )
+        ->not->toContain(
+            'aboutSectionScrollTriggerConfig',
+        );
+
+    expect($interactions)
+        ->toContain(
+            'export function initGalleryInteractions',
         )
         ->toContain(
-            'reducedMotion: "(prefers-reduced-motion: reduce)"',
+            'initializeThumbnailState',
         )
-        ->toContain('gallerySectionScrollTriggerConfig');
+        ->toContain(
+            'initializeLoadMore',
+        )
+        ->toContain(
+            'initializeDialog',
+        )
+        ->toContain(
+            'dialog.showModal()',
+        )
+        ->toContain(
+            '"ArrowLeft"',
+        )
+        ->toContain(
+            '"ArrowRight"',
+        )
+        ->toContain(
+            '"pointerdown"',
+        )
+        ->toContain(
+            '"pointerup"',
+        )
+        ->toContain(
+            'activeOpener.focus',
+        )
+        ->toContain(
+            'Accept: "application/json"',
+        )
+        ->not->toContain(
+            'gsap/ScrollTrigger',
+        )
+        ->not->toContain(
+            'ScrollTrigger.',
+        );
 
-    expect($motion)
-        ->toContain('gallerySectionScrollTriggerConfig')
-        ->toContain('gsap.context(')
-        ->toContain('gsap.matchMedia()')
-        ->toContain('ScrollTrigger.batch(')
-        ->toContain('ScrollTrigger.refresh()')
-        ->toContain('mediaQueries.motionAllowed')
-        ->toContain('mediaQueries.reducedMotion')
-        ->toContain('dialog.showModal()')
-        ->toContain('"ArrowLeft"')
-        ->toContain('"ArrowRight"')
-        ->toContain('"pointerdown"')
-        ->toContain('"pointerup"')
-        ->toContain('activeOpener?.focus')
-        ->toContain('Accept: "application/json"');
+    expect($galleryEntry)
+        ->toContain(
+            'initGalleryInteractions',
+        )
+        ->not->toContain(
+            'initGalleryExperience',
+        )
+        ->not->toContain(
+            'gsap/ScrollTrigger',
+        );
 });
 
 test('gallery styles define all collage shapes and reduced motion', function (): void {
@@ -124,8 +166,12 @@ test('gallery styles define all collage shapes and reduced motion', function ():
         ->toContain(
             '.gallery-collage-card[data-gallery-layout="square"]',
         )
-        ->toContain('@media (prefers-reduced-motion: reduce)')
-        ->toContain('backdrop-filter: blur(');
+        ->toContain(
+            '@media (prefers-reduced-motion: reduce)',
+        )
+        ->toContain(
+            'backdrop-filter: blur(',
+        );
 });
 
 test('gallery uses the transparent header and green semantic tokens', function (): void {

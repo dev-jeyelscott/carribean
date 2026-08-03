@@ -24,7 +24,7 @@ function readGalleryAssetFile(string $relativePath): string
     return $contents;
 }
 
-test('gallery has a dedicated Vite entry', function (): void {
+test('gallery has a dedicated native-interactions Vite entry', function (): void {
     $viteConfig = readGalleryAssetFile(
         'vite.config.js',
     );
@@ -52,13 +52,22 @@ test('gallery has a dedicated Vite entry', function (): void {
 
     expect($galleryEntry)
         ->toContain(
-            'import { initGalleryExperience }',
+            'import { initGalleryInteractions }',
         )
         ->toContain(
-            'initGalleryExperience(galleryRoot)',
+            'initGalleryInteractions(galleryRoot)',
         )
         ->toContain(
-            'galleryMotionState =',
+            'cleanupGalleryInteractions',
+        )
+        ->toContain(
+            '"livewire:navigated"',
+        )
+        ->not->toContain(
+            'initGalleryExperience',
+        )
+        ->not->toContain(
+            'gsap/ScrollTrigger',
         );
 });
 
@@ -70,6 +79,9 @@ test('shared application entry does not initialize gallery', function (): void {
     expect($app)
         ->not->toContain(
             'import("./gallery-experience")',
+        )
+        ->not->toContain(
+            'import("./gallery-interactions")',
         )
         ->not->toContain(
             'const galleryPageRoot',
